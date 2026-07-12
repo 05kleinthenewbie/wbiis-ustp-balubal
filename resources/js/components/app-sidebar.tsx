@@ -1,10 +1,17 @@
-import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import {
+    LayoutGrid,
+    FileText,
+    ClipboardList,
+    Box,
+    Calendar,
+    AlertTriangle,
+    History,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { TeamSwitcher } from '@/components/team-switcher';
 import {
     Sidebar,
     SidebarContent,
@@ -14,35 +21,50 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
-    const page = usePage();
-    const dashboardUrl = page.props.currentTeam
-        ? dashboard(page.props.currentTeam.slug)
-        : '/';
+    const dashboardUrl = '/dashboard';
 
     const mainNavItems: NavItem[] = [
         {
-            title: 'Dashboard',
+            title: 'Overview',
             href: dashboardUrl,
             icon: LayoutGrid,
         },
+        {
+            title: 'Requests',
+            href: '/requests',
+            icon: FileText,
+        },
+        {
+            title: 'Job Orders',
+            href: '/job-orders',
+            icon: ClipboardList,
+        },
+        {
+            title: 'Inventory',
+            href: '/inventory',
+            icon: Box,
+        },
+        {
+            title: 'Bookings',
+            href: '/bookings',
+            icon: Calendar,
+        },
+        {
+            title: 'Incidents',
+            href: '/incidents',
+            icon: AlertTriangle,
+        },
+        {
+            title: 'Audit Log',
+            href: '/audit-log',
+            icon: History,
+        },
     ];
 
-    const footerNavItems: NavItem[] = [
-        {
-            title: 'Repository',
-            href: 'https://github.com/laravel/react-starter-kit',
-            icon: FolderGit2,
-        },
-        {
-            title: 'Documentation',
-            href: 'https://laravel.com/docs/starter-kits#react',
-            icon: BookOpen,
-        },
-    ];
+    const footerNavItems: NavItem[] = [];
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -54,11 +76,6 @@ export function AppSidebar() {
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <TeamSwitcher />
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
