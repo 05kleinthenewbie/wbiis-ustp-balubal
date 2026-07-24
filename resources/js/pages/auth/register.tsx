@@ -1,22 +1,26 @@
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
-import TeamInvitationAlert from '@/components/team-invitation-alert';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
-import type { TeamInvitationContext } from '@/types';
 
 type Props = {
     passwordRules: string;
-    teamInvitation?: TeamInvitationContext | null;
 };
 
-export default function Register({ passwordRules, teamInvitation }: Props) {
+export default function Register({ passwordRules }: Props) {
     return (
         <>
             <Head title="Register" />
@@ -28,16 +32,9 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
             >
                 {({ processing, errors }) => (
                     <>
-                        {teamInvitation && (
-                            <TeamInvitationAlert
-                                invitation={teamInvitation}
-                                action="Register"
-                            />
-                        )}
-
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="name">Full name</Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -46,7 +43,7 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                                     tabIndex={1}
                                     autoComplete="name"
                                     name="name"
-                                    placeholder="Full name"
+                                    placeholder="Juan Dela Cruz"
                                 />
                                 <InputError
                                     message={errors.name}
@@ -55,7 +52,7 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">USTP Email</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -63,9 +60,44 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                                     tabIndex={2}
                                     autoComplete="email"
                                     name="email"
-                                    placeholder="email@example.com"
+                                    placeholder="name@ustp.edu.ph"
                                 />
                                 <InputError message={errors.email} />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="role">Role</Label>
+                                    <Select name="role" required>
+                                        <SelectTrigger id="role" className="w-full">
+                                            <SelectValue placeholder="Select role" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="faculty_staff">
+                                                Faculty/Staff
+                                            </SelectItem>
+                                            <SelectItem value="student">
+                                                Student
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.role} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="department">
+                                        Department
+                                    </Label>
+                                    <Input
+                                        id="department"
+                                        type="text"
+                                        required
+                                        tabIndex={3}
+                                        name="department"
+                                        placeholder="e.g. CITC"
+                                    />
+                                    <InputError message={errors.department} />
+                                </div>
                             </div>
 
                             <div className="grid gap-2">
@@ -73,7 +105,7 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                                 <PasswordInput
                                     id="password"
                                     required
-                                    tabIndex={3}
+                                    tabIndex={4}
                                     autoComplete="new-password"
                                     name="password"
                                     placeholder="Password"
@@ -89,7 +121,7 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                                 <PasswordInput
                                     id="password_confirmation"
                                     required
-                                    tabIndex={4}
+                                    tabIndex={5}
                                     autoComplete="new-password"
                                     name="password_confirmation"
                                     placeholder="Confirm password"
@@ -102,8 +134,9 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
 
                             <Button
                                 type="submit"
-                                className="mt-2 w-full"
-                                tabIndex={5}
+                                className="mt-2 w-full bg-ustp-navy text-white hover:bg-ustp-navy-dark"
+                                tabIndex={6}
+                                disabled={processing}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
@@ -111,21 +144,13 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
+                        <div className="text-center text-sm text-slate-600">
                             Already have an account?{' '}
                             <TextLink
-                                href={
-                                    teamInvitation
-                                        ? login.url({
-                                              query: {
-                                                  invitation:
-                                                      teamInvitation.code,
-                                              },
-                                          })
-                                        : login()
-                                }
+                                href={login()}
                                 data-test="team-invitation-login-link"
-                                tabIndex={6}
+                                tabIndex={7}
+                                className="text-ustp-navy font-medium hover:text-ustp-navy-dark"
                             >
                                 Log in
                             </TextLink>
