@@ -9,10 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+   public function up(): void
     {
         Schema::create('service_types', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('category_id')->constrained('service_categories')->cascadeOnDelete();
+            $table->string('service_name', 150);
+            $table->string('default_action', 100)->nullable();
             $table->timestamps();
         });
     }
