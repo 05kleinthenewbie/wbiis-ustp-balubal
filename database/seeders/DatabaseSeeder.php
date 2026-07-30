@@ -8,7 +8,6 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
 
     /**
      * Seed the application's database.
@@ -19,7 +18,7 @@ class DatabaseSeeder extends Seeder
 
         $adminRole = \App\Models\Role::where('role_name', 'ict_admin')->first();
 
-        User::firstOrCreate(
+        $admin = User::firstOrCreate(
             ['email' => 'admin@ustp.edu.ph'],
             [
                 'name' => 'ICT Administrator',
@@ -30,5 +29,13 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+
+        if (! $admin->current_team_id) {
+            app(\App\Actions\Teams\CreateTeam::class)->handle(
+                $admin,
+                $admin->name."'s Team",
+                isPersonal: true
+            );
+        }
     }
 }
