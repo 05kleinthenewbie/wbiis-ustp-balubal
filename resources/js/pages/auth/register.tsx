@@ -52,7 +52,7 @@ export default function Register({ passwordRules }: Props) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">USTP Email</Label>
+                                <Label htmlFor="email">Email address</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -60,9 +60,12 @@ export default function Register({ passwordRules }: Props) {
                                     tabIndex={2}
                                     autoComplete="email"
                                     name="email"
-                                    placeholder="name@ustp.edu.ph"
+                                    placeholder="your.email@example.com"
                                 />
                                 <InputError message={errors.email} />
+                                <p className="text-xs text-muted-foreground">
+                                    Don't have a USTP email yet? You can request one after registering.
+                                </p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
