@@ -76,7 +76,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 
                         <Button
                             type="submit"
-                            className="mt-4 w-full"
+                            className="mt-4 w-full bg-ustp-navy text-white hover:bg-ustp-navy-dark"
                             disabled={processing}
                             data-test="reset-password-button"
                         >

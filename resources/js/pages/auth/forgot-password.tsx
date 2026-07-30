@@ -40,11 +40,11 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                             <div className="my-6 flex items-center justify-start">
                                 <Button
-                                    className="w-full"
+                                    className="w-full bg-ustp-navy text-white hover:bg-ustp-navy-dark"
                                     disabled={processing}
                                     data-test="email-password-reset-link-button"
                                 >
-                                    {processing && (
+                                        {processing && (
                                         <LoaderCircle className="h-4 w-4 animate-spin" />
                                     )}
                                     Email password reset link
@@ -54,9 +54,11 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     )}
                 </Form>
 
-                <div className="space-x-1 text-center text-sm text-muted-foreground">
+                <div className="space-x-1 text-center text-sm text-slate-600">
                     <span>Or, return to</span>
-                    <TextLink href={login()}>log in</TextLink>
+                    <TextLink href={login()} className="text-ustp-navy font-medium hover:text-ustp-navy-dark">
+                        log in
+                    </TextLink>
                 </div>
             </div>
         </>
