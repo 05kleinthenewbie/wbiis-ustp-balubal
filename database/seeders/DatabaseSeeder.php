@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(RoleSeeder::class);
+        $this->call(ServiceCategorySeeder::class);
+        $this->call(ServiceTypeSeeder::class);
 
         $adminRole = \App\Models\Role::where('role_name', 'ict_admin')->first();
 
