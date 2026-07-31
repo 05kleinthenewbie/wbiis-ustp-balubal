@@ -52,7 +52,7 @@ export function AppSidebar() {
     ];
 
     let mainNavItems: NavItem[] = facultyStaffNavItems;
-    
+
     if (roleName === 'ict_admin') {
         mainNavItems = adminNavItems;
     } else if (roleName === 'student') {
