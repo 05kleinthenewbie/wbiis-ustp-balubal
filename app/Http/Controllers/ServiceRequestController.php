@@ -14,21 +14,20 @@ class ServiceRequestController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+   public function index()
     {
         $user = Auth::user();
 
         $query = ServiceRequestModel::with(['user', 'requestServices.serviceType.category'])
             ->latest();
 
-        // Faculty/Staff and Students only see their own requests.
-        // ICT Admins see everyone's requests.
         if ($user->role->role_name !== 'ict_admin') {
             $query->where('user_id', $user->id);
         }
 
         return Inertia::render('requests/index', [
             'requests' => $query->get(),
+            'isAdmin' => $user->role->role_name === 'ict_admin',
         ]);
     }
 
@@ -38,6 +37,10 @@ class ServiceRequestController extends Controller
     public function create()
     {
         $user = Auth::user();
+
+        if ($user->role->role_name === 'ict_admin') {
+            abort(403, 'ICT Administrators cannot submit service requests.');
+        }
 
         $categories = ServiceCategory::with('serviceTypes')->get();
 
@@ -58,6 +61,12 @@ class ServiceRequestController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        if ($user->role->role_name === 'ict_admin') {
+            abort(403, 'ICT Administrators cannot submit service requests.');
+        }
+
         $validated = $request->validate([
             'problem_description' => ['required', 'string'],
             'services' => ['required', 'array', 'min:1'],

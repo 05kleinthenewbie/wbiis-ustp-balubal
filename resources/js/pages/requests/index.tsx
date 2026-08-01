@@ -26,6 +26,7 @@ type ServiceRequestItem = {
 
 type Props = {
     requests: ServiceRequestItem[];
+    isAdmin: boolean;
 };
 
 const statusStyles: Record<string, string> = {
@@ -35,7 +36,7 @@ const statusStyles: Record<string, string> = {
     completed: 'bg-blue-100 text-blue-800',
 };
 
-export default function RequestsIndex({ requests }: Props) {
+export default function RequestsIndex({ requests, isAdmin }: Props) {
     return (
         <>
             <Head title="Service Requests" />
@@ -48,12 +49,14 @@ export default function RequestsIndex({ requests }: Props) {
                             Track your submitted ICT service requests.
                         </p>
                     </div>
-                    <Button asChild className="bg-ustp-navy text-white hover:bg-ustp-navy-dark">
-                        <Link href="/requests/create">
-                            <Plus className="size-4" />
-                            New Request
-                        </Link>
-                    </Button>
+                    {!isAdmin && (
+                        <Button asChild className="bg-ustp-navy text-white hover:bg-ustp-navy-dark">
+                            <Link href="/requests/create">
+                                <Plus className="size-4" />
+                                New Request
+                            </Link>
+                        </Button>
+                    )}
                 </div>
 
                 {requests.length === 0 ? (
