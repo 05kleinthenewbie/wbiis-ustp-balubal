@@ -10,6 +10,7 @@ Route::inertia('/', 'welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::resource('requests', ServiceRequestController::class)->except(['edit', 'destroy']);
+    Route::resource('job-orders', \App\Http\Controllers\JobOrderController::class)->only(['index', 'show', 'update']);
 });
 
 Route::middleware(['auth'])->group(function () {

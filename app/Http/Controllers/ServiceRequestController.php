@@ -122,7 +122,15 @@ class ServiceRequestController extends Controller
         ]);
 
         $serviceRequest = ServiceRequestModel::findOrFail($id);
+        $wasPending = $serviceRequest->request_status === 'pending';
         $serviceRequest->update($validated);
+
+        if ($wasPending && $validated['request_status'] === 'approved') {
+            $serviceRequest->jobOrders()->create([
+                'status' => 'open',
+                'date_assigned' => null,
+            ]);
+        }
 
         return redirect()->back()->with('status', 'Request updated successfully.');
     }
