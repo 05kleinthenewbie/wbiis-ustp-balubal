@@ -9,7 +9,7 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
-    Route::resource('requests', ServiceRequestController::class)->except(['edit', 'update', 'destroy']);
+    Route::resource('requests', ServiceRequestController::class)->except(['edit', 'destroy']);
 });
 
 Route::middleware(['auth'])->group(function () {

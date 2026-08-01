@@ -85,7 +85,7 @@ class ServiceRequestController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+   public function show(string $id)
     {
         $serviceRequest = ServiceRequestModel::with([
             'user', 'requestServices.serviceType.category', 'attachments', 'jobOrders.technician',
@@ -93,6 +93,7 @@ class ServiceRequestController extends Controller
 
         return Inertia::render('requests/show', [
             'request' => $serviceRequest,
+            'isAdmin' => Auth::user()->role->role_name === 'ict_admin',
         ]);
     }
 
@@ -109,7 +110,21 @@ class ServiceRequestController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $user = Auth::user();
+
+        if ($user->role->role_name !== 'ict_admin') {
+            abort(403, 'Only ICT Admins can review service requests.');
+        }
+
+        $validated = $request->validate([
+            'request_status' => ['required', 'in:pending,approved,rejected,completed'],
+            'priority_level' => ['nullable', 'in:low,medium,high,urgent'],
+        ]);
+
+        $serviceRequest = ServiceRequestModel::findOrFail($id);
+        $serviceRequest->update($validated);
+
+        return redirect()->back()->with('status', 'Request updated successfully.');
     }
 
     /**
