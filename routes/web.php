@@ -12,6 +12,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('requests', ServiceRequestController::class)->except(['edit', 'destroy']);
     Route::resource('job-orders', \App\Http\Controllers\JobOrderController::class)->only(['index', 'show', 'update']);
     Route::resource('bookings', \App\Http\Controllers\BookingController::class)->except(['edit', 'destroy']);
+    Route::resource('incidents', \App\Http\Controllers\IncidentReportController::class)->except(['edit', 'destroy']);
 });
 
 Route::middleware(['auth'])->group(function () {
