@@ -45,6 +45,14 @@ class DashboardController extends Controller
                 'pendingBookings' => Booking::where('booking_status', 'pending')->count(),
                 'openIncidents' => IncidentReport::whereIn('status', ['open', 'under_review'])->count(),
             ];
+        } elseif ($user->role->role_name === 'student') {
+            $stats = [
+                'myRequests' => ServiceRequest::where('user_id', $user->id)->count(),
+                'pendingRequests' => ServiceRequest::where('user_id', $user->id)
+                    ->where('request_status', 'pending')->count(),
+                'approvedRequests' => ServiceRequest::where('user_id', $user->id)
+                    ->where('request_status', 'approved')->count(),
+            ];
         } else {
             $stats = [
                 'myRequests' => ServiceRequest::where('user_id', $user->id)->count(),
@@ -62,6 +70,7 @@ class DashboardController extends Controller
             'pendingInvitations' => $pendingInvitations,
             'stats' => $stats,
             'isAdmin' => $isAdmin,
+            'isStudent' => $user->role->role_name === 'student',
         ]);
     }
 }

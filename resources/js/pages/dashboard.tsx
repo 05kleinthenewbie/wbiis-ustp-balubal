@@ -24,10 +24,17 @@ type UserStats = {
     upcomingBookings: number;
 };
 
+type StudentStats = {
+    myRequests: number;
+    pendingRequests: number;
+    approvedRequests: number;
+};
+
 type Props = {
     pendingInvitations?: DashboardInvitation[];
-    stats: AdminStats | UserStats;
+    stats: AdminStats | UserStats | StudentStats;
     isAdmin: boolean;
+    isStudent: boolean;
 };
 
 function StatCard({
@@ -59,6 +66,7 @@ export default function Dashboard({
     pendingInvitations = [],
     stats,
     isAdmin,
+    isStudent,
 }: Props) {
     const [showInvitations, setShowInvitations] = useState(
         pendingInvitations.length > 0,
@@ -85,7 +93,7 @@ export default function Dashboard({
                 </div>
 
                 <div className="grid auto-rows-min gap-4 md:grid-cols-4">
-                    {isAdmin ? (
+                     {isAdmin ? (
                         <>
                             <StatCard
                                 label="Pending Requests"
@@ -110,6 +118,27 @@ export default function Dashboard({
                                 value={(stats as AdminStats).openIncidents}
                                 icon={AlertTriangle}
                                 href="/incidents"
+                            />
+                        </>
+                    ) : isStudent ? (
+                        <>
+                            <StatCard
+                                label="My Requests"
+                                value={(stats as StudentStats).myRequests}
+                                icon={FileText}
+                                href="/requests"
+                            />
+                            <StatCard
+                                label="Pending Requests"
+                                value={(stats as StudentStats).pendingRequests}
+                                icon={ClipboardList}
+                                href="/requests"
+                            />
+                            <StatCard
+                                label="Approved Requests"
+                                value={(stats as StudentStats).approvedRequests}
+                                icon={CalendarCheck}
+                                href="/requests"
                             />
                         </>
                     ) : (
@@ -140,7 +169,7 @@ export default function Dashboard({
                             />
                         </>
                     )}
-                </div>
+                                    </div>
             </div>
         </>
     );
