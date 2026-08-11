@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
+use App\Models\IncidentReport;
+use App\Models\JobOrder;
+use App\Models\ServiceRequest;
 use App\Models\TeamInvitation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -11,7 +15,8 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $email = strtolower($request->user()->email);
+        $user = $request->user()->load('role');
+        $email = strtolower($user->email);
 
         $pendingInvitations = TeamInvitation::query()
             ->with(['inviter', 'team'])
@@ -31,8 +36,32 @@ class DashboardController extends Controller
                 ],
             ]);
 
+        $isAdmin = $user->role->role_name === 'ict_admin';
+
+        if ($isAdmin) {
+            $stats = [
+                'pendingRequests' => ServiceRequest::where('request_status', 'pending')->count(),
+                'openJobOrders' => JobOrder::whereIn('status', ['open', 'in_progress'])->count(),
+                'pendingBookings' => Booking::where('booking_status', 'pending')->count(),
+                'openIncidents' => IncidentReport::whereIn('status', ['open', 'under_review'])->count(),
+            ];
+        } else {
+            $stats = [
+                'myRequests' => ServiceRequest::where('user_id', $user->id)->count(),
+                'pendingRequests' => ServiceRequest::where('user_id', $user->id)
+                    ->where('request_status', 'pending')->count(),
+                'myBookings' => Booking::where('user_id', $user->id)->count(),
+                'upcomingBookings' => Booking::where('user_id', $user->id)
+                    ->where('booking_status', 'approved')
+                    ->where('booking_date', '>=', now()->toDateString())
+                    ->count(),
+            ];
+        }
+
         return Inertia::render('dashboard', [
             'pendingInvitations' => $pendingInvitations,
+            'stats' => $stats,
+            'isAdmin' => $isAdmin,
         ]);
     }
 }
