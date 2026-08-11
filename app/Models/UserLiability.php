@@ -8,21 +8,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class UserLiability extends Model
 {
     protected $fillable = [
-        'incident_id',
-        'user_id',
-        'liability_description',
-        'liability_amount',
-        'liability_status',
-        'date_assigned',
-        'date_settled',
-    ];
+    'incident_id',
+    'user_id',
+    'liability_description',
+    'liability_status',
+    'date_assigned',
+    'date_settled',
+];
 
-    protected $casts = [
-        'liability_amount' => 'decimal:2',
-        'date_assigned' => 'datetime',
-        'date_settled' => 'datetime',
-    ];
-
+protected $casts = [
+    'date_assigned' => 'datetime',
+    'date_settled' => 'datetime',
+];
     /**
      * Get the incident this liability is tied to.
      */

@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('incident_id')->constrained('incident_reports')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->text('liability_description')->nullable();
-            $table->decimal('liability_amount', 10, 2)->nullable();
             $table->enum('liability_status', ['pending', 'settled', 'waived'])->default('pending');
             $table->timestamp('date_assigned')->useCurrent();
             $table->timestamp('date_settled')->nullable();

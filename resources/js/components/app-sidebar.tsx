@@ -8,6 +8,7 @@ import {
     AlertTriangle,
     History,
     Mail,
+    BarChart3,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -37,6 +38,7 @@ export function AppSidebar() {
         { title: 'Bookings', href: '/bookings', icon: Calendar },
         { title: 'Incidents', href: '/incidents', icon: AlertTriangle },
         { title: 'Audit Log', href: '/audit-log', icon: History },
+        { title: 'Reports', href: '/reports', icon: BarChart3 },
     ];
 
     const facultyStaffNavItems: NavItem[] = [

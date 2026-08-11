@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 type Liability = {
     id: number;
     liability_description: string | null;
-    liability_amount: string | null;
     liability_status: string;
     user: { name: string };
 };
@@ -40,7 +39,6 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
     const [status, setStatus] = useState(incident.status);
     const [liabilityUserId, setLiabilityUserId] = useState('');
     const [liabilityDescription, setLiabilityDescription] = useState('');
-    const [liabilityAmount, setLiabilityAmount] = useState('');
     const [processing, setProcessing] = useState(false);
 
     function handleSave() {
@@ -51,7 +49,6 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
                 status,
                 liability_user_id: liabilityUserId || null,
                 liability_description: liabilityDescription || null,
-                liability_amount: liabilityAmount || null,
             },
             { onFinish: () => setProcessing(false) },
         );
@@ -100,11 +97,6 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
                                         <span className="font-medium">{liability.user.name}</span>
                                         <Badge variant="outline">{liability.liability_status}</Badge>
                                     </div>
-                                    {liability.liability_amount && (
-                                        <p className="mt-1 text-muted-foreground">
-                                            ₱{Number(liability.liability_amount).toFixed(2)}
-                                        </p>
-                                    )}
                                     {liability.liability_description && (
                                         <p className="mt-1 text-muted-foreground">
                                             {liability.liability_description}
@@ -145,16 +137,7 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
                                 onChange={(e) => setLiabilityUserId(e.target.value)}
                             />
                         </div>
-                        <div className="mb-3 grid gap-2">
-                            <Label className="text-xs">Amount (₱)</Label>
-                            <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="0.00"
-                                value={liabilityAmount}
-                                onChange={(e) => setLiabilityAmount(e.target.value)}
-                            />
-                        </div>
+
                         <div className="mb-4 grid gap-2">
                             <Label className="text-xs">Notes</Label>
                             <Textarea

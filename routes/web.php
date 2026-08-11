@@ -14,6 +14,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('bookings', \App\Http\Controllers\BookingController::class)->except(['edit', 'destroy']);
     Route::resource('incidents', \App\Http\Controllers\IncidentReportController::class)->except(['edit', 'destroy']);
     Route::resource('inventory', \App\Http\Controllers\InventoryItemController::class);
+    Route::get('reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
 });
 
 Route::middleware(['auth'])->group(function () {

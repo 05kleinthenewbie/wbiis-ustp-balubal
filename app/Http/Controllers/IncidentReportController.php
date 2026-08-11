@@ -96,11 +96,10 @@ class IncidentReportController extends Controller
             abort(403, 'Only ICT Admins can review incident reports.');
         }
 
-        $validated = $request->validate([
+            $validated = $request->validate([
             'status' => ['required', 'in:open,under_review,resolved'],
             'liability_user_id' => ['nullable', 'exists:users,id'],
             'liability_description' => ['nullable', 'string'],
-            'liability_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $incident = IncidentReport::findOrFail($id);
@@ -110,12 +109,10 @@ class IncidentReportController extends Controller
             $incident->userLiabilities()->create([
                 'user_id' => $validated['liability_user_id'],
                 'liability_description' => $validated['liability_description'] ?? null,
-                'liability_amount' => $validated['liability_amount'] ?? null,
                 'liability_status' => 'pending',
                 'date_assigned' => now(),
             ]);
         }
-
         return redirect()->back()->with('status', 'Incident updated successfully.');
     }
 
