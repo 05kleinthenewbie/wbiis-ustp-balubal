@@ -130,20 +130,28 @@ class ServiceRequestController extends Controller
             'priority_level' => ['nullable', 'in:low,medium,high,urgent'],
         ]);
 
-        $serviceRequest = ServiceRequestModel::findOrFail($id);
-        $wasPending = $serviceRequest->request_status === 'pending';
-        $serviceRequest->update($validated);
+    $serviceRequest = ServiceRequestModel::findOrFail($id);
+    $wasPending = $serviceRequest->request_status === 'pending';
+    $serviceRequest->update($validated);
 
-        if ($wasPending && $validated['request_status'] === 'approved') {
-            $serviceRequest->jobOrders()->create([
-                'status' => 'open',
-                'date_assigned' => null,
-            ]);
-        }
-
-        return redirect()->back()->with('status', 'Request updated successfully.');
+    if ($wasPending && $validated['request_status'] === 'approved') {
+        $serviceRequest->jobOrders()->create([
+            'status' => 'open',
+            'date_assigned' => null,
+        ]);
     }
 
+    if ($wasPending && in_array($validated['request_status'], ['approved', 'rejected'])) {
+        \App\Models\Notification::create([
+            'user_id' => $serviceRequest->user_id,
+            'message' => "Your service request #{$serviceRequest->id} has been {$validated['request_status']}.",
+            'notification_type' => 'service_request',
+            'notification_status' => 'unread',
+        ]);
+    }
+
+    return redirect()->back()->with('status', 'Request updated successfully.');
+    }
     /**
      * Remove the specified resource from storage.
      */

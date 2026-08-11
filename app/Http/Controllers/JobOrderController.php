@@ -101,6 +101,19 @@ class JobOrderController extends Controller
 
         $jobOrder->update($validated);
 
+        if ($validated['status'] === 'completed') {
+            \App\Models\Notification::create([
+                'user_id' => $jobOrder->serviceRequest->user_id,
+                'message' => "Your job order #JO-".str_pad($jobOrder->id, 4, '0', STR_PAD_LEFT)." has been completed. Please rate the service.",
+                'notification_type' => 'job_order',
+                'notification_status' => 'unread',
+            ]);
+        }
+
+        return redirect()->back()->with('status', 'Job order updated successfully.');
+
+        $jobOrder->update($validated);
+
         return redirect()->back()->with('status', 'Job order updated successfully.');
     }
 
