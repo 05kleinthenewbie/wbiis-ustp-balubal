@@ -1,5 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { BackButton } from '@/components/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -96,6 +97,7 @@ export default function JobOrdersShow({ jobOrder, isAdmin, technicians }: Props)
             <Head title={`Job Order #${jobOrder.id}`} />
 
             <div className="mx-auto flex max-w-2xl flex-1 flex-col gap-4 p-4">
+                <BackButton href="/job-orders" />
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-xs text-muted-foreground">

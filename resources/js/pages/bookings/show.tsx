@@ -1,5 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { BackButton } from '@/components/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -44,6 +45,7 @@ export default function BookingsShow({ booking, isAdmin }: Props) {
             <Head title={`Booking #${booking.id}`} />
 
             <div className="mx-auto flex max-w-lg flex-1 flex-col gap-4 p-4">
+                <BackButton href="/bookings" />
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-xs text-muted-foreground">Booking #{booking.id}</p>

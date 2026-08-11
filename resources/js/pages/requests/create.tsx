@@ -1,5 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { BackButton } from '@/components/back-button';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -66,7 +67,7 @@ export default function RequestsCreate({ categories }: Props) {
                     action_type: defaultAction ?? '',
                 };
             }
-            
+
             return next;
         });
     }
@@ -93,6 +94,7 @@ export default function RequestsCreate({ categories }: Props) {
             <Head title="New Service Request" />
 
             <div className="mx-auto flex max-w-2xl flex-1 flex-col gap-4 p-4">
+                <BackButton href="/requests" />
                 <div>
                     <h1 className="text-xl font-semibold">New service request</h1>
                     <p className="text-sm text-muted-foreground">

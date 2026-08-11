@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { BackButton } from '@/components/back-button';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -35,6 +36,7 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
             <Head title="Report Incident" />
 
             <div className="mx-auto flex max-w-lg flex-1 flex-col gap-4 p-4">
+                <BackButton href="/incidents" />
                 <div>
                     <h1 className="text-xl font-semibold">Report an incident</h1>
                     <p className="text-sm text-muted-foreground">

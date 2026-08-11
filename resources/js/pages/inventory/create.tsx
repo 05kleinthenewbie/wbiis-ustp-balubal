@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { BackButton } from '@/components/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,6 +35,7 @@ export default function InventoryCreate() {
             <Head title="Add Inventory Item" />
 
             <div className="mx-auto flex max-w-lg flex-1 flex-col gap-4 p-4">
+                <BackButton href="/inventory" />
                 <div>
                     <h1 className="text-xl font-semibold">Add inventory item</h1>
                     <p className="text-sm text-muted-foreground">
