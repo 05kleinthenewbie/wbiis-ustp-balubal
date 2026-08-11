@@ -11,6 +11,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::resource('requests', ServiceRequestController::class)->except(['edit', 'destroy']);
     Route::resource('job-orders', \App\Http\Controllers\JobOrderController::class)->only(['index', 'show', 'update']);
+    Route::post('job-orders/{jobOrder}/responses', [\App\Http\Controllers\JobOrderController::class, 'addResponse'])->name('job-orders.responses.store');
     Route::resource('bookings', \App\Http\Controllers\BookingController::class)->except(['edit', 'destroy']);
     Route::resource('incidents', \App\Http\Controllers\IncidentReportController::class)->except(['edit', 'destroy']);
     Route::resource('inventory', \App\Http\Controllers\InventoryItemController::class);

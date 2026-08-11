@@ -9,6 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 type Technician = { id: number; name: string };
 
@@ -61,6 +62,9 @@ export default function JobOrdersShow({ jobOrder, isAdmin, technicians }: Props)
     const [finalRemarks, setFinalRemarks] = useState(jobOrder.final_remarks ?? '');
     const [processing, setProcessing] = useState(false);
 
+    const [responseText, setResponseText] = useState('');
+    const [responseProcessing, setResponseProcessing] = useState(false);
+
     function handleSave() {
         setProcessing(true);
         router.put(
@@ -71,6 +75,19 @@ export default function JobOrdersShow({ jobOrder, isAdmin, technicians }: Props)
                 final_remarks: finalRemarks || null,
             },
             { onFinish: () => setProcessing(false) },
+        );
+    }
+
+    function handleAddResponse(e: React.FormEvent) {
+        e.preventDefault();
+        setResponseProcessing(true);
+        router.post(
+            `/job-orders/${jobOrder.id}/responses`,
+            { response_report: responseText },
+            {
+                onSuccess: () => setResponseText(''),
+                onFinish: () => setResponseProcessing(false),
+            },
         );
     }
 
@@ -125,10 +142,11 @@ export default function JobOrdersShow({ jobOrder, isAdmin, technicians }: Props)
                     </p>
                 </div>
 
-                {jobOrder.technician_responses.length > 0 && (
-                    <div className="rounded-xl border p-4">
-                        <p className="mb-2 text-sm font-medium">Technician responses</p>
-                        <div className="flex flex-col gap-2">
+                <div className="rounded-xl border p-4">
+                    <p className="mb-2 text-sm font-medium">Technician responses</p>
+
+                    {jobOrder.technician_responses.length > 0 ? (
+                        <div className="mb-4 flex flex-col gap-2">
                             {jobOrder.technician_responses.map((response) => (
                                 <div key={response.id} className="rounded-lg bg-muted/50 p-3">
                                     <p className="text-xs text-muted-foreground">
@@ -139,8 +157,33 @@ export default function JobOrdersShow({ jobOrder, isAdmin, technicians }: Props)
                                 </div>
                             ))}
                         </div>
-                    </div>
-                )}
+                    ) : (
+                        <p className="mb-4 text-sm text-muted-foreground">No responses yet.</p>
+                    )}
+
+                    {isAdmin && (
+                        <form onSubmit={handleAddResponse} className="flex flex-col gap-2">
+                            <Textarea
+                                rows={3}
+                                placeholder="Add findings, progress update, or recommendation"
+                                value={responseText}
+                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                                    setResponseText(e.target.value)
+                                }
+                            />
+                            <div className="flex justify-end">
+                                <Button
+                                    type="submit"
+                                    size="sm"
+                                    disabled={responseProcessing || !responseText.trim()}
+                                    className="bg-ustp-navy text-white hover:bg-ustp-navy-dark"
+                                >
+                                    Add response
+                                </Button>
+                            </div>
+                        </form>
+                    )}
+                </div>
 
                 {isAdmin && (
                     <div className="rounded-xl border bg-muted/30 p-4">

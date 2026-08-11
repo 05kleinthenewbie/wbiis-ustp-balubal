@@ -104,6 +104,29 @@ class JobOrderController extends Controller
         return redirect()->back()->with('status', 'Job order updated successfully.');
     }
 
+        public function addResponse(Request $request, string $id)
+    {
+        $user = Auth::user();
+
+        if ($user->role->role_name !== 'ict_admin') {
+            abort(403, 'Only ICT Admins can add technician responses.');
+        }
+
+        $validated = $request->validate([
+            'response_report' => ['required', 'string'],
+        ]);
+
+        $jobOrder = JobOrder::findOrFail($id);
+
+        $jobOrder->technicianResponses()->create([
+            'technician_id' => $user->id,
+            'response_report' => $validated['response_report'],
+            'date_responded' => now(),
+        ]);
+
+        return redirect()->back()->with('status', 'Response added successfully.');
+    }
+
     /**
      * Remove the specified resource from storage.
      */
