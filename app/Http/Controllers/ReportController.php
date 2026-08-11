@@ -35,7 +35,7 @@ class ReportController extends Controller
             ],
             'inventoryStats' => [
                 'total' => InventoryItem::count(),
-                'by_condition' => InventoryItem::selectRaw('condition, count(*) as total')
+                'by_condition' => InventoryItem::selectRaw('`condition`, count(*) as total')
                     ->groupBy('condition')
                     ->pluck('total', 'condition'),
             ],
