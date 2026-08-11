@@ -14,7 +14,7 @@ class ServiceRequestController extends Controller
     /**
      * Display a listing of the resource.
      */
-   public function index()
+    public function index()
     {
         $user = Auth::user();
 
@@ -94,7 +94,7 @@ class ServiceRequestController extends Controller
     /**
      * Display the specified resource.
      */
-   public function show(string $id)
+    public function show(string $id)
     {
         $serviceRequest = ServiceRequestModel::with([
             'user', 'requestServices.serviceType.category', 'attachments', 'jobOrders.technician',
@@ -130,28 +130,35 @@ class ServiceRequestController extends Controller
             'priority_level' => ['nullable', 'in:low,medium,high,urgent'],
         ]);
 
-    $serviceRequest = ServiceRequestModel::findOrFail($id);
-    $wasPending = $serviceRequest->request_status === 'pending';
-    $serviceRequest->update($validated);
+        $serviceRequest = ServiceRequestModel::findOrFail($id);
+        $wasPending = $serviceRequest->request_status === 'pending';
+        $serviceRequest->update($validated);
 
-    if ($wasPending && $validated['request_status'] === 'approved') {
-        $serviceRequest->jobOrders()->create([
-            'status' => 'open',
-            'date_assigned' => null,
-        ]);
+        if ($wasPending && $validated['request_status'] === 'approved') {
+            $serviceRequest->jobOrders()->create([
+                'status' => 'open',
+                'date_assigned' => null,
+            ]);
+        }
+
+        if ($wasPending && in_array($validated['request_status'], ['approved', 'rejected'])) {
+            \App\Models\Notification::create([
+                'user_id' => $serviceRequest->user_id,
+                'message' => "Your service request #{$serviceRequest->id} has been {$validated['request_status']}.",
+                'notification_type' => 'service_request',
+                'notification_status' => 'unread',
+            ]);
+        }
+
+        \App\Models\AuditLog::record(
+            "Set request status to {$validated['request_status']}",
+            'service_requests',
+            $serviceRequest->id
+        );
+
+        return redirect()->back()->with('status', 'Request updated successfully.');
     }
 
-    if ($wasPending && in_array($validated['request_status'], ['approved', 'rejected'])) {
-        \App\Models\Notification::create([
-            'user_id' => $serviceRequest->user_id,
-            'message' => "Your service request #{$serviceRequest->id} has been {$validated['request_status']}.",
-            'notification_type' => 'service_request',
-            'notification_status' => 'unread',
-        ]);
-    }
-
-    return redirect()->back()->with('status', 'Request updated successfully.');
-    }
     /**
      * Remove the specified resource from storage.
      */

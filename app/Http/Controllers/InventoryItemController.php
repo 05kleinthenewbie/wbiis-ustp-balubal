@@ -74,7 +74,9 @@ class InventoryItemController extends Controller
             'purchase_date' => ['nullable', 'date'],
         ]);
 
-        InventoryItem::create($validated);
+        $item = InventoryItem::create($validated);
+
+        \App\Models\AuditLog::record('Added inventory item', 'inventory_items', $item->id);
 
         return redirect()->route('inventory.index')
             ->with('status', 'Inventory item added successfully.');
@@ -138,9 +140,13 @@ class InventoryItemController extends Controller
     {
         $this->ensureAdmin();
 
-        InventoryItem::findOrFail($id)->delete();
+        $item = InventoryItem::findOrFail($id);
+        $itemId = $item->id;
+        $item->delete();
+
+        \App\Models\AuditLog::record('Deleted inventory item', 'inventory_items', $itemId);
 
         return redirect()->route('inventory.index')
             ->with('status', 'Inventory item deleted.');
-    }
+        }
 }

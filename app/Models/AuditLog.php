@@ -27,4 +27,19 @@ class AuditLog extends Model
     {
         return $this->belongsTo(User::class, 'admin_user_id');
     }
+
+    /**
+     * Convenience helper to record an audit log entry.
+     */
+    public static function record(string $action, string $module, int $recordId, ?string $details = null): void
+    {
+        static::create([
+            'admin_user_id' => \Illuminate\Support\Facades\Auth::id(),
+            'action_taken' => $action,
+            'module_name' => $module,
+            'record_id' => $recordId,
+            'action_date' => now(),
+            'details' => $details,
+        ]);
+    }
 }
