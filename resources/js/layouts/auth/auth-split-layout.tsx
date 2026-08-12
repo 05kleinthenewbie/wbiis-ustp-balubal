@@ -40,7 +40,7 @@ export default function AuthSplitLayout({
                 </Link>
 
                 <div className="relative z-10">
-                    <div className="mb-4 h-[3px] w-9 bg-ustp-gold" />
+                    <div className="mb-4 h-0.75 w-9 bg-ustp-gold" />
                     <h1 className="mb-3 text-2xl leading-tight font-medium text-white uppercase">
                         A Web-Based ICT Management and Information System for USTP Balubal
                     </h1>

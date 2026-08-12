@@ -9,6 +9,7 @@ import {
     History,
     Mail,
     BarChart3,
+    Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -39,6 +40,7 @@ export function AppSidebar() {
         { title: 'Incidents', href: '/incidents', icon: AlertTriangle },
         { title: 'Audit Log', href: '/audit-log', icon: History },
         { title: 'Reports', href: '/reports', icon: BarChart3 },
+        { title: 'User Management', href: '/users', icon: Users },
     ];
 
     const facultyStaffNavItems: NavItem[] = [
