@@ -110,5 +110,5 @@ export default function Login({ status, canResetPassword }: Props) {
 
 Login.layout = {
     title: 'Log in to your account',
-    description: 'Enter your USTP email and password below',
+    description: 'Enter your email and password below',
 };
