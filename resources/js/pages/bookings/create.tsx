@@ -38,42 +38,60 @@ export default function BookingsCreate({ facilities }: Props) {
         <>
             <Head title="New Booking" />
 
-            <div className="min-h-full flex-1 bg-[#0f1117] px-4 py-6 text-[#f3f4f6] sm:px-6 lg:px-8">
-                <div className="mx-auto max-w-3xl">
-                    <BackButton href="/bookings" />
+            <div className="min-h-full flex-1 bg-[#070b18] text-gray-100">
+                <div className="relative mx-auto flex max-w-3xl flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
+                    {/* Ambient accents */}
+                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                        <div className="absolute -top-40 left-1/4 size-105 rounded-full bg-ustp-navy/[0.04] blur-3xl" />
+                        <div className="absolute -bottom-40 right-1/4 size-90 rounded-full bg-ustp-gold/[0.015] blur-3xl" />
+                    </div>
 
-                    <div className="mb-8 mt-5">
-                        <div className="mb-3 flex items-center gap-2">
-                            <span className="size-2 rounded-full bg-[#22d3ee] shadow-[0_0_10px_rgba(34,211,238,0.7)]" />
-                            <span className="text-xs font-medium uppercase tracking-[0.18em] text-[#7d8ba3]">
+                    <div className="relative">
+                        <BackButton href="/bookings" />
+                    </div>
+
+                    {/* Heading */}
+                    <div className="relative">
+                        <div className="mb-2 flex items-center gap-2">
+                            <span className="size-1.5 rounded-full bg-ustp-light-blue shadow-[0_0_8px_rgba(50,157,234,0.6)]" />
+
+                            <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-gray-500">
                                 Facility Management
                             </span>
                         </div>
 
-                        <h1 className="text-3xl font-semibold tracking-tight text-[#f5f7fa]">
-                            Book a facility
-                        </h1>
+                        <div className="flex items-center gap-3">
+                            <div className="flex size-11 items-center justify-center rounded-xl border border-[#1a2035] bg-[#0f1723] text-ustp-light-blue">
+                                <CalendarDays className="size-5" />
+                            </div>
 
-                        <p className="mt-2 max-w-xl text-sm leading-6 text-[#7f8ba0]">
-                            Choose a facility, schedule, and purpose for your booking
-                            request.
-                        </p>
+                            <div>
+                                <h1 className="text-2xl font-semibold tracking-tight text-gray-50 md:text-3xl">
+                                    Book a Facility
+                                </h1>
+
+                                <p className="mt-1 text-sm text-gray-400">
+                                    Choose a facility, schedule, and purpose for your booking
+                                    request.
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <form onSubmit={handleSubmit}>
-                        <div className="overflow-hidden rounded-2xl border border-[#292e3a] bg-[#181b24] shadow-2xl shadow-black/10">
+                        <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-2xl shadow-black/20">
                             {/* Form header */}
-                            <div className="border-b border-[#292e3a] px-6 py-5">
+                            <div className="border-b border-[#1a2035] bg-[#0a0f1c]/70 px-6 py-5">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex size-9 items-center justify-center rounded-lg border border-[#24404a] bg-[#152a31]">
-                                        <CalendarDays className="size-4 text-[#22c6df]" />
+                                    <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-blue-accent/15 text-ustp-light-blue">
+                                        <CalendarDays className="size-4" />
                                     </div>
 
                                     <div>
-                                        <h2 className="text-sm font-semibold text-[#edf0f4]">
+                                        <h2 className="text-sm font-semibold text-gray-200">
                                             Booking details
                                         </h2>
-                                        <p className="mt-0.5 text-xs text-[#69758a]">
+                                        <p className="mt-0.5 text-xs text-gray-500">
                                             All fields marked by validation are required.
                                         </p>
                                     </div>
@@ -85,7 +103,7 @@ export default function BookingsCreate({ facilities }: Props) {
                                 <div className="grid gap-2">
                                     <Label
                                         htmlFor="facility_id"
-                                        className="text-xs font-medium text-[#aeb8c7]"
+                                        className="text-xs font-medium text-gray-300"
                                     >
                                         Facility
                                     </Label>
@@ -98,12 +116,12 @@ export default function BookingsCreate({ facilities }: Props) {
                                     >
                                         <SelectTrigger
                                             id="facility_id"
-                                            className="h-11 border-[#303744] bg-[#12151c] text-[#e7ebf0] shadow-none hover:border-[#455162] focus:ring-[#22b8cf]/30"
+                                            className="h-11 border-[#1a2035] bg-[#070b18] text-gray-200 shadow-none hover:border-[#252d44] focus:ring-1 focus:ring-ustp-navy/30"
                                         >
                                             <SelectValue placeholder="Select a facility" />
                                         </SelectTrigger>
 
-                                        <SelectContent className="border-[#303744] bg-[#181b24] text-[#e7ebf0]">
+                                        <SelectContent className="border-[#1a2035] bg-[#0f1723] text-gray-200">
                                             {facilities.map((facility) => (
                                                 <SelectItem
                                                     key={facility.id}
@@ -116,7 +134,7 @@ export default function BookingsCreate({ facilities }: Props) {
                                     </Select>
 
                                     {errors.facility_id && (
-                                        <p className="text-xs text-rose-400">
+                                        <p className="text-xs text-red-300">
                                             {errors.facility_id}
                                         </p>
                                     )}
@@ -126,13 +144,13 @@ export default function BookingsCreate({ facilities }: Props) {
                                 <div className="grid gap-2">
                                     <Label
                                         htmlFor="booking_date"
-                                        className="text-xs font-medium text-[#aeb8c7]"
+                                        className="text-xs font-medium text-gray-300"
                                     >
                                         Date
                                     </Label>
 
                                     <div className="relative">
-                                        <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#68758a]" />
+                                        <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
 
                                         <Input
                                             id="booking_date"
@@ -141,12 +159,12 @@ export default function BookingsCreate({ facilities }: Props) {
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                 setData('booking_date', e.target.value)
                                             }
-                                            className="h-11 border-[#303744] bg-[#12151c] pl-10 text-[#e7ebf0] shadow-none scheme-dark placeholder:text-[#5e6879] focus-visible:ring-[#22b8cf]/30"
+                                            className="h-11 border-[#1a2035] bg-[#070b18] pl-10 text-gray-200 shadow-none scheme-dark placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
                                         />
                                     </div>
 
                                     {errors.booking_date && (
-                                        <p className="text-xs text-rose-400">
+                                        <p className="text-xs text-red-300">
                                             {errors.booking_date}
                                         </p>
                                     )}
@@ -155,8 +173,8 @@ export default function BookingsCreate({ facilities }: Props) {
                                 {/* Time */}
                                 <div>
                                     <div className="mb-3 flex items-center gap-2">
-                                        <Clock3 className="size-3.5 text-[#22c6df]" />
-                                        <span className="text-xs font-medium text-[#aeb8c7]">
+                                        <Clock3 className="size-3.5 text-ustp-light-blue" />
+                                        <span className="text-xs font-medium text-gray-300">
                                             Schedule
                                         </span>
                                     </div>
@@ -165,7 +183,7 @@ export default function BookingsCreate({ facilities }: Props) {
                                         <div className="grid gap-2">
                                             <Label
                                                 htmlFor="start_time"
-                                                className="text-xs text-[#727f93]"
+                                                className="text-xs text-gray-400"
                                             >
                                                 Start time
                                             </Label>
@@ -177,14 +195,14 @@ export default function BookingsCreate({ facilities }: Props) {
                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                     setData('start_time', e.target.value)
                                                 }
-                                                className="h-11 border-[#303744] bg-[#12151c] text-[#e7ebf0] shadow-none scheme-dark focus-visible:ring-[#22b8cf]/30"
+                                                className="h-11 border-[#1a2035] bg-[#070b18] text-gray-200 shadow-none scheme-dark focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
                                             />
                                         </div>
 
                                         <div className="grid gap-2">
                                             <Label
                                                 htmlFor="end_time"
-                                                className="text-xs text-[#727f93]"
+                                                className="text-xs text-gray-400"
                                             >
                                                 End time
                                             </Label>
@@ -196,13 +214,13 @@ export default function BookingsCreate({ facilities }: Props) {
                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                     setData('end_time', e.target.value)
                                                 }
-                                                className="h-11 border-[#303744] bg-[#12151c] text-[#e7ebf0] shadow-none scheme-dark focus-visible:ring-[#22b8cf]/30"
+                                                className="h-11 border-[#1a2035] bg-[#070b18] text-gray-200 shadow-none scheme-dark focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
                                             />
                                         </div>
                                     </div>
 
                                     {errors.start_time && (
-                                        <p className="mt-2 text-xs text-rose-400">
+                                        <p className="mt-2 text-xs text-red-300">
                                             {errors.start_time}
                                         </p>
                                     )}
@@ -212,7 +230,7 @@ export default function BookingsCreate({ facilities }: Props) {
                                 <div className="grid gap-2">
                                     <Label
                                         htmlFor="purpose"
-                                        className="text-xs font-medium text-[#aeb8c7]"
+                                        className="text-xs font-medium text-gray-300"
                                     >
                                         Purpose
                                     </Label>
@@ -225,24 +243,24 @@ export default function BookingsCreate({ facilities }: Props) {
                                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                                             setData('purpose', e.target.value)
                                         }
-                                        className="resize-none border-[#303744] bg-[#12151c] text-[#e7ebf0] shadow-none placeholder:text-[#5e6879] focus-visible:ring-[#22b8cf]/30"
+                                        className="resize-none border-[#1a2035] bg-[#070b18] text-gray-200 shadow-none placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
                                     />
 
-                                    <p className="text-xs text-[#5f6b7e]">
+                                    <p className="text-xs text-gray-500">
                                         Include relevant information such as the activity,
                                         class, meeting, or event.
                                     </p>
                                 </div>
 
                                 {/* Notice */}
-                                <div className="flex gap-3 rounded-xl border border-[#3b3440] bg-[#1b1a21] p-4">
-                                    <MapPin className="mt-0.5 size-4 shrink-0 text-[#fac775]" />
+                                <div className="flex gap-3 rounded-xl border border-ustp-gold/20 bg-ustp-gold/[0.03] p-4">
+                                    <MapPin className="mt-0.5 size-4 shrink-0 text-ustp-gold" />
 
                                     <div>
-                                        <p className="text-xs font-medium text-[#d8dce3]">
+                                        <p className="text-xs font-medium text-gray-200">
                                             Approval required
                                         </p>
-                                        <p className="mt-1 text-xs leading-5 text-[#737e90]">
+                                        <p className="mt-1 text-xs leading-5 text-gray-400">
                                             Your booking will remain pending until it is
                                             reviewed by an ICT administrator.
                                         </p>
@@ -251,12 +269,12 @@ export default function BookingsCreate({ facilities }: Props) {
                             </div>
 
                             {/* Actions */}
-                            <div className="flex flex-col-reverse gap-3 border-t border-[#292e3a] bg-[#151820] px-6 py-5 sm:flex-row sm:justify-end">
+                            <div className="flex flex-col-reverse gap-3 border-t border-[#1a2035] bg-[#0a0f1c] px-6 py-5 sm:flex-row sm:justify-end">
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     onClick={() => window.history.back()}
-                                    className="text-[#8994a6] hover:bg-[#20242d] hover:text-[#e5e9ee]"
+                                    className="text-gray-400 hover:bg-[#111827] hover:text-gray-200"
                                 >
                                     Cancel
                                 </Button>
@@ -264,7 +282,7 @@ export default function BookingsCreate({ facilities }: Props) {
                                 <Button
                                     type="submit"
                                     disabled={processing}
-                                    className="bg-[#22b8cf] px-5 font-medium text-[#071116] shadow-[0_0_18px_rgba(34,184,207,0.12)] hover:bg-[#2ac7df]"
+                                    className="bg-ustp-navy px-5 font-medium text-white shadow-lg shadow-ustp-navy/20 hover:bg-ustp-navy-dark"
                                 >
                                     {processing && <Spinner />}
                                     Request booking

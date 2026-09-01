@@ -8,10 +8,12 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    --color-ustp-navy: #0C447C;
-    --color-ustp-navy-dark: #042C53;
-    --color-ustp-gold: #FAC775;
+    --color-ustp-navy: #1a1851;
+    --color-ustp-navy-dark: #031c2e;
+    --color-ustp-gold: #fcb315;
     --color-ustp-gold-dark: #412402;
+    --color-ustp-blue-accent: #0d4a77;
+    --color-ustp-light-blue: #329dea;
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',

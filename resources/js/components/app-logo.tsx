@@ -8,7 +8,7 @@ export default function AppLogo() {
             </div>
             <div className="ml-1 grid flex-1 text-left text-sm">
                 <span className="mb-0.5 truncate leading-tight font-semibold">
-                    USTP ICT Portal
+                    USTP Balubal ICT Portal
                 </span>
                 <span className="truncate text-xs text-muted-foreground">
                     Balubal Campus

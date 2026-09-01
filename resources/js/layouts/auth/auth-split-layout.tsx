@@ -33,7 +33,7 @@ export default function AuthSplitLayout({
                     </div>
                     <div>
                         <p className="text-sm font-medium text-white">
-                            USTP ICT Portal
+                            USTP Balubal ICT Portal
                         </p>
                         <p className="text-xs text-blue-200">Balubal Campus</p>
                     </div>

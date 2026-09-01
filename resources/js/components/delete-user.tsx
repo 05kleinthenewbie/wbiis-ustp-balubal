@@ -26,8 +26,8 @@ export default function DeleteUser() {
                 title="Delete account"
                 description="Delete your account and all of its resources"
             />
-            <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
-                <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
+            <div className="space-y-4 rounded-lg border border-red-400/20 bg-red-400/[0.05] p-4">
+                <div className="relative space-y-0.5 text-red-300">
                     <p className="font-medium">Warning</p>
                     <p className="text-sm">
                         Please proceed with caution, this cannot be undone.
@@ -43,11 +43,11 @@ export default function DeleteUser() {
                             Delete account
                         </Button>
                     </DialogTrigger>
-                    <DialogContent>
-                        <DialogTitle>
+                    <DialogContent className="border-[#1a2035] bg-[#0f1723]">
+                        <DialogTitle className="text-gray-100">
                             Are you sure you want to delete your account?
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-gray-400">
                             Once your account is deleted, all of its resources
                             and data will also be permanently deleted. Please
                             enter your password to confirm you would like to
@@ -91,6 +91,7 @@ export default function DeleteUser() {
                                                 onClick={() =>
                                                     resetAndClearErrors()
                                                 }
+                                                className="border-[#1a2035] bg-[#070b18] text-gray-300 hover:bg-[#111827] hover:text-gray-100"
                                             >
                                                 Cancel
                                             </Button>

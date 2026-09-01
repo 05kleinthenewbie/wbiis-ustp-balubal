@@ -1,5 +1,21 @@
 import { Head, useForm } from '@inertiajs/react';
-import { CalendarDays, PackageOpen } from 'lucide-react';
+import {
+    CalendarDays,
+    PackageOpen,
+    Tag,
+    MapPin,
+    Wrench,
+    ShoppingCart,
+    Monitor,
+    Laptop,
+    Printer,
+    Projector,
+    Wifi,
+    Battery,
+    Box,
+    CheckCircle2,
+    AlertTriangle,
+} from 'lucide-react';
 import { BackButton } from '@/components/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +46,67 @@ type Props = {
     item: InventoryItemData;
 };
 
+function getCategoryFromName(name: string): string {
+    const lower = name.toLowerCase();
+    if (lower.startsWith('desktop')) return 'Desktop';
+    if (lower.startsWith('laptop')) return 'Laptop';
+    if (lower.startsWith('monitor')) return 'Monitor';
+    if (lower.startsWith('printer')) return 'Printer';
+    if (lower.startsWith('projector')) return 'Projector';
+    if (lower.startsWith('network')) return 'Network';
+    if (lower.startsWith('ups')) return 'UPS';
+    return 'Other';
+}
+
+const categoryIcons: Record<string, React.ElementType> = {
+    Desktop: Monitor,
+    Laptop: Laptop,
+    Monitor: Monitor,
+    Printer: Printer,
+    Projector: Projector,
+    Network: Wifi,
+    UPS: Battery,
+    Other: Box,
+};
+
+const categoryColors: Record<string, string> = {
+    Desktop: 'bg-ustp-light-blue/15 text-ustp-light-blue border-ustp-light-blue/20',
+    Laptop: 'bg-purple-400/15 text-purple-400 border-purple-400/20',
+    Monitor: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
+    Printer: 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+    Projector: 'bg-orange-400/15 text-orange-400 border-orange-400/20',
+    Network: 'bg-cyan-400/15 text-cyan-400 border-cyan-400/20',
+    UPS: 'bg-amber-400/15 text-amber-400 border-amber-400/20',
+    Other: 'bg-white/5 text-white/40 border-white/10',
+};
+
+const conditionVisuals: Record<string, { icon: React.ElementType; color: string }> = {
+    working: {
+        icon: CheckCircle2,
+        color: 'border-emerald-400/40 bg-emerald-400/10 text-emerald-400',
+    },
+    defective: {
+        icon: AlertTriangle,
+        color: 'border-red-400/40 bg-red-400/10 text-red-400',
+    },
+    under_repair: {
+        icon: Wrench,
+        color: 'border-amber-400/40 bg-amber-400/10 text-amber-400',
+    },
+};
+
+const conditionConfig: Record<string, { badge: string; dot: string; label: string }> = {
+    working: { badge: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300', dot: 'bg-emerald-400', label: 'Working' },
+    defective: { badge: 'border-red-400/30 bg-red-400/10 text-red-300', dot: 'bg-red-400', label: 'Defective' },
+    under_repair: { badge: 'border-amber-400/30 bg-amber-400/10 text-amber-300', dot: 'bg-amber-400', label: 'Under Repair' },
+};
+
+const statusConfig: Record<string, string> = {
+    active: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
+    retired: 'border-slate-400/30 bg-slate-400/10 text-slate-300',
+    disposed: 'border-red-400/30 bg-red-400/10 text-red-300',
+};
+
 export default function InventoryEdit({ item }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         property_no: item.property_no,
@@ -48,423 +125,376 @@ export default function InventoryEdit({ item }: Props) {
         put(`/inventory/${item.id}`);
     }
 
+    const category = getCategoryFromName(data.item_name);
+    const CatIcon = categoryIcons[category] ?? Box;
+    const catColor = categoryColors[category] ?? 'bg-white/5 text-white/40 border-white/10';
+    const cv = conditionVisuals[data.condition] ?? conditionVisuals.working;
+    const CondIcon = cv.icon;
+    const cc = conditionConfig[data.condition] ?? conditionConfig.working;
+
     return (
         <>
             <Head title="Edit Inventory Item" />
 
-            <div className="min-h-full flex-1 bg-[#12141A] text-[#F1F3F5]">
-                <div className="relative mx-auto flex max-w-3xl flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
-                    {/* Ambient background */}
+            <div className="min-h-full flex-1 bg-[#070b18] text-gray-100">
+                <div className="relative mx-auto flex max-w-6xl flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
+                    {/* Ambient accents */}
                     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                        <div className="absolute -top-40 left-1/3 size-105 rounded-full bg-[#22B8C7]/[0.035] blur-3xl" />
-                        <div className="absolute -bottom-40 right-1/4 size-90 rounded-full bg-[#8B6DFF]/2.5 blur-3xl" />
+                        <div className="absolute -top-40 left-1/3 size-105 rounded-full bg-ustp-navy/[0.04] blur-3xl" />
+                        <div className="absolute -bottom-40 right-1/4 size-90 rounded-full bg-ustp-gold/[0.015] blur-3xl" />
                     </div>
 
-                    {/* Back navigation */}
                     <div className="relative">
                         <BackButton href="/inventory" />
                     </div>
 
-                    {/* Page heading */}
-                    <div className="relative">
-                        <div className="mb-2 flex items-center gap-2">
-                            <span className="size-1.5 rounded-full bg-[#22B8C7] shadow-[0_0_8px_rgba(34,184,199,0.8)]" />
-
-                            <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#626A78]">
-                                Inventory Management
-                            </span>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <div className="flex size-11 items-center justify-center rounded-xl border border-[#2A2F3B] bg-[#1B1E28] text-[#22B8C7]">
-                                <PackageOpen className="size-5" />
+                    {/* Header */}
+                    <div className="relative flex items-start justify-between">
+                        <div className="flex items-start gap-4">
+                            <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl border ${catColor}`}>
+                                <CatIcon className="size-6" />
                             </div>
 
                             <div>
-                                <h1 className="text-2xl font-semibold tracking-tight text-[#F1F3F5] md:text-3xl">
+                                <div className="mb-2 flex items-center gap-2">
+                                    <span className="size-1.5 rounded-full bg-ustp-light-blue shadow-[0_0_8px_rgba(50,157,234,0.6)]" />
+
+                                    <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-gray-500">
+                                        Inventory Management
+                                    </span>
+                                </div>
+
+                                <h1 className="text-2xl font-semibold tracking-tight text-gray-50 md:text-3xl">
                                     Edit Equipment
                                 </h1>
 
-                                <p className="mt-1 text-sm text-[#7F8795]">
-                                    Update the information for this inventory
-                                    record.
+                                <p className="mt-1 text-sm text-gray-400">
+                                    Update the information for this inventory record.
                                 </p>
                             </div>
                         </div>
+
+                        <span className="hidden rounded-md border border-[#1a2035] bg-[#070b18] px-2.5 py-1 font-mono text-[10px] text-gray-400 sm:inline-flex">
+                            ID #{item.id}
+                        </span>
                     </div>
 
-                    {/* Form */}
-                    <form
-                        onSubmit={handleSubmit}
-                        className="relative overflow-hidden rounded-2xl border border-[#2A2F3B] bg-[#1B1E28] shadow-2xl shadow-black/25"
-                    >
-                        {/* Form header */}
-                        <div className="border-b border-[#2A2F3B] bg-[#171A23]/70 px-5 py-4 md:px-6">
-                            <div className="flex items-center justify-between gap-4">
-                                <div>
-                                    <p className="text-xs font-medium text-[#E3E6EA]">
-                                        Equipment Information
-                                    </p>
+                    {/* Two-column layout */}
+                    <div className="relative grid gap-6 lg:grid-cols-3">
+                        {/* Form column */}
+                        <form
+                            onSubmit={handleSubmit}
+                            className="relative overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-2xl shadow-black/20 lg:col-span-2"
+                        >
+                            <div className="flex flex-col gap-7 p-5 md:p-6">
+                                {/* Step 1: Identification */}
+                                <section>
+                                    <div className="mb-4 flex items-start gap-3">
+                                        <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-ustp-blue-accent/20 text-[11px] font-bold text-ustp-light-blue">
+                                            1
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-200">Identification</p>
+                                            <p className="mt-0.5 text-xs text-gray-500">
+                                                Core information used to identify this equipment.
+                                            </p>
+                                        </div>
+                                    </div>
 
-                                    <p className="mt-1 text-xs text-[#626A78]">
-                                        Review and update the equipment
-                                        details below.
-                                    </p>
-                                </div>
+                                    <div className="ml-10 grid gap-4 md:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="property_no" className="text-xs font-medium text-gray-300">
+                                                Property no. <span className="text-red-400">*</span>
+                                            </Label>
+                                            <Input
+                                                id="property_no"
+                                                value={data.property_no}
+                                                onChange={(e) => setData('property_no', e.target.value)}
+                                                className="h-10 border-[#1a2035] bg-[#070b18] text-gray-100 placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                            />
+                                            {errors.property_no && <p className="text-xs text-red-400">{errors.property_no}</p>}
+                                        </div>
 
-                                <span className="hidden rounded-md border border-[#2A2F3B] bg-[#12141A] px-2.5 py-1 font-mono text-[10px] text-[#737B8A] sm:inline-flex">
-                                    ID #{item.id}
-                                </span>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="item_name" className="text-xs font-medium text-gray-300">
+                                                Item name <span className="text-red-400">*</span>
+                                            </Label>
+                                            <Input
+                                                id="item_name"
+                                                value={data.item_name}
+                                                onChange={(e) => setData('item_name', e.target.value)}
+                                                className="h-10 border-[#1a2035] bg-[#070b18] text-gray-100 placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                            />
+                                            {errors.item_name && <p className="text-xs text-red-400">{errors.item_name}</p>}
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Step 2: Product Details */}
+                                <section className="border-t border-[#1a2035] pt-6">
+                                    <div className="mb-4 flex items-start gap-3">
+                                        <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-ustp-gold/20 text-[11px] font-bold text-ustp-gold">
+                                            2
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-200">Product Details</p>
+                                            <p className="mt-0.5 text-xs text-gray-500">
+                                                Manufacturer and model information.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="ml-10 grid gap-4 md:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="brand" className="text-xs font-medium text-gray-300">Brand</Label>
+                                            <Input
+                                                id="brand"
+                                                value={data.brand}
+                                                onChange={(e) => setData('brand', e.target.value)}
+                                                placeholder="Dell"
+                                                className="h-10 border-[#1a2035] bg-[#070b18] text-gray-100 placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="model" className="text-xs font-medium text-gray-300">Model</Label>
+                                            <Input
+                                                id="model"
+                                                value={data.model}
+                                                onChange={(e) => setData('model', e.target.value)}
+                                                placeholder="OptiPlex 7090"
+                                                className="h-10 border-[#1a2035] bg-[#070b18] text-gray-100 placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                            />
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Step 3: Asset Details */}
+                                <section className="border-t border-[#1a2035] pt-6">
+                                    <div className="mb-4 flex items-start gap-3">
+                                        <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-ustp-light-blue/20 text-[11px] font-bold text-ustp-light-blue">
+                                            3
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-200">Asset Details</p>
+                                            <p className="mt-0.5 text-xs text-gray-500">
+                                                Serial information and current equipment location.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="ml-10 grid gap-4 md:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="serial_no" className="text-xs font-medium text-gray-300">Serial no.</Label>
+                                            <Input
+                                                id="serial_no"
+                                                value={data.serial_no}
+                                                onChange={(e) => setData('serial_no', e.target.value)}
+                                                placeholder="SN-123456789"
+                                                className="h-10 border-[#1a2035] bg-[#070b18] text-gray-100 placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="location" className="text-xs font-medium text-gray-300">Location</Label>
+                                            <Input
+                                                id="location"
+                                                value={data.location}
+                                                onChange={(e) => setData('location', e.target.value)}
+                                                placeholder="Computer Laboratory"
+                                                className="h-10 border-[#1a2035] bg-[#070b18] text-gray-100 placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                            />
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Step 4: Status & Condition */}
+                                <section className="border-t border-[#1a2035] pt-6">
+                                    <div className="mb-4 flex items-start gap-3">
+                                        <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-emerald-400/20 text-[11px] font-bold text-emerald-400">
+                                            4
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-200">Status & Condition</p>
+                                            <p className="mt-0.5 text-xs text-gray-500">
+                                                Update the current operational state of this equipment.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="ml-10 grid gap-4 md:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="condition" className="text-xs font-medium text-gray-300">Condition</Label>
+                                            <Select value={data.condition} onValueChange={(value) => setData('condition', value)}>
+                                                <SelectTrigger id="condition" className="h-10 w-full border-[#1a2035] bg-[#070b18] text-gray-300 focus:ring-1 focus:ring-ustp-navy/30">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent className="border-[#1a2035] bg-[#0f1723] text-gray-100">
+                                                    <SelectItem value="working">Working</SelectItem>
+                                                    <SelectItem value="defective">Defective</SelectItem>
+                                                    <SelectItem value="under_repair">Under Repair</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="status" className="text-xs font-medium text-gray-300">Status</Label>
+                                            <Select value={data.status} onValueChange={(value) => setData('status', value)}>
+                                                <SelectTrigger id="status" className="h-10 w-full border-[#1a2035] bg-[#070b18] text-gray-300 focus:ring-1 focus:ring-ustp-navy/30">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent className="border-[#1a2035] bg-[#0f1723] text-gray-100">
+                                                    <SelectItem value="active">Active</SelectItem>
+                                                    <SelectItem value="retired">Retired</SelectItem>
+                                                    <SelectItem value="disposed">Disposed</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Step 5: Acquisition */}
+                                <section className="border-t border-[#1a2035] pt-6">
+                                    <div className="mb-4 flex items-start gap-3">
+                                        <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-orange-400/20 text-[11px] font-bold text-orange-400">
+                                            5
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-200">Acquisition</p>
+                                            <p className="mt-0.5 text-xs text-gray-500">
+                                                Record when the equipment was purchased.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="ml-10 grid max-w-md gap-2">
+                                        <Label htmlFor="purchase_date" className="text-xs font-medium text-gray-300">Purchase date</Label>
+                                        <div className="relative">
+                                            <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+                                            <Input
+                                                id="purchase_date"
+                                                type="date"
+                                                value={data.purchase_date}
+                                                onChange={(e) => setData('purchase_date', e.target.value)}
+                                                className="h-10 border-[#1a2035] bg-[#070b18] pl-10 text-gray-100 scheme-dark focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                            />
+                                        </div>
+                                    </div>
+                                </section>
                             </div>
-                        </div>
 
-                        <div className="flex flex-col gap-7 p-5 md:p-6">
-                            {/* Identification */}
-                            <section>
-                                <div className="mb-4">
-                                    <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#737B8A]">
-                                        Identification
-                                    </p>
+                            {/* Footer */}
+                            <div className="flex flex-col-reverse gap-3 border-t border-[#1a2035] bg-[#0a0f1c]/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+                                <p className="text-[11px] text-gray-500">
+                                    Changes will update this inventory record.
+                                </p>
 
-                                    <p className="mt-1 text-xs text-[#4F5765]">
-                                        Core information used to identify this
-                                        equipment.
-                                    </p>
-                                </div>
-
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    <div className="grid gap-2">
-                                        <Label
-                                            htmlFor="property_no"
-                                            className="text-xs font-medium text-[#B8BFCA]"
-                                        >
-                                            Property no.
-                                        </Label>
-
-                                        <Input
-                                            id="property_no"
-                                            value={data.property_no}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'property_no',
-                                                    e.target.value,
-                                                )
-                                            }
-                                            className="h-10 border-[#2A2F3B] bg-[#12141A] text-[#F1F3F5] placeholder:text-[#555D6B] focus-visible:border-[#22B8C7]/60 focus-visible:ring-1 focus-visible:ring-[#22B8C7]/30"
-                                        />
-
-                                        {errors.property_no && (
-                                            <p className="text-xs text-red-400">
-                                                {errors.property_no}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label
-                                            htmlFor="item_name"
-                                            className="text-xs font-medium text-[#B8BFCA]"
-                                        >
-                                            Item name
-                                        </Label>
-
-                                        <Input
-                                            id="item_name"
-                                            value={data.item_name}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'item_name',
-                                                    e.target.value,
-                                                )
-                                            }
-                                            className="h-10 border-[#2A2F3B] bg-[#12141A] text-[#F1F3F5] placeholder:text-[#555D6B] focus-visible:border-[#22B8C7]/60 focus-visible:ring-1 focus-visible:ring-[#22B8C7]/30"
-                                        />
-
-                                        {errors.item_name && (
-                                            <p className="text-xs text-red-400">
-                                                {errors.item_name}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Product details */}
-                            <section className="border-t border-[#2A2F3B] pt-7">
-                                <div className="mb-4">
-                                    <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#737B8A]">
-                                        Product Details
-                                    </p>
-
-                                    <p className="mt-1 text-xs text-[#4F5765]">
-                                        Manufacturer and model information.
-                                    </p>
-                                </div>
-
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    <div className="grid gap-2">
-                                        <Label
-                                            htmlFor="brand"
-                                            className="text-xs font-medium text-[#B8BFCA]"
-                                        >
-                                            Brand
-                                        </Label>
-
-                                        <Input
-                                            id="brand"
-                                            value={data.brand}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'brand',
-                                                    e.target.value,
-                                                )
-                                            }
-                                            placeholder="Dell"
-                                            className="h-10 border-[#2A2F3B] bg-[#12141A] text-[#F1F3F5] placeholder:text-[#555D6B] focus-visible:border-[#22B8C7]/60 focus-visible:ring-1 focus-visible:ring-[#22B8C7]/30"
-                                        />
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label
-                                            htmlFor="model"
-                                            className="text-xs font-medium text-[#B8BFCA]"
-                                        >
-                                            Model
-                                        </Label>
-
-                                        <Input
-                                            id="model"
-                                            value={data.model}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'model',
-                                                    e.target.value,
-                                                )
-                                            }
-                                            placeholder="OptiPlex 7090"
-                                            className="h-10 border-[#2A2F3B] bg-[#12141A] text-[#F1F3F5] placeholder:text-[#555D6B] focus-visible:border-[#22B8C7]/60 focus-visible:ring-1 focus-visible:ring-[#22B8C7]/30"
-                                        />
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Asset details */}
-                            <section className="border-t border-[#2A2F3B] pt-7">
-                                <div className="mb-4">
-                                    <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#737B8A]">
-                                        Asset Details
-                                    </p>
-
-                                    <p className="mt-1 text-xs text-[#4F5765]">
-                                        Serial information and current
-                                        equipment location.
-                                    </p>
-                                </div>
-
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    <div className="grid gap-2">
-                                        <Label
-                                            htmlFor="serial_no"
-                                            className="text-xs font-medium text-[#B8BFCA]"
-                                        >
-                                            Serial no.
-                                        </Label>
-
-                                        <Input
-                                            id="serial_no"
-                                            value={data.serial_no}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'serial_no',
-                                                    e.target.value,
-                                                )
-                                            }
-                                            placeholder="SN-123456789"
-                                            className="h-10 border-[#2A2F3B] bg-[#12141A] text-[#F1F3F5] placeholder:text-[#555D6B] focus-visible:border-[#22B8C7]/60 focus-visible:ring-1 focus-visible:ring-[#22B8C7]/30"
-                                        />
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label
-                                            htmlFor="location"
-                                            className="text-xs font-medium text-[#B8BFCA]"
-                                        >
-                                            Location
-                                        </Label>
-
-                                        <Input
-                                            id="location"
-                                            value={data.location}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'location',
-                                                    e.target.value,
-                                                )
-                                            }
-                                            placeholder="Computer Laboratory"
-                                            className="h-10 border-[#2A2F3B] bg-[#12141A] text-[#F1F3F5] placeholder:text-[#555D6B] focus-visible:border-[#22B8C7]/60 focus-visible:ring-1 focus-visible:ring-[#22B8C7]/30"
-                                        />
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Status and condition */}
-                            <section className="border-t border-[#2A2F3B] pt-7">
-                                <div className="mb-4">
-                                    <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#737B8A]">
-                                        Status & Condition
-                                    </p>
-
-                                    <p className="mt-1 text-xs text-[#4F5765]">
-                                        Update the current operational state
-                                        of this equipment.
-                                    </p>
-                                </div>
-
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    <div className="grid gap-2">
-                                        <Label
-                                            htmlFor="condition"
-                                            className="text-xs font-medium text-[#B8BFCA]"
-                                        >
-                                            Condition
-                                        </Label>
-
-                                        <Select
-                                            value={data.condition}
-                                            onValueChange={(value) =>
-                                                setData(
-                                                    'condition',
-                                                    value,
-                                                )
-                                            }
-                                        >
-                                            <SelectTrigger
-                                                id="condition"
-                                                className="h-10 w-full border-[#2A2F3B] bg-[#12141A] text-[#B8BFCA] shadow-none focus:ring-1 focus:ring-[#22B8C7]/30"
-                                            >
-                                                <SelectValue />
-                                            </SelectTrigger>
-
-                                            <SelectContent className="border-[#2A2F3B] bg-[#1B1E28] text-[#F1F3F5]">
-                                                <SelectItem value="working">
-                                                    Working
-                                                </SelectItem>
-
-                                                <SelectItem value="defective">
-                                                    Defective
-                                                </SelectItem>
-
-                                                <SelectItem value="under_repair">
-                                                    Under repair
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label
-                                            htmlFor="status"
-                                            className="text-xs font-medium text-[#B8BFCA]"
-                                        >
-                                            Status
-                                        </Label>
-
-                                        <Select
-                                            value={data.status}
-                                            onValueChange={(value) =>
-                                                setData(
-                                                    'status',
-                                                    value,
-                                                )
-                                            }
-                                        >
-                                            <SelectTrigger
-                                                id="status"
-                                                className="h-10 w-full border-[#2A2F3B] bg-[#12141A] text-[#B8BFCA] shadow-none focus:ring-1 focus:ring-[#22B8C7]/30"
-                                            >
-                                                <SelectValue />
-                                            </SelectTrigger>
-
-                                            <SelectContent className="border-[#2A2F3B] bg-[#1B1E28] text-[#F1F3F5]">
-                                                <SelectItem value="active">
-                                                    Active
-                                                </SelectItem>
-
-                                                <SelectItem value="retired">
-                                                    Retired
-                                                </SelectItem>
-
-                                                <SelectItem value="disposed">
-                                                    Disposed
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Acquisition */}
-                            <section className="border-t border-[#2A2F3B] pt-7">
-                                <div className="mb-4">
-                                    <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#737B8A]">
-                                        Acquisition
-                                    </p>
-
-                                    <p className="mt-1 text-xs text-[#4F5765]">
-                                        Record when the equipment was
-                                        purchased.
-                                    </p>
-                                </div>
-
-                                <div className="grid max-w-md gap-2">
-                                    <Label
-                                        htmlFor="purchase_date"
-                                        className="text-xs font-medium text-[#B8BFCA]"
+                                <div className="flex justify-end gap-3">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={() => window.history.back()}
+                                        className="text-gray-400 hover:bg-[#111827] hover:text-gray-200"
                                     >
-                                        Purchase date
-                                    </Label>
+                                        Cancel
+                                    </Button>
 
-                                    <div className="relative">
-                                        <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#626A78]" />
-
-                                        <Input
-                                            id="purchase_date"
-                                            type="date"
-                                            value={data.purchase_date}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'purchase_date',
-                                                    e.target.value,
-                                                )
-                                            }
-                                            className="h-10 border-[#2A2F3B] bg-[#12141A] pl-9 text-[#F1F3F5] focus-visible:border-[#22B8C7]/60 focus-visible:ring-1 focus-visible:ring-[#22B8C7]/30"
-                                        />
-                                    </div>
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="bg-ustp-navy text-white shadow-lg shadow-ustp-navy/20 hover:bg-ustp-navy-dark"
+                                    >
+                                        {processing && <Spinner />}
+                                        Save Changes
+                                    </Button>
                                 </div>
-                            </section>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="flex flex-col-reverse gap-3 border-t border-[#2A2F3B] bg-[#171A23]/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
-                            <p className="text-[11px] text-[#555D6B]">
-                                Changes will update this inventory record.
-                            </p>
-
-                            <div className="flex justify-end gap-3">
-                                <BackButton href="/inventory" />
-
-                                <Button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="bg-[#22B8C7] text-[#081014] shadow-[0_0_18px_rgba(34,184,199,0.10)] hover:bg-[#29C4D3] hover:shadow-[0_0_24px_rgba(34,184,199,0.18)]"
-                                >
-                                    {processing && <Spinner />}
-                                    Save Changes
-                                </Button>
                             </div>
+                        </form>
+
+                        {/* Sidebar: current values */}
+                        <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+                            <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
+                                <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-500">
+                                    Current Record
+                                </p>
+
+                                <div className="space-y-4">
+                                    {/* Icon + Name */}
+                                    <div className="flex items-start gap-3">
+                                        <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl border ${catColor}`}>
+                                            <CatIcon className="size-6" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="truncate font-medium text-gray-200">
+                                                {data.item_name}
+                                            </p>
+                                            {data.brand && (
+                                                <p className="mt-0.5 text-xs text-gray-500">
+                                                    {data.brand}{data.model ? ` ${data.model}` : ''}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="h-px bg-white/[0.06]" />
+
+                                    {/* Property + Serial */}
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-500">Property No.</span>
+                                            <span className="font-mono text-xs text-gray-300">{data.property_no}</span>
+                                        </div>
+                                        {data.serial_no && (
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs text-gray-500">Serial No.</span>
+                                                <span className="font-mono text-xs text-gray-300">{data.serial_no}</span>
+                                            </div>
+                                        )}
+                                        {data.location && (
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs text-gray-500">Location</span>
+                                                <span className="flex items-center gap-1 text-xs text-gray-300">
+                                                    <MapPin className="size-3 text-gray-500" />
+                                                    {data.location}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="h-px bg-white/[0.06]" />
+
+                                    {/* Condition + Status */}
+                                    <div className="flex items-center gap-3">
+                                        <div className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium ${cv.color}`}>
+                                            <CondIcon className="size-3" />
+                                            {data.condition === 'under_repair' ? 'Under Repair' : data.condition.charAt(0).toUpperCase() + data.condition.slice(1)}
+                                        </div>
+                                        <div className={`rounded-md border px-2.5 py-1 text-[11px] font-medium capitalize ${statusConfig[data.status] ?? 'border-[#1a2035] bg-[#070b18] text-gray-400'}`}>
+                                            {data.status}
+                                        </div>
+                                    </div>
+
+                                    {data.purchase_date && (
+                                        <>
+                                            <div className="h-px bg-white/[0.06]" />
+                                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                <CalendarDays className="size-3.5" />
+                                                Purchased {new Date(data.purchase_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* View full record link */}
+                            <a
+                                href={`/inventory/${item.id}`}
+                                className="flex items-center justify-center gap-2 rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4 text-sm text-gray-400 shadow-xl shadow-black/10 transition-colors hover:bg-white/[0.04] hover:text-gray-200"
+                            >
+                                View full record
+                            </a>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </>

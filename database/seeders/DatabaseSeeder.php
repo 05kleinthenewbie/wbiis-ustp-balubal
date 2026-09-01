@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Teams\CreateTeam;
+use App\Models\Role;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-
     /**
      * Seed the application's database.
      */
@@ -18,8 +18,11 @@ class DatabaseSeeder extends Seeder
         $this->call(ServiceCategorySeeder::class);
         $this->call(ServiceTypeSeeder::class);
         $this->call(FacilitySeeder::class);
+        $this->call(InventoryItemSeeder::class);
+        $this->call(ServiceRequestSeeder::class);
+        $this->call(JobOrderSeeder::class);
 
-        $adminRole = \App\Models\Role::where('role_name', 'ict_admin')->first();
+        $adminRole = Role::where('role_name', 'ict_admin')->first();
 
         $admin = User::firstOrCreate(
             ['email' => 'admin@ustp.edu.ph'],
@@ -34,7 +37,7 @@ class DatabaseSeeder extends Seeder
         );
 
         if (! $admin->current_team_id) {
-            app(\App\Actions\Teams\CreateTeam::class)->handle(
+            app(CreateTeam::class)->handle(
                 $admin,
                 $admin->name."'s Team",
                 isPersonal: true

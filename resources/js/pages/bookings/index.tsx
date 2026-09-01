@@ -1,7 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowUpRight, Calendar, ChevronRight, Plus } from 'lucide-react';
+import { ArrowUpRight, Calendar, ChevronRight, Plus, Search } from 'lucide-react';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 type BookingItem = {
     id: number;
@@ -30,27 +32,45 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function BookingsIndex({ bookings, isAdmin }: Props) {
+    const [search, setSearch] = useState('');
+
+    const filtered = bookings.filter((booking) => {
+        const q = search.toLowerCase();
+        return (
+            booking.facility.facility_name.toLowerCase().includes(q) ||
+            booking.user.name.toLowerCase().includes(q) ||
+            String(booking.id).includes(q)
+        );
+    });
+
     return (
         <>
             <Head title="Facility Bookings" />
 
-            <div className="min-h-full flex-1 bg-[#0f1117] px-4 py-6 text-[#f3f4f6] sm:px-6 lg:px-8">
-                <div className="mx-auto max-w-7xl">
+            <div className="min-h-full flex-1 bg-[#070b18] text-gray-100">
+                <div className="relative flex flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
+                    {/* Ambient accents */}
+                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                        <div className="absolute -top-40 right-1/4 size-105 rounded-full bg-ustp-navy/[0.04] blur-3xl" />
+                        <div className="absolute -bottom-40 left-1/4 size-90 rounded-full bg-ustp-gold/[0.015] blur-3xl" />
+                    </div>
+
                     {/* Header */}
-                    <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div>
-                            <div className="mb-3 flex items-center gap-2">
-                                <span className="size-2 rounded-full bg-[#22d3ee] shadow-[0_0_10px_rgba(34,211,238,0.7)]" />
-                                <span className="text-xs font-medium uppercase tracking-[0.18em] text-[#7d8ba3]">
+                            <div className="mb-2 flex items-center gap-2">
+                                <span className="size-1.5 rounded-full bg-ustp-light-blue shadow-[0_0_8px_rgba(50,157,234,0.6)]" />
+
+                                <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-gray-500">
                                     Facility Management
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl font-semibold tracking-tight text-[#f5f7fa]">
+                            <h1 className="text-2xl font-semibold tracking-tight text-gray-50 md:text-3xl">
                                 Facility Bookings
                             </h1>
 
-                            <p className="mt-2 text-sm text-[#7f8ba0]">
+                            <p className="mt-1.5 max-w-xl text-sm text-gray-400">
                                 Reserve computer labs and AV rooms.
                             </p>
                         </div>
@@ -58,7 +78,7 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                         {!isAdmin && (
                             <Button
                                 asChild
-                                className="h-10 border-0 bg-[#22b8cf] px-4 font-medium text-[#071116] shadow-[0_0_18px_rgba(34,184,207,0.12)] hover:bg-[#2ac7df]"
+                                className="h-10 bg-ustp-navy px-4 text-sm font-medium text-white shadow-lg shadow-ustp-navy/20 hover:bg-ustp-navy-dark"
                             >
                                 <Link href="/bookings/create">
                                     <Plus className="mr-2 size-4" />
@@ -68,64 +88,87 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                         )}
                     </div>
 
-                    {bookings.length === 0 ? (
-                        <div className="rounded-2xl border border-[#292e3a] bg-[#181b24] px-6 py-20 text-center shadow-2xl shadow-black/10">
-                            <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl border border-[#263541] bg-[#15262c]">
-                                <Calendar className="size-5 text-[#22d3ee]" />
+                    {/* Toolbar */}
+                    <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="relative w-full sm:max-w-sm">
+                            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+
+                            <Input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search bookings..."
+                                className="h-10 border-[#1a2035] bg-[#0c1222] pl-9 text-sm text-gray-100 placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                            />
+                        </div>
+
+                        <div className="text-xs text-gray-500">
+                            {filtered.length} booking{filtered.length !== 1 ? 's' : ''}
+                        </div>
+                    </div>
+
+                    {/* Empty */}
+                    {filtered.length === 0 ? (
+                        <div className="relative flex min-h-90 flex-col items-center justify-center rounded-2xl border border-dashed border-[#1a2035] bg-[#0c1222]/50 px-6 text-center">
+                            <div className="mb-4 flex size-14 items-center justify-center rounded-2xl border border-[#1a2035] bg-[#0f1723] text-ustp-light-blue">
+                                <Calendar className="size-6" />
                             </div>
 
-                            <h2 className="text-sm font-medium text-[#e9edf2]">
-                                No bookings yet
+                            <h2 className="text-sm font-medium text-gray-200">
+                                {search ? 'No matching bookings' : 'No bookings yet'}
                             </h2>
 
-                            <p className="mt-1 text-sm text-[#707c91]">
-                                Facility booking requests will appear here.
+                            <p className="mt-1.5 max-w-sm text-xs leading-5 text-gray-500">
+                                {search
+                                    ? 'Try a different facility name, requester, or booking ID.'
+                                    : 'Facility booking requests will appear here.'}
                             </p>
 
-                            {!isAdmin && (
+                            {!search && !isAdmin && (
                                 <Button
                                     asChild
                                     variant="outline"
-                                    className="mt-5 border-[#34404f] bg-transparent text-[#c9d1dc] hover:border-[#22b8cf]/50 hover:bg-[#1d222c] hover:text-[#22d3ee]"
+                                    className="mt-5 border-[#1a2035] bg-transparent text-gray-300 hover:bg-ustp-navy/10 hover:text-ustp-light-blue"
                                 >
                                     <Link href="/bookings/create">
+                                        <Plus className="size-4" />
                                         Create your first booking
                                     </Link>
                                 </Button>
                             )}
                         </div>
                     ) : (
-                        <div className="overflow-hidden rounded-2xl border border-[#292e3a] bg-[#181b24] shadow-2xl shadow-black/10">
+                        /* Table */
+                        <div className="relative overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-2xl shadow-black/20">
                             {/* Table heading */}
-                            <div className="flex items-center justify-between border-b border-[#292e3a] px-5 py-5 sm:px-6">
+                            <div className="flex items-center justify-between border-b border-[#1a2035] px-5 py-5 sm:px-6">
                                 <div>
-                                    <h2 className="text-sm font-semibold text-[#edf0f4]">
+                                    <h2 className="text-sm font-semibold text-gray-200">
                                         Booking requests
                                     </h2>
-                                    <p className="mt-1 text-xs text-[#717d91]">
+                                    <p className="mt-1 text-xs text-gray-500">
                                         {bookings.length}{' '}
                                         {bookings.length === 1 ? 'booking' : 'bookings'}
                                     </p>
                                 </div>
 
-                                <Calendar className="size-4 text-[#596579]" />
+                                <Calendar className="size-4 text-gray-500" />
                             </div>
 
                             {/* Desktop table */}
                             <div className="hidden overflow-x-auto md:block">
                                 <table className="w-full text-sm">
-                                    <thead className="border-b border-[#292e3a] bg-[#151820]">
+                                    <thead className="border-b border-[#1a2035] bg-[#0a0f1c]/80">
                                         <tr className="text-left">
-                                            <th className="px-6 py-4 text-[11px] font-medium uppercase tracking-[0.12em] text-[#728097]">
+                                            <th className="px-6 py-4 text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500">
                                                 Facility
                                             </th>
-                                            <th className="px-6 py-4 text-[11px] font-medium uppercase tracking-[0.12em] text-[#728097]">
+                                            <th className="px-6 py-4 text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500">
                                                 Requested by
                                             </th>
-                                            <th className="px-6 py-4 text-[11px] font-medium uppercase tracking-[0.12em] text-[#728097]">
+                                            <th className="px-6 py-4 text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500">
                                                 Date & Time
                                             </th>
-                                            <th className="px-6 py-4 text-[11px] font-medium uppercase tracking-[0.12em] text-[#728097]">
+                                            <th className="px-6 py-4 text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500">
                                                 Status
                                             </th>
                                             <th className="w-16 px-6 py-4" />
@@ -133,22 +176,22 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                                     </thead>
 
                                     <tbody>
-                                        {bookings.map((booking) => (
+                                        {filtered.map((booking) => (
                                             <tr
                                                 key={booking.id}
-                                                className="group border-b border-[#252a35] transition-colors last:border-0 hover:bg-[#1d212b]"
+                                                className="group border-b border-[#151c2c] transition-colors last:border-0 hover:bg-[#111827]/70"
                                             >
                                                 <td className="px-6 py-5">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-[#24404a] bg-[#152a31]">
-                                                            <Calendar className="size-4 text-[#22c6df]" />
+                                                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-ustp-blue-accent/15 text-ustp-light-blue">
+                                                            <Calendar className="size-4" />
                                                         </div>
 
                                                         <div>
-                                                            <p className="font-medium text-[#edf0f4]">
+                                                            <p className="font-medium text-gray-200">
                                                                 {booking.facility.facility_name}
                                                             </p>
-                                                            <p className="mt-1 text-xs text-[#69758a]">
+                                                            <p className="mt-1 text-xs text-gray-500">
                                                                 Booking #{booking.id}
                                                             </p>
                                                         </div>
@@ -156,18 +199,18 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                                                 </td>
 
                                                 <td className="px-6 py-5">
-                                                    <span className="text-[#b8c1cf]">
+                                                    <span className="text-sm text-gray-300">
                                                         {booking.user.name}
                                                     </span>
                                                 </td>
 
                                                 <td className="px-6 py-5">
-                                                    <p className="text-[#c7ced8]">
+                                                    <p className="text-gray-200">
                                                         {new Date(
                                                             booking.booking_date,
                                                         ).toLocaleDateString()}
                                                     </p>
-                                                    <p className="mt-1 text-xs text-[#6f7b8f]">
+                                                    <p className="mt-1 text-xs text-gray-500">
                                                         {booking.start_time} – {booking.end_time}
                                                     </p>
                                                 </td>
@@ -175,7 +218,7 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                                                 <td className="px-6 py-5">
                                                     <Badge
                                                         variant="outline"
-                                                        className={`rounded-md px-2.5 py-1 text-[11px] font-medium capitalize ${statusStyles[booking.booking_status] ?? 'border-[#394252] bg-[#20242d] text-[#aab3c0]'}`}
+                                                        className={`rounded-md px-2.5 py-1 text-[11px] font-medium capitalize ${statusStyles[booking.booking_status] ?? 'border-[#1a2035] bg-[#070b18] text-gray-400'}`}
                                                     >
                                                         {booking.booking_status}
                                                     </Badge>
@@ -184,7 +227,7 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                                                 <td className="px-6 py-5 text-right">
                                                     <Link
                                                         href={`/bookings/${booking.id}`}
-                                                        className="inline-flex items-center gap-1.5 text-sm text-[#7d8ca3] transition-colors hover:text-[#22d3ee]"
+                                                        className="inline-flex items-center gap-1.5 text-sm text-gray-400 transition-colors hover:text-ustp-light-blue"
                                                     >
                                                         View
                                                         <ArrowUpRight className="size-3.5" />
@@ -197,47 +240,47 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                             </div>
 
                             {/* Mobile cards */}
-                            <div className="divide-y divide-[#252a35] md:hidden">
-                                {bookings.map((booking) => (
+                            <div className="divide-y divide-[#151c2c] md:hidden">
+                                {filtered.map((booking) => (
                                     <Link
                                         key={booking.id}
                                         href={`/bookings/${booking.id}`}
-                                        className="block p-5 transition-colors hover:bg-[#1d212b]"
+                                        className="block p-5 transition-colors hover:bg-[#111827]/70"
                                     >
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex min-w-0 gap-3">
-                                                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-[#24404a] bg-[#152a31]">
-                                                    <Calendar className="size-4 text-[#22c6df]" />
+                                                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-ustp-blue-accent/15 text-ustp-light-blue">
+                                                    <Calendar className="size-4" />
                                                 </div>
 
                                                 <div className="min-w-0">
-                                                    <p className="truncate font-medium text-[#edf0f4]">
+                                                    <p className="truncate font-medium text-gray-200">
                                                         {booking.facility.facility_name}
                                                     </p>
-                                                    <p className="mt-1 text-xs text-[#69758a]">
+                                                    <p className="mt-1 text-xs text-gray-500">
                                                         Booking #{booking.id}
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <ChevronRight className="mt-1 size-4 shrink-0 text-[#5e6879]" />
+                                            <ChevronRight className="mt-1 size-4 shrink-0 text-gray-500" />
                                         </div>
 
                                         <div className="mt-4 grid grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-[10px] uppercase tracking-wider text-[#657187]">
+                                                <p className="text-[10px] uppercase tracking-wider text-gray-500">
                                                     Requested by
                                                 </p>
-                                                <p className="mt-1 text-sm text-[#b8c1cf]">
+                                                <p className="mt-1 text-sm text-gray-300">
                                                     {booking.user.name}
                                                 </p>
                                             </div>
 
                                             <div>
-                                                <p className="text-[10px] uppercase tracking-wider text-[#657187]">
+                                                <p className="text-[10px] uppercase tracking-wider text-gray-500">
                                                     Date
                                                 </p>
-                                                <p className="mt-1 text-sm text-[#b8c1cf]">
+                                                <p className="mt-1 text-sm text-gray-300">
                                                     {new Date(
                                                         booking.booking_date,
                                                     ).toLocaleDateString()}
@@ -246,13 +289,13 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                                         </div>
 
                                         <div className="mt-4 flex items-center justify-between">
-                                            <span className="text-xs text-[#707c91]">
+                                            <span className="text-xs text-gray-500">
                                                 {booking.start_time} – {booking.end_time}
                                             </span>
 
                                             <Badge
                                                 variant="outline"
-                                                className={`rounded-md px-2.5 py-1 text-[11px] capitalize ${statusStyles[booking.booking_status] ?? 'border-[#394252] bg-[#20242d] text-[#aab3c0]'}`}
+                                                className={`rounded-md px-2.5 py-1 text-[11px] capitalize ${statusStyles[booking.booking_status] ?? 'border-[#1a2035] bg-[#070b18] text-gray-400'}`}
                                             >
                                                 {booking.booking_status}
                                             </Badge>

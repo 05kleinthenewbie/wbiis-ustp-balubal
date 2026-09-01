@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -87,10 +88,17 @@ class UserController extends Controller
         $user->update($validated);
 
         if ($validated['status'] === 'active') {
-            \App\Models\Notification::create([
+            Notification::create([
                 'user_id' => $user->id,
                 'message' => 'Your account has been approved. You can now log in.',
                 'notification_type' => 'account_approval',
+                'notification_status' => 'unread',
+            ]);
+        } elseif ($validated['status'] === 'inactive') {
+            Notification::create([
+                'user_id' => $user->id,
+                'message' => 'Your account registration was not approved. Please contact the ICT office for more information.',
+                'notification_type' => 'account_rejection',
                 'notification_status' => 'unread',
             ]);
         }
