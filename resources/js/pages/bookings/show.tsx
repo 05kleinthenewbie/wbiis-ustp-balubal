@@ -1,4 +1,12 @@
 import { Head, router } from '@inertiajs/react';
+import {
+    CalendarDays,
+    CheckCircle2,
+    Clock3,
+    MapPin,
+    UserRound,
+    XCircle,
+} from 'lucide-react';
 import { useState } from 'react';
 import { BackButton } from '@/components/back-button';
 import { Badge } from '@/components/ui/badge';
@@ -22,10 +30,14 @@ type Props = {
 };
 
 const statusStyles: Record<string, string> = {
-    pending: 'bg-slate-100 text-slate-700',
-    approved: 'bg-green-100 text-green-800',
-    rejected: 'bg-red-100 text-red-800',
-    cancelled: 'bg-slate-100 text-slate-500',
+    pending:
+        'border-amber-400/30 bg-amber-400/10 text-amber-300',
+    approved:
+        'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
+    rejected:
+        'border-rose-400/30 bg-rose-400/10 text-rose-300',
+    cancelled:
+        'border-slate-500/30 bg-slate-500/10 text-slate-400',
 };
 
 export default function BookingsShow({ booking, isAdmin }: Props) {
@@ -33,6 +45,7 @@ export default function BookingsShow({ booking, isAdmin }: Props) {
 
     function updateStatus(status: string) {
         setProcessing(true);
+
         router.put(
             `/bookings/${booking.id}`,
             { booking_status: status },
@@ -44,74 +57,240 @@ export default function BookingsShow({ booking, isAdmin }: Props) {
         <>
             <Head title={`Booking #${booking.id}`} />
 
-            <div className="mx-auto flex max-w-lg flex-1 flex-col gap-4 p-4">
-                <BackButton href="/bookings" />
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-xs text-muted-foreground">Booking #{booking.id}</p>
-                        <h1 className="text-xl font-semibold">{booking.facility.facility_name}</h1>
-                    </div>
-                    <Badge className={statusStyles[booking.booking_status] ?? ''} variant="outline">
-                        {booking.booking_status}
-                    </Badge>
-                </div>
+            <div className="min-h-full flex-1 bg-[#0f1117] px-4 py-6 text-[#f3f4f6] sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-4xl">
+                    <BackButton href="/bookings" />
 
-                <div className="grid grid-cols-2 gap-4 rounded-xl border p-4 text-sm">
-                    <div>
-                        <p className="text-xs text-muted-foreground">Requested by</p>
-                        <p>{booking.user.name}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground">Department</p>
-                        <p>{booking.user.department ?? '—'}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground">Date</p>
-                        <p>{new Date(booking.booking_date).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground">Time</p>
-                        <p>{booking.start_time} – {booking.end_time}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground">Location</p>
-                        <p>{booking.facility.location ?? '—'}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground">Approved by</p>
-                        <p>{booking.approver?.name ?? 'Not yet reviewed'}</p>
-                    </div>
-                </div>
+                    {/* Header */}
+                    <div className="mb-8 mt-5 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <div className="mb-3 flex items-center gap-2">
+                                <span className="size-2 rounded-full bg-[#22d3ee] shadow-[0_0_10px_rgba(34,211,238,0.7)]" />
+                                <span className="text-xs font-medium uppercase tracking-[0.18em] text-[#7d8ba3]">
+                                    Booking Details
+                                </span>
+                            </div>
 
-                {booking.purpose && (
-                    <div className="rounded-xl border p-4">
-                        <p className="mb-2 text-sm font-medium">Purpose</p>
-                        <p className="text-sm text-muted-foreground">{booking.purpose}</p>
-                    </div>
-                )}
+                            <p className="mb-1 text-xs text-[#657187]">
+                                Booking #{booking.id}
+                            </p>
 
-                {isAdmin && booking.booking_status === 'pending' && (
-                    <div className="rounded-xl border bg-muted/30 p-4">
-                        <p className="mb-3 text-sm font-medium">Review this booking</p>
-                        <div className="flex justify-end gap-3">
-                            <Button
-                                variant="outline"
-                                disabled={processing}
-                                onClick={() => updateStatus('rejected')}
-                                className="border-red-200 text-red-700 hover:bg-red-50"
-                            >
-                                Reject
-                            </Button>
-                            <Button
-                                disabled={processing}
-                                onClick={() => updateStatus('approved')}
-                                className="bg-ustp-navy text-white hover:bg-ustp-navy-dark"
-                            >
-                                Approve
-                            </Button>
+                            <h1 className="text-3xl font-semibold tracking-tight text-[#f5f7fa]">
+                                {booking.facility.facility_name}
+                            </h1>
                         </div>
+
+                        <Badge
+                            variant="outline"
+                            className={`w-fit rounded-md px-3 py-1.5 text-xs font-medium capitalize ${statusStyles[booking.booking_status] ?? 'border-[#394252] bg-[#20242d] text-[#aab3c0]'}`}
+                        >
+                            {booking.booking_status}
+                        </Badge>
                     </div>
-                )}
+
+                    <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+                        {/* Main */}
+                        <div className="space-y-5">
+                            {/* Schedule card */}
+                            <div className="overflow-hidden rounded-2xl border border-[#292e3a] bg-[#181b24]">
+                                <div className="border-b border-[#292e3a] px-6 py-5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex size-9 items-center justify-center rounded-lg border border-[#24404a] bg-[#152a31]">
+                                            <CalendarDays className="size-4 text-[#22c6df]" />
+                                        </div>
+
+                                        <div>
+                                            <h2 className="text-sm font-semibold text-[#edf0f4]">
+                                                Reservation schedule
+                                            </h2>
+                                            <p className="mt-0.5 text-xs text-[#69758a]">
+                                                Facility reservation information
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid divide-y divide-[#252a35] sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                                    <div className="p-6">
+                                        <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#657187]">
+                                            Date
+                                        </p>
+
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <CalendarDays className="size-4 text-[#728096]" />
+                                            <p className="text-sm font-medium text-[#dfe4ea]">
+                                                {new Date(
+                                                    booking.booking_date,
+                                                ).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-6">
+                                        <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#657187]">
+                                            Time
+                                        </p>
+
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <Clock3 className="size-4 text-[#728096]" />
+                                            <p className="text-sm font-medium text-[#dfe4ea]">
+                                                {booking.start_time} – {booking.end_time}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Requester */}
+                            <div className="overflow-hidden rounded-2xl border border-[#292e3a] bg-[#181b24]">
+                                <div className="border-b border-[#292e3a] px-6 py-5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex size-9 items-center justify-center rounded-lg border border-[#303542] bg-[#20242d]">
+                                            <UserRound className="size-4 text-[#8d9aae]" />
+                                        </div>
+
+                                        <h2 className="text-sm font-semibold text-[#edf0f4]">
+                                            Requester information
+                                        </h2>
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-6 p-6 sm:grid-cols-2">
+                                    <div>
+                                        <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#657187]">
+                                            Requested by
+                                        </p>
+                                        <p className="mt-2 text-sm text-[#d6dce4]">
+                                            {booking.user.name}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#657187]">
+                                            Department
+                                        </p>
+                                        <p className="mt-2 text-sm text-[#d6dce4]">
+                                            {booking.user.department ?? '—'}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#657187]">
+                                            Location
+                                        </p>
+
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <MapPin className="size-3.5 text-[#68758a]" />
+                                            <p className="text-sm text-[#d6dce4]">
+                                                {booking.facility.location ?? '—'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#657187]">
+                                            Approved by
+                                        </p>
+                                        <p className="mt-2 text-sm text-[#d6dce4]">
+                                            {booking.approver?.name ?? 'Not yet reviewed'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Purpose */}
+                            {booking.purpose && (
+                                <div className="rounded-2xl border border-[#292e3a] bg-[#181b24] p-6">
+                                    <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#657187]">
+                                        Purpose
+                                    </p>
+
+                                    <p className="mt-3 text-sm leading-7 text-[#aab4c3]">
+                                        {booking.purpose}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Admin review */}
+                        {isAdmin && booking.booking_status === 'pending' && (
+                            <div className="h-fit overflow-hidden rounded-2xl border border-[#292e3a] bg-[#181b24]">
+                                <div className="border-b border-[#292e3a] px-5 py-5">
+                                    <p className="text-sm font-semibold text-[#edf0f4]">
+                                        Review booking
+                                    </p>
+                                    <p className="mt-1 text-xs leading-5 text-[#69758a]">
+                                        Approve or reject this facility reservation.
+                                    </p>
+                                </div>
+
+                                <div className="space-y-3 p-5">
+                                    <Button
+                                        disabled={processing}
+                                        onClick={() => updateStatus('approved')}
+                                        className="h-11 w-full bg-[#22b8cf] font-medium text-[#071116] hover:bg-[#2ac7df]"
+                                    >
+                                        <CheckCircle2 className="mr-2 size-4" />
+                                        Approve booking
+                                    </Button>
+
+                                    <Button
+                                        variant="outline"
+                                        disabled={processing}
+                                        onClick={() => updateStatus('rejected')}
+                                        className="h-11 w-full border-[#51313a] bg-transparent text-[#fb7185] hover:border-[#713944] hover:bg-[#24191e]"
+                                    >
+                                        <XCircle className="mr-2 size-4" />
+                                        Reject booking
+                                    </Button>
+                                </div>
+
+                                <div className="border-t border-[#292e3a] bg-[#151820] px-5 py-4">
+                                    <p className="text-[11px] leading-5 text-[#606c7f]">
+                                        The requester will see the updated booking
+                                        status after your decision.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Status summary when not pending */}
+                        {(!isAdmin || booking.booking_status !== 'pending') && (
+                            <div className="h-fit rounded-2xl border border-[#292e3a] bg-[#181b24] p-5">
+                                <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#657187]">
+                                    Booking status
+                                </p>
+
+                                <div className="mt-4 flex items-center gap-3">
+                                    {booking.booking_status === 'approved' ? (
+                                        <div className="flex size-9 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10">
+                                            <CheckCircle2 className="size-4 text-emerald-300" />
+                                        </div>
+                                    ) : booking.booking_status === 'rejected' ? (
+                                        <div className="flex size-9 items-center justify-center rounded-lg border border-rose-400/20 bg-rose-400/10">
+                                            <XCircle className="size-4 text-rose-300" />
+                                        </div>
+                                    ) : (
+                                        <div className="flex size-9 items-center justify-center rounded-lg border border-amber-400/20 bg-amber-400/10">
+                                            <Clock3 className="size-4 text-amber-300" />
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <p className="text-sm font-medium capitalize text-[#e1e5ea]">
+                                            {booking.booking_status}
+                                        </p>
+                                        <p className="mt-0.5 text-xs text-[#69758a]">
+                                            {booking.approver?.name
+                                                ? `Reviewed by ${booking.approver.name}`
+                                                : 'Awaiting review'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </>
     );
