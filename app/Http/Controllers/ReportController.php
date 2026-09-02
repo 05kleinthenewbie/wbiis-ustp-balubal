@@ -7,6 +7,8 @@ use App\Models\IncidentReport;
 use App\Models\InventoryItem;
 use App\Models\JobOrder;
 use App\Models\ServiceRequest;
+use App\Models\UserLiability;
+use App\Services\SlaService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -33,6 +35,7 @@ class ReportController extends Controller
                 'average_rating' => round((float) JobOrder::whereNotNull('rating')->avg('rating'), 1),
                 'rated_count' => JobOrder::whereNotNull('rating')->count(),
             ],
+            'slaMetrics' => SlaService::getMetrics(),
             'inventoryStats' => [
                 'total' => InventoryItem::count(),
                 'by_condition' => InventoryItem::selectRaw('`condition`, count(*) as total')
@@ -53,8 +56,8 @@ class ReportController extends Controller
                 'by_type' => IncidentReport::selectRaw('incident_type, count(*) as total')
                     ->groupBy('incident_type')
                     ->pluck('total', 'incident_type'),
-                'liabilities_assigned' => \App\Models\UserLiability::count(),
-                'liabilities_settled' => \App\Models\UserLiability::where('liability_status', 'settled')->count(),
+                'liabilities_assigned' => UserLiability::count(),
+                'liabilities_settled' => UserLiability::where('liability_status', 'settled')->count(),
             ],
         ]);
     }

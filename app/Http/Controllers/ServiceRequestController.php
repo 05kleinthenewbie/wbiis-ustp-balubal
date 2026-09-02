@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ServiceRequestApproved;
+use App\Mail\ServiceRequestRejected;
+use App\Models\AuditLog;
+use App\Models\Notification;
 use App\Models\ServiceCategory;
 use App\Models\ServiceRequest as ServiceRequestModel;
-use App\Models\ServiceType;
+use App\Services\SlaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class ServiceRequestController extends Controller
@@ -14,20 +19,39 @@ class ServiceRequestController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
-        $query = ServiceRequestModel::with(['user', 'requestServices.serviceType.category'])
-            ->latest();
+        $query = ServiceRequestModel::with(['user', 'requestServices.serviceType.category']);
 
         if ($user->role->role_name !== 'ict_admin') {
             $query->where('user_id', $user->id);
         }
 
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                    ->orWhere('problem_description', 'like', "%{$search}%")
+                    ->orWhereHas('user', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('requestServices.serviceType', fn ($q) => $q->where('service_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $sort = $request->input('sort', 'status');
+        if ($sort === 'oldest') {
+            $query->oldest();
+        } elseif ($sort === 'newest') {
+            $query->latest();
+        } else {
+            $query->orderByRaw("FIELD(request_status, 'pending', 'approved', 'rejected', 'completed') ASC")
+                ->latest();
+        }
+
         return Inertia::render('requests/index', [
-            'requests' => $query->get(),
+            'requests' => $query->paginate(25)->withQueryString(),
             'isAdmin' => $user->role->role_name === 'ict_admin',
+            'filters' => $request->only(['search', 'sort']),
         ]);
     }
 
@@ -69,6 +93,8 @@ class ServiceRequestController extends Controller
 
         $validated = $request->validate([
             'problem_description' => ['required', 'string'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'contact_details' => ['nullable', 'string', 'max:255'],
             'services' => ['required', 'array', 'min:1'],
             'services.*.service_type_id' => ['required', 'exists:service_types,id'],
             'services.*.specification' => ['nullable', 'string'],
@@ -79,6 +105,8 @@ class ServiceRequestController extends Controller
         $serviceRequest = ServiceRequestModel::create([
             'user_id' => Auth::id(),
             'problem_description' => $validated['problem_description'],
+            'location' => $validated['location'] ?? null,
+            'contact_details' => $validated['contact_details'] ?? null,
             'request_status' => 'pending',
             'date_requested' => now(),
         ]);
@@ -128,29 +156,56 @@ class ServiceRequestController extends Controller
         $validated = $request->validate([
             'request_status' => ['required', 'in:pending,approved,rejected,completed'],
             'priority_level' => ['nullable', 'in:low,medium,high,urgent'],
+            'rejection_reason' => ['nullable', 'string'],
         ]);
 
         $serviceRequest = ServiceRequestModel::findOrFail($id);
         $wasPending = $serviceRequest->request_status === 'pending';
-        $serviceRequest->update($validated);
+
+        $updateData = $validated;
+
+        if ($wasPending && $validated['request_status'] === 'approved') {
+            $updateData['approved_by'] = $user->id;
+            $updateData['date_approved'] = now();
+            $updateData['sla_deadline'] = SlaService::calculateResponseDeadline($serviceRequest);
+            $updateData['sla_status'] = 'on_track';
+        }
+
+        if ($wasPending && $validated['request_status'] === 'rejected') {
+            $updateData['approved_by'] = $user->id;
+            $updateData['date_approved'] = now();
+        }
+
+        $serviceRequest->update($updateData);
 
         if ($wasPending && $validated['request_status'] === 'approved') {
             $serviceRequest->jobOrders()->create([
                 'status' => 'open',
                 'date_assigned' => null,
+                'priority_level' => $validated['priority_level'] ?? null,
             ]);
         }
 
         if ($wasPending && in_array($validated['request_status'], ['approved', 'rejected'])) {
-            \App\Models\Notification::create([
+            Notification::create([
                 'user_id' => $serviceRequest->user_id,
-                'message' => "Your service request #{$serviceRequest->id} has been {$validated['request_status']}.",
+                'message' => "Your service request #{$serviceRequest->form_number} has been {$validated['request_status']}.",
                 'notification_type' => 'service_request',
                 'notification_status' => 'unread',
             ]);
+
+            if ($validated['request_status'] === 'approved') {
+                Mail::to($serviceRequest->user->email)->queue(
+                    new ServiceRequestApproved($serviceRequest->user->name, $serviceRequest->id)
+                );
+            } else {
+                Mail::to($serviceRequest->user->email)->queue(
+                    new ServiceRequestRejected($serviceRequest->user->name, $serviceRequest->id, $validated['rejection_reason'] ?? null)
+                );
+            }
         }
 
-        \App\Models\AuditLog::record(
+        AuditLog::record(
             "Set request status to {$validated['request_status']}",
             'service_requests',
             $serviceRequest->id

@@ -11,13 +11,16 @@ class TechnicianResponse extends Model
         'technician_id',
         'job_order_id',
         'response_report',
+        'response_type',
         'date_responded',
         'date_resolved',
+        'time_spent_minutes',
     ];
 
     protected $casts = [
         'date_responded' => 'datetime',
         'date_resolved' => 'datetime',
+        'time_spent_minutes' => 'integer',
     ];
 
     /**
