@@ -4,12 +4,97 @@ import {
     ArrowRight,
     Box,
     Calendar,
+    CheckCircle,
+    ChevronDown,
     ClipboardList,
+    Facebook,
     FileText,
-    Zap,
+    Inbox,
+    Mail,
+    MapPin,
+    Phone,
+    Shield,
+    Users,
+    Wifi,
 } from 'lucide-react';
 import ustpLogo from '@/assets/ustp-logo.png';
 import { dashboard, login, register } from '@/routes';
+
+const navItems = [
+    {
+        label: 'About',
+        children: ['About the System', 'USTP Balubal Campus', 'Vision & Mission', 'Contact'],
+    },
+    {
+        label: 'Services',
+        children: ['Service Requests', 'Facility Booking', 'Incident Reports', 'Email / O365 Requests'],
+    },
+    {
+        label: 'Modules',
+        children: ['Dashboard', 'Job Orders', 'Inventory', 'Reports', 'User Management', 'Audit Log', 'Notifications'],
+    },
+];
+
+const modules = [
+    {
+        icon: FileText,
+        title: 'Service Requests',
+        description: 'Submit and track ICT service requests for equipment, software, and network support across campus.',
+    },
+    {
+        icon: ClipboardList,
+        title: 'Job Order Management',
+        description: 'ICT staff can create, assign, and monitor job orders to resolve service requests efficiently.',
+    },
+    {
+        icon: Inbox,
+        title: 'Inventory Management',
+        description: 'Track ICT equipment, property records, and monitor defective items across the campus.',
+    },
+    {
+        icon: Calendar,
+        title: 'Facility Booking',
+        description: 'Reserve computer laboratories and audio-visual rooms for academic and official use.',
+    },
+    {
+        icon: Shield,
+        title: 'Incident Recording',
+        description: 'Document ICT-related incidents and monitor user responsibilities and liabilities.',
+    },
+    {
+        icon: Mail,
+        title: 'Notifications',
+        description: 'Receive email updates on request statuses, approvals, bookings, and system alerts.',
+    },
+];
+
+const roles = [
+    {
+        icon: Users,
+        role: 'Faculty & Staff',
+        description: 'Submit service requests, book facilities, and track your ICT-related concerns in real time.',
+        features: ['Submit Requests', 'Book Facilities', 'Track Status', 'View Updates'],
+    },
+    {
+        icon: Shield,
+        role: 'ICT Administrators',
+        description: 'Manage requests, process job orders, monitor inventory, and oversee all ICT operations.',
+        features: ['Manage Requests', 'Process Job Orders', 'Monitor Inventory', 'Record Incidents'],
+    },
+    {
+        icon: Wifi,
+        role: 'Students',
+        description: 'Request email accounts and Office 365 access for academic purposes.',
+        features: ['Email Requests', 'Office 365 Access', 'Track Requests'],
+    },
+];
+
+const workflowSteps = [
+    { step: '1', title: 'Submit Request', description: 'User submits a service request or facility booking through the portal.' },
+    { step: '2', title: 'Review & Assign', description: 'ICT administrator reviews and creates a job order for the request.' },
+    { step: '3', title: 'Process & Resolve', description: 'Assigned staff processes the request and updates the status.' },
+    { step: '4', title: 'Notify & Close', description: 'User receives notification and confirms resolution. Request is closed.' },
+];
 
 export default function Welcome() {
     const { auth } = usePage().props;
@@ -19,232 +104,441 @@ export default function Welcome() {
         <>
             <Head title="USTP Balubal ICT Portal" />
 
-            <div className="relative min-h-screen overflow-hidden bg-[#070b18] text-white">
-                {/* Ambient glows */}
-                <div className="pointer-events-none absolute -top-40 left-1/4 h-[600px] w-[600px] rounded-full bg-ustp-navy/[0.06] blur-3xl" />
-                <div className="pointer-events-none absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full bg-ustp-gold/[0.02] blur-3xl" />
-
-                {/* Dot pattern */}
-                <div
-                    className="pointer-events-none absolute inset-0 opacity-[0.02]"
-                    style={{
-                        backgroundImage:
-                            'radial-gradient(circle, #fcb315 1px, transparent 1px)',
-                        backgroundSize: '28px 28px',
-                    }}
-                />
-
-                {/* Nav */}
-                <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-                    <div className="flex items-center gap-3">
-                        <div className="flex size-10 items-center justify-center rounded-xl bg-white p-1.5">
-                            <img
-                                src={ustpLogo}
-                                alt="USTP Logo"
-                                className="size-full object-contain"
-                            />
-                        </div>
-                        <div>
-                            <p className="text-sm font-semibold tracking-tight text-white">
-                                USTP Balubal
-                            </p>
-                            <p className="text-[10px] uppercase tracking-[0.15em] text-white/40">
-                                ICT Portal
-                            </p>
-                        </div>
-                    </div>
-
-                    <nav className="flex items-center gap-3">
-                        {auth.user ? (
-                            <Link
-                                href={dashboardUrl}
-                                className="rounded-xl bg-ustp-navy px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-ustp-navy/20 transition-all hover:bg-ustp-navy-dark hover:shadow-ustp-navy/30"
-                            >
-                                Dashboard
-                            </Link>
-                        ) : (
-                            <>
-                                <Link
-                                    href={login()}
-                                    className="rounded-xl px-5 py-2.5 text-sm font-medium text-white/70 transition-colors hover:text-white"
-                                >
-                                    Log in
-                                </Link>
-                                <Link
-                                    href={register()}
-                                    className="rounded-xl bg-ustp-navy px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-ustp-navy/20 transition-all hover:bg-ustp-navy-dark hover:shadow-ustp-navy/30"
-                                >
-                                    Register
-                                </Link>
-                            </>
-                        )}
-                    </nav>
-                </header>
-
-                {/* Hero */}
-                <main className="relative z-10 mx-auto max-w-6xl px-6 pt-16 pb-24 lg:pt-24 lg:pb-32">
-                    <div className="mx-auto max-w-3xl text-center">
-                        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-ustp-gold/20 bg-ustp-gold/[0.06] px-4 py-1.5">
-                            <span className="size-1.5 rounded-full bg-ustp-gold shadow-[0_0_8px_rgba(252,179,21,0.5)]" />
-                            <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-ustp-gold/80">
-                                Balubal Campus, Cagayan de Oro City
-                            </span>
+            <div className="min-h-screen bg-white">
+                {/* Header */}
+                <header className="border-b border-ustp-gray-medium bg-white">
+                    <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+                        <div className="flex items-center gap-3">
+                            <div className="flex size-12 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
+                                <img
+                                    src={ustpLogo}
+                                    alt="USTP Logo"
+                                    className="size-full object-contain"
+                                />
+                            </div>
+                            <div>
+                                <p className="font-serif text-lg font-bold leading-tight text-ustp-navy">
+                                    University of Science and Technology
+                                </p>
+                                <p className="font-serif text-sm font-bold text-ustp-navy">
+                                    of Southern Philippines
+                                </p>
+                                <p className="text-[11px] uppercase tracking-[0.12em] text-ustp-navy/60">
+                                    Balubal Campus, Cagayan de Oro City
+                                </p>
+                            </div>
                         </div>
 
-                        <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                            Web-Based ICT
-                            <br />
-                            <span className="text-ustp-light-blue">Management and Information System</span>
-                        </h1>
+                        <nav className="hidden items-center gap-1 lg:flex">
+                            {navItems.map((item) => (
+                                <div key={item.label} className="group relative">
+                                    <button className="flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-medium text-ustp-navy transition-colors hover:bg-ustp-gray">
+                                        {item.label}
+                                        <ChevronDown className="size-3.5 text-ustp-navy/50 transition-transform group-hover:rotate-180" />
+                                    </button>
+                                    <div className="invisible absolute left-0 top-full z-50 mt-1 w-56 rounded-xl border border-ustp-gray-medium bg-white py-2 opacity-0 shadow-lg transition-all group-hover:visible group-hover:opacity-100">
+                                        {item.children.map((child) => (
+                                            <a
+                                                key={child}
+                                                href="#"
+                                                className="block px-4 py-2 text-sm text-ustp-navy/70 transition-colors hover:bg-ustp-gray hover:text-ustp-navy"
+                                            >
+                                                {child}
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </nav>
 
-                        <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-white/50">
-                            A centralized platform for managing ICT service requests,
-                            facility bookings, incident reports, and inventory tracking
-                            across the university.
-                        </p>
-
-                        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                        <div className="flex items-center gap-3">
                             {auth.user ? (
                                 <Link
                                     href={dashboardUrl}
-                                    className="group flex items-center gap-2 rounded-xl bg-ustp-navy px-7 py-3.5 text-sm font-medium text-white shadow-lg shadow-ustp-navy/25 transition-all hover:bg-ustp-navy-dark hover:shadow-ustp-navy/35"
+                                    className="rounded-lg bg-ustp-navy px-5 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-ustp-navy-dark hover:shadow-lg"
                                 >
-                                    Go to Dashboard
-                                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                                    Dashboard
                                 </Link>
                             ) : (
                                 <>
                                     <Link
-                                        href={register()}
-                                        className="group flex items-center gap-2 rounded-xl bg-ustp-navy px-7 py-3.5 text-sm font-medium text-white shadow-lg shadow-ustp-navy/25 transition-all hover:bg-ustp-navy-dark hover:shadow-ustp-navy/35"
+                                        href={login()}
+                                        className="rounded-lg px-5 py-2.5 text-sm font-medium text-ustp-navy transition-colors hover:bg-ustp-gray"
                                     >
-                                        Get Started
-                                        <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                                        Log in
                                     </Link>
                                     <Link
-                                        href={login()}
-                                        className="rounded-xl border border-white/10 px-7 py-3.5 text-sm font-medium text-white/70 transition-all hover:border-white/20 hover:text-white"
+                                        href={register()}
+                                        className="rounded-lg border-2 border-ustp-gold bg-ustp-gold px-5 py-2.5 text-sm font-bold text-ustp-navy transition-all hover:bg-ustp-gold-dark hover:text-white"
                                     >
-                                        Log in to your account
+                                        Register
                                     </Link>
                                 </>
                             )}
                         </div>
                     </div>
+                </header>
 
-                    {/* Features */}
-                    <div className="mx-auto mt-24 grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {[
-                            {
-                                icon: FileText,
-                                title: 'Service Requests',
-                                description: 'Submit and track ICT service requests for equipment, software, and network support.',
-                                color: 'bg-ustp-light-blue/10 text-ustp-light-blue',
-                            },
-                            {
-                                icon: Calendar,
-                                title: 'Facility Bookings',
-                                description: 'Reserve computer labs, AV rooms, and other ICT facilities for academic use.',
-                                color: 'bg-ustp-gold/10 text-ustp-gold',
-                            },
-                            {
-                                icon: AlertTriangle,
-                                title: 'Incident Reports',
-                                description: 'Report equipment failures, security incidents, and facility issues promptly.',
-                                color: 'bg-red-400/10 text-red-400',
-                            },
-                            {
-                                icon: ClipboardList,
-                                title: 'Job Orders',
-                                description: 'ICT staff can manage, assign, and track resolution of service requests.',
-                                color: 'bg-emerald-400/10 text-emerald-400',
-                            },
-                            {
-                                icon: Box,
-                                title: 'Inventory Management',
-                                description: 'Track ICT equipment, property records, and maintenance status across campus.',
-                                color: 'bg-purple-400/10 text-purple-400',
-                            },
-                            {
-                                icon: Zap,
-                                title: 'Dashboard Overview',
-                                description: 'Monitor system activity, pending tasks, and key metrics at a glance.',
-                                color: 'bg-amber-400/10 text-amber-400',
-                            },
-                        ].map((feature) => {
-                            const Icon = feature.icon;
-
-                            return (
-                                <div
-                                    key={feature.title}
-                                    className="group rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 transition-all hover:border-white/10 hover:bg-[#111827]"
-                                >
-                                    <div className={`mb-4 flex size-10 items-center justify-center rounded-xl ${feature.color}`}>
-                                        <Icon className="size-5" />
-                                    </div>
-                                    <h3 className="text-sm font-semibold text-white">
-                                        {feature.title}
-                                    </h3>
-                                    <p className="mt-1.5 text-xs leading-relaxed text-white/40">
-                                        {feature.description}
-                                    </p>
-                                </div>
-                            );
-                        })}
+                {/* Hero Section */}
+                <section className="relative flex min-h-screen items-center overflow-hidden bg-ustp-navy">
+                    <div className="absolute inset-0 bg-gradient-to-r from-ustp-navy-dark to-ustp-navy" />
+                    {/* Corner glow for depth */}
+                    <div className="pointer-events-none absolute -top-32 right-0 h-[600px] w-[600px] rounded-full bg-ustp-light-blue/[0.08] blur-3xl" />
+                    <div className="pointer-events-none absolute bottom-0 left-1/3 h-[400px] w-[400px] rounded-full bg-ustp-gold/[0.05] blur-3xl" />
+                    <div
+                        className="pointer-events-none absolute inset-0 opacity-5"
+                        style={{
+                            backgroundImage: 'radial-gradient(circle, #F2A900 1px, transparent 1px)',
+                            backgroundSize: '32px 32px',
+                        }}
+                    />
+                    {/* Real module badges — subtle fill behind stat cards */}
+                    <div className="pointer-events-none absolute -right-6 top-1/2 hidden -translate-y-1/2 grid-cols-3 gap-5 opacity-[0.08] lg:grid">
+                        <AlertTriangle className="size-16 text-white" strokeWidth={1} />
+                        <Shield className="size-16 text-white" strokeWidth={1} />
+                        <ClipboardList className="size-16 text-white" strokeWidth={1} />
+                        <Box className="size-16 text-white" strokeWidth={1} />
+                        <Calendar className="size-16 text-white" strokeWidth={1} />
+                        <Wifi className="size-16 text-white" strokeWidth={1} />
+                        <FileText className="size-16 text-white" strokeWidth={1} />
+                        <Mail className="size-16 text-white" strokeWidth={1} />
+                        <Inbox className="size-16 text-white" strokeWidth={1} />
                     </div>
+                    <div className="relative mx-auto w-full max-w-7xl px-6 py-20 lg:py-28">
+                        <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-12">
+                            <div>
+                                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-ustp-gold/30 bg-ustp-gold/10 px-4 py-1.5">
+                                    <span className="size-1.5 rounded-full bg-ustp-gold" />
+                                    <span className="text-xs font-medium uppercase tracking-wider text-ustp-gold">
+                                        Web-Based ICT Management and Information System
+                                    </span>
+                                </div>
+                                <h1 className="font-serif text-4xl font-bold leading-tight text-white sm:text-5xl">
+                                    USTP Balubal{' '}
+                                    <span className="text-ustp-gold">ICT Portal</span>
+                                </h1>
+                                <p className="mt-7 max-w-lg text-lg leading-relaxed text-white/70 sm:text-xl sm:leading-relaxed">
+                                    A centralized platform for managing ICT service requests,
+                                    job orders, inventory, defective equipment, incident reporting
+                                    with user liability, facility bookings, and notifications
+                                    across the Balubal Campus.
+                                </p>
+                                <div className="mt-10 flex flex-wrap gap-4">
+                                    {auth.user ? (
+                                        <Link
+                                            href={dashboardUrl}
+                                            className="group flex items-center gap-2 rounded-lg bg-ustp-gold px-7 py-3.5 text-sm font-bold text-ustp-navy shadow-lg shadow-ustp-gold/20 transition-all hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-xl hover:shadow-ustp-gold/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold focus-visible:ring-offset-2 focus-visible:ring-offset-ustp-navy"
+                                        >
+                                            Go to Dashboard
+                                            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                                        </Link>
+                                    ) : (
+                                        <>
+                                            <Link
+                                                href={register()}
+                                                className="group flex items-center gap-2 rounded-lg bg-ustp-gold px-7 py-3.5 text-sm font-bold text-ustp-navy shadow-lg shadow-ustp-gold/20 transition-all hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-xl hover:shadow-ustp-gold/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold focus-visible:ring-offset-2 focus-visible:ring-offset-ustp-navy"
+                                            >
+                                                Get Started
+                                                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                                            </Link>
+                                            <Link
+                                                href={login()}
+                                                className="rounded-lg border-2 border-white/20 px-7 py-3.5 text-sm font-medium text-white/80 transition-all hover:-translate-y-0.5 hover:border-ustp-gold/50 hover:bg-white/5 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold focus-visible:ring-offset-2 focus-visible:ring-offset-ustp-navy"
+                                            >
+                                                Log in to your account
+                                            </Link>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
 
-                    {/* Roles */}
-                    <div className="mx-auto mt-20 max-w-2xl text-center">
-                        <h2 className="text-xl font-semibold tracking-tight text-white">
-                            Built for every role
-                        </h2>
-                        <p className="mt-2 text-sm text-white/40">
-                            Whether you're a student, faculty member, or ICT administrator
-                        </p>
+                            <div className="hidden lg:block">
+                                <div className="grid grid-cols-2 gap-4">
+                                    {[
+                                        { icon: FileText, label: 'Service Requests', value: 'Streamlined' },
+                                        { icon: Calendar, label: 'Facility Booking', value: 'Reservable' },
+                                        { icon: Box, label: 'Inventory', value: 'Tracked' },
+                                        { icon: Shield, label: 'Incidents', value: 'Accountable' },
+                                    ].map((stat) => {
+                                        const Icon = stat.icon;
+                                        return (
+                                            <div
+                                                key={stat.label}
+                                                className="group/card rounded-xl border border-white/15 bg-white/5 p-5 backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-ustp-gold/60 hover:bg-white/[0.07] hover:shadow-lg"
+                                            >
+                                                <div className="mb-3 flex size-9 items-center justify-center rounded-lg bg-ustp-gold/15 text-ustp-gold transition-colors group-hover/card:bg-ustp-gold/25">
+                                                    <Icon className="size-4" />
+                                                </div>
+                                                <p className="text-xs uppercase tracking-wider text-white/40">
+                                                    {stat.label}
+                                                </p>
+                                                <p className="mt-1 font-serif text-lg font-bold text-ustp-gold">
+                                                    {stat.value}
+                                                </p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-                        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                            {[
-                                {
-                                    role: 'Students',
-                                    desc: 'Request email accounts and Office 365 access',
-                                    accent: 'border-ustp-light-blue/20 bg-ustp-light-blue/[0.04]',
-                                },
-                                {
-                                    role: 'Faculty & Staff',
-                                    desc: 'Submit service requests and book facilities',
-                                    accent: 'border-ustp-gold/20 bg-ustp-gold/[0.04]',
-                                },
-                                {
-                                    role: 'ICT Admin',
-                                    desc: 'Manage requests, inventory, and system settings',
-                                    accent: 'border-emerald-400/20 bg-emerald-400/[0.04]',
-                                },
-                            ].map((item) => (
-                                <div
-                                    key={item.role}
-                                    className={`rounded-xl border p-5 ${item.accent}`}
-                                >
-                                    <p className="text-sm font-semibold text-white">
-                                        {item.role}
+                {/* System Modules */}
+                <section className="bg-white">
+                    <div className="mx-auto max-w-7xl px-6 py-16">
+                        <div className="mb-12 text-center">
+                            <h2 className="font-serif text-2xl font-bold text-ustp-navy sm:text-3xl">
+                                System Modules
+                            </h2>
+                            <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-ustp-gold" />
+                            <p className="mx-auto mt-4 max-w-2xl text-sm text-ustp-navy/60">
+                                The system integrates six core modules to centralize and streamline
+                                ICT management operations at USTP Balubal Campus.
+                            </p>
+                        </div>
+
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            {modules.map((mod) => {
+                                const Icon = mod.icon;
+                                return (
+                                    <div
+                                        key={mod.title}
+                                        className="group rounded-xl border border-ustp-gray-medium bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-ustp-gold/30 hover:shadow-lg"
+                                    >
+                                        <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-ustp-navy/5 text-ustp-navy transition-colors group-hover:bg-ustp-gold/10 group-hover:text-ustp-gold">
+                                            <Icon className="size-6" />
+                                        </div>
+                                        <h3 className="font-serif text-lg font-bold text-ustp-navy">
+                                            {mod.title}
+                                        </h3>
+                                        <p className="mt-2 text-sm leading-relaxed text-ustp-navy/60">
+                                            {mod.description}
+                                        </p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+
+                {/* How It Works */}
+                <section className="bg-ustp-gray/50">
+                    <div className="mx-auto max-w-7xl px-6 py-16">
+                        <div className="mb-12 text-center">
+                            <h2 className="font-serif text-2xl font-bold text-ustp-navy sm:text-3xl">
+                                How It Works
+                            </h2>
+                            <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-ustp-gold" />
+                            <p className="mx-auto mt-4 max-w-2xl text-sm text-ustp-navy/60">
+                                From submission to resolution, the system streamlines the entire
+                                ICT service workflow.
+                            </p>
+                        </div>
+
+                        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                            {workflowSteps.map((step, index) => (
+                                <div key={step.step} className="relative text-center">
+                                    <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-ustp-navy text-lg font-bold text-white">
+                                        {step.step}
+                                    </div>
+                                    <h3 className="font-serif text-base font-bold text-ustp-navy">
+                                        {step.title}
+                                    </h3>
+                                    <p className="mt-2 text-sm text-ustp-navy/60">
+                                        {step.description}
                                     </p>
-                                    <p className="mt-1 text-xs text-white/40">
-                                        {item.desc}
-                                    </p>
+                                    {index < workflowSteps.length - 1 && (
+                                        <div className="absolute left-[calc(50%+2rem)] top-6 hidden h-px w-[calc(100%-4rem)] bg-ustp-gold/30 lg:block" />
+                                    )}
                                 </div>
                             ))}
                         </div>
                     </div>
-                </main>
+                </section>
+
+                {/* User Roles */}
+                <section className="bg-white">
+                    <div className="mx-auto max-w-7xl px-6 py-16">
+                        <div className="mb-12 text-center">
+                            <h2 className="font-serif text-2xl font-bold text-ustp-navy sm:text-3xl">
+                                Built for Every Role
+                            </h2>
+                            <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-ustp-gold" />
+                            <p className="mx-auto mt-4 max-w-2xl text-sm text-ustp-navy/60">
+                                The system provides tailored access and features for each user type
+                                within the campus.
+                            </p>
+                        </div>
+
+                        <div className="grid gap-6 lg:grid-cols-3">
+                            {roles.map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                    <div
+                                        key={item.role}
+                                        className="rounded-xl border border-ustp-gray-medium bg-white p-8 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+                                    >
+                                        <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-ustp-gold/10 text-ustp-gold">
+                                            <Icon className="size-6" />
+                                        </div>
+                                        <h3 className="font-serif text-lg font-bold text-ustp-navy">
+                                            {item.role}
+                                        </h3>
+                                        <p className="mt-2 text-sm leading-relaxed text-ustp-navy/60">
+                                            {item.description}
+                                        </p>
+                                        <ul className="mt-4 space-y-2">
+                                            {item.features.map((feature) => (
+                                                <li key={feature} className="flex items-center gap-2 text-sm text-ustp-navy/70">
+                                                    <CheckCircle className="size-4 text-ustp-gold" />
+                                                    {feature}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+
+                {/* CTA Section */}
+                <section className="bg-ustp-gray/50">
+                    <div className="mx-auto max-w-7xl px-6 py-16">
+                        <div className="rounded-2xl bg-ustp-navy p-10 text-center sm:p-14">
+                            <h2 className="font-serif text-2xl font-bold text-white sm:text-3xl">
+                                Ready to streamline your ICT services?
+                            </h2>
+                            <p className="mx-auto mt-4 max-w-lg text-white/60">
+                                Join the USTP Balubal ICT Portal to submit requests, book
+                                facilities, and manage ICT operations all in one place.
+                            </p>
+                            <div className="mt-8 flex flex-wrap justify-center gap-4">
+                                {!auth.user && (
+                                    <>
+                                        <Link
+                                            href={register()}
+                                            className="group flex items-center gap-2 rounded-lg bg-ustp-gold px-7 py-3.5 text-sm font-bold text-ustp-navy shadow-lg transition-all hover:bg-ustp-gold-dark hover:text-white hover:shadow-xl"
+                                        >
+                                            Create an Account
+                                            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                                        </Link>
+                                        <Link
+                                            href={login()}
+                                            className="rounded-lg border-2 border-white/20 px-7 py-3.5 text-sm font-medium text-white/80 transition-all hover:border-ustp-gold/50 hover:text-white"
+                                        >
+                                            Already have an account? Log in
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
                 {/* Footer */}
-                <footer className="relative z-10 border-t border-white/[0.06] bg-[#070b18]/80">
-                    <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-                        <p className="text-xs text-white/30">
-                            USTP Balubal ICT Portal &copy; {new Date().getFullYear()}
-                        </p>
-                        <p className="text-xs text-white/30">
-                            University of Science and Technology of Southern Philippines
-                        </p>
+                <footer className="bg-ustp-navy text-white">
+                    <div className="mx-auto max-w-7xl px-6 py-12">
+                        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+                            <div>
+                                <div className="flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-lg bg-white p-1">
+                                        <img
+                                            src={ustpLogo}
+                                            alt="USTP Logo"
+                                            className="size-full object-contain"
+                                        />
+                                    </div>
+                                    <div>
+                                        <p className="font-serif text-sm font-bold text-white">
+                                            USTP Balubal
+                                        </p>
+                                        <p className="text-[10px] uppercase tracking-wider text-white/50">
+                                            ICT Portal
+                                        </p>
+                                    </div>
+                                </div>
+                                <p className="mt-4 text-sm leading-relaxed text-white/50">
+                                    Web-Based ICT Management and Information System for
+                                    USTP Balubal Campus, Cagayan de Oro City.
+                                </p>
+                                <div className="mt-4 flex gap-3">
+                                    <a href="#" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
+                                        <Facebook className="size-4" />
+                                    </a>
+                                    <a href="#" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
+                                        <Mail className="size-4" />
+                                    </a>
+                                    <a href="#" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
+                                        <Phone className="size-4" />
+                                    </a>
+                                    <a href="#" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
+                                        <MapPin className="size-4" />
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-ustp-gold">
+                                    System Modules
+                                </h4>
+                                <ul className="space-y-2.5">
+                                    {['Service Requests', 'Job Orders', 'Inventory', 'Facility Booking', 'Incident Reports', 'Notifications'].map((link) => (
+                                        <li key={link}>
+                                            <a href="#" className="text-sm text-white/50 transition-colors hover:text-ustp-gold">
+                                                {link}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-ustp-gold">
+                                    Contact
+                                </h4>
+                                <ul className="space-y-2.5 text-sm text-white/50">
+                                    <li className="flex items-start gap-2">
+                                        <MapPin className="mt-0.5 size-4 shrink-0 text-ustp-gold/60" />
+                                        <span>Balubal, Cagayan de Oro City, Philippines</span>
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        <Phone className="size-4 shrink-0 text-ustp-gold/60" />
+                                        <span>+63 88 856 1234</span>
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        <Mail className="size-4 shrink-0 text-ustp-gold/60" />
+                                        <span>ict@ustp.edu.ph</span>
+                                    </li>
+                                </ul>
+                                <div className="mt-6 flex gap-3">
+                                    <a
+                                        href="#"
+                                        className="rounded-lg border border-ustp-gold/40 px-4 py-2 text-xs font-bold uppercase tracking-wider text-ustp-gold transition-all hover:bg-ustp-gold hover:text-ustp-navy"
+                                    >
+                                        Feedback
+                                    </a>
+                                    <a
+                                        href="#"
+                                        className="rounded-lg border border-ustp-gold/40 px-4 py-2 text-xs font-bold uppercase tracking-wider text-ustp-gold transition-all hover:bg-ustp-gold hover:text-ustp-navy"
+                                    >
+                                        Survey
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-white/10">
+                        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 py-5 sm:flex-row">
+                            <p className="text-xs text-white/30">
+                                &copy; {new Date().getFullYear()} USTP Balubal ICT Portal. All rights reserved.
+                            </p>
+                            <p className="text-xs text-white/30">
+                                University of Science and Technology of Southern Philippines
+                            </p>
+                        </div>
                     </div>
                 </footer>
             </div>

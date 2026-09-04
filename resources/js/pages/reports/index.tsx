@@ -111,6 +111,7 @@ export default function ReportsIndex({
                     <div className="relative grid grid-cols-2 gap-4 md:grid-cols-4">
                         {topCards.map(({ key, label, icon: Icon, color }) => {
                             const c = colorMap[color];
+                            
                             return (
                                 <div
                                     key={key}

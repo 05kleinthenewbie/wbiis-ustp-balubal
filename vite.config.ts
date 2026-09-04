@@ -15,6 +15,9 @@ export default defineConfig({
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
                 }),
+                bunny('Merriweather', {
+                    weights: [400, 700, 900],
+                }),
             ],
         }),
         inertia(),

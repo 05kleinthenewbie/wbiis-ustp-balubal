@@ -9,7 +9,7 @@ import {
     AlertTriangle,
     CheckCircle2,
     Circle,
-    ArrowRight,
+
 } from 'lucide-react';
 import { useState } from 'react';
 import { BackButton } from '@/components/back-button';

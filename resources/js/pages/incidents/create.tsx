@@ -2,7 +2,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { AlertTriangle } from 'lucide-react';
 import { BackButton } from '@/components/back-button';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+
 import {
     Select,
     SelectContent,

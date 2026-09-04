@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&display=swap');
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
@@ -8,16 +9,22 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    --color-ustp-navy: #1a1851;
-    --color-ustp-navy-dark: #031c2e;
-    --color-ustp-gold: #fcb315;
-    --color-ustp-gold-dark: #412402;
+    --color-ustp-navy: #0B1F3A;
+    --color-ustp-navy-dark: #061225;
+    --color-ustp-navy-light: #132d52;
+    --color-ustp-gold: #F2A900;
+    --color-ustp-gold-dark: #c88d00;
+    --color-ustp-gold-light: #f5be3d;
     --color-ustp-blue-accent: #0d4a77;
     --color-ustp-light-blue: #329dea;
+    --color-ustp-gray: #F5F5F5;
+    --color-ustp-gray-medium: #E5E5E5;
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+    --font-serif:
+        'Merriweather', Georgia, 'Times New Roman', serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
