@@ -16,7 +16,7 @@ type JobOrderItem = {
 };
 
 type Props = {
-    jobOrders: JobOrderItem[];
+    jobOrders: JobOrderItem[] | { data: JobOrderItem[] };
 };
 
 const statusStyles: Record<string, string> = {
@@ -29,7 +29,9 @@ const statusStyles: Record<string, string> = {
 export default function JobOrdersIndex({ jobOrders }: Props) {
     const [search, setSearch] = useState('');
 
-    const filtered = jobOrders.filter((jo) => {
+    const jobOrderList = Array.isArray(jobOrders) ? jobOrders : jobOrders.data ?? [];
+
+    const filtered = jobOrderList.filter((jo) => {
         const q = search.toLowerCase();
         return (
             jo.service_request.user.name.toLowerCase().includes(q) ||
