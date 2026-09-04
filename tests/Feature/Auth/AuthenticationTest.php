@@ -80,6 +80,34 @@ test('users can not authenticate with invalid password', function () {
     $this->assertGuest();
 });
 
+test('pending users can not authenticate', function () {
+    $user = User::factory()->create(['status' => 'pending']);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertGuest();
+    $response->assertSessionHasErrors([
+        'email' => 'Your account is pending ICT Admin approval. You will be able to log in once approved.',
+    ]);
+});
+
+test('inactive users can not authenticate', function () {
+    $user = User::factory()->create(['status' => 'inactive']);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertGuest();
+    $response->assertSessionHasErrors([
+        'email' => 'Your account has been deactivated. Please contact the ICT office.',
+    ]);
+});
+
 test('users can logout', function () {
     $user = User::factory()->create();
 
