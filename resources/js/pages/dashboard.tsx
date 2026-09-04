@@ -105,12 +105,12 @@ function StatCard({
 }) {
     const accentStyles = {
         navy: {
-            card: 'border-ustp-blue-accent/50 bg-ustp-blue-accent/20 hover:bg-ustp-blue-accent/30 hover:border-ustp-blue-accent/70',
-            iconBg: 'bg-ustp-light-blue/15',
-            iconText: 'text-ustp-light-blue',
+            card: 'border-[#1a2035] bg-ustp-navy/50 hover:border-ustp-gold/40 hover:bg-ustp-navy/70',
+            iconBg: 'bg-ustp-gold/15',
+            iconText: 'text-ustp-gold',
         },
         gold: {
-            card: 'border-ustp-gold/25 bg-ustp-gold/[0.06] hover:bg-ustp-gold/10 hover:border-ustp-gold/40',
+            card: 'border-[#1a2035] bg-ustp-navy/50 hover:border-ustp-gold/40 hover:bg-ustp-navy/70',
             iconBg: 'bg-ustp-gold/15',
             iconText: 'text-ustp-gold',
         },
@@ -723,8 +723,8 @@ export default function Dashboard({
                             {/* Requests by Status */}
                             <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
                                 <div className="mb-5 flex items-center gap-3">
-                                    <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-blue-accent/15">
-                                        <Layers className="size-4 text-ustp-light-blue" />
+                                    <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                        <Layers className="size-4 text-ustp-gold" />
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-semibold text-white">
@@ -844,8 +844,8 @@ export default function Dashboard({
                             {isAdmin && (
                                 <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
                                     <div className="mb-5 flex items-center gap-3">
-                                        <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-400/10">
-                                            <Package className="size-4 text-emerald-400" />
+                                        <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                            <Package className="size-4 text-ustp-gold" />
                                         </div>
                                         <div>
                                             <h3 className="text-sm font-semibold text-white">

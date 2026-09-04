@@ -32,10 +32,14 @@ export function NotificationBell() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative text-white hover:bg-ustp-navy-light hover:text-ustp-gold data-[state=open]:bg-ustp-navy-light data-[state=open]:text-ustp-gold"
+                >
                     <Bell className="size-5" />
                     {notifications.length > 0 && (
-                        <span className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+                        <span className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-ustp-gold text-[10px] font-bold text-ustp-navy">
                             {notifications.length > 9 ? '9+' : notifications.length}
                         </span>
                     )}
