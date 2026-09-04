@@ -1,11 +1,14 @@
 import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { Mail } from 'lucide-react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useInitials } from '@/hooks/use-initials';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { Auth } from '@/types';
@@ -22,6 +25,9 @@ export default function Profile({
     status?: string;
 }) {
     const { auth } = usePage<PageProps>().props;
+    const getInitials = useInitials();
+    const role = (auth.user.role as { role_name?: string } | undefined)
+        ?.role_name;
 
     return (
         <>
@@ -30,6 +36,34 @@ export default function Profile({
             <h1 className="sr-only">Profile settings</h1>
 
             <div className="space-y-6">
+                <div className="flex items-center gap-4 rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-2xl shadow-black/20 md:p-6">
+                    <Avatar className="size-16 shrink-0 rounded-2xl ring-2 ring-ustp-gold/50 shadow-lg shadow-black/30">
+                        {auth.user.avatar ? (
+                            <AvatarImage
+                                src={auth.user.avatar}
+                                alt={auth.user.name}
+                            />
+                        ) : null}
+                        <AvatarFallback className="rounded-2xl bg-ustp-navy-light text-xl font-bold text-ustp-gold">
+                            {getInitials(auth.user.name)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                        <p className="truncate text-lg font-semibold text-white">
+                            {auth.user.name}
+                        </p>
+                        <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-white/40">
+                            <Mail className="size-3.5 shrink-0" />
+                            {auth.user.email}
+                        </p>
+                        {role && (
+                            <span className="mt-2 inline-flex rounded-lg bg-ustp-gold/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-ustp-gold">
+                                {role.replace(/_/g, ' ')}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
                 <Heading
                     variant="small"
                     title="Profile"
