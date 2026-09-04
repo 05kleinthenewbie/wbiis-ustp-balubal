@@ -52,7 +52,7 @@ export default function Register({ passwordRules }: Props) {
                                         autoComplete="name"
                                         name="name"
                                         placeholder="Juan Dela Cruz"
-                                        className="h-11 border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
                                 <InputError message={errors.name} />
@@ -75,7 +75,7 @@ export default function Register({ passwordRules }: Props) {
                                         autoComplete="email"
                                         name="email"
                                         placeholder="your.email@example.com"
-                                        className="h-11 border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
                                 <InputError message={errors.email} />
@@ -96,7 +96,7 @@ export default function Register({ passwordRules }: Props) {
                                     <Select name="role" required>
                                         <SelectTrigger
                                             id="role"
-                                            className="h-11 border-border text-sm transition-colors focus:border-ustp-navy focus:ring-ustp-navy/20"
+                                            className="h-11 rounded-lg border-border text-sm transition-colors focus:border-ustp-navy focus:ring-ustp-navy/20"
                                         >
                                             <SelectValue placeholder="Select role" />
                                         </SelectTrigger>
@@ -127,9 +127,9 @@ export default function Register({ passwordRules }: Props) {
                                             required
                                             tabIndex={3}
                                             name="department"
-                                            placeholder="e.g. CITC"
-                                            className="h-11 border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
-                                        />
+                                        placeholder="e.g. CITC"
+                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                    />
                                     </div>
                                     <InputError message={errors.department} />
                                 </div>
@@ -152,7 +152,7 @@ export default function Register({ passwordRules }: Props) {
                                         name="password"
                                         placeholder="Create a password"
                                         passwordrules={passwordRules}
-                                        className="h-11 border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
                                 <InputError message={errors.password} />
@@ -175,7 +175,7 @@ export default function Register({ passwordRules }: Props) {
                                         name="password_confirmation"
                                         placeholder="Confirm your password"
                                         passwordrules={passwordRules}
-                                        className="h-11 border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
                                 <InputError
@@ -185,7 +185,7 @@ export default function Register({ passwordRules }: Props) {
 
                             <Button
                                 type="submit"
-                                className="mt-2 h-11 w-full bg-ustp-navy text-white shadow-md shadow-ustp-navy/20 transition-all hover:bg-ustp-navy-dark hover:shadow-lg hover:shadow-ustp-navy/25 active:scale-[0.98]"
+                                className="mt-2 h-11 w-full rounded-lg bg-ustp-gold font-semibold text-ustp-navy shadow-md shadow-ustp-gold/20 transition-all hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-lg hover:shadow-ustp-gold/30 active:scale-[0.98]"
                                 tabIndex={6}
                                 disabled={processing}
                                 data-test="register-user-button"

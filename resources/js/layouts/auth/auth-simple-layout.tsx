@@ -9,36 +9,36 @@ export default function AuthSimpleLayout({
     description,
 }: AuthLayoutProps) {
     return (
-        <div className="flex min-h-svh flex-col items-center justify-center bg-background p-6">
-            <div className="w-full max-w-lg overflow-hidden rounded-xl border">
-                <div className="bg-ustp-navy-dark px-8 pt-9 pb-7 text-center">
+        <div className="flex min-h-svh items-center justify-center bg-ustp-gray/50 p-6">
+            <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-ustp-gray-medium bg-white shadow-xl">
+                {/* Brand header */}
+                <div className="bg-ustp-navy px-8 pt-9 pb-7 text-center">
                     <Link href={home()} className="inline-block">
-                        <div className="mx-auto mb-3.5 flex size-14 items-center justify-center rounded-full bg-white">
+                        <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-white p-1.5 shadow-md">
                             <img
                                 src={ustpLogo}
                                 alt="USTP Logo"
-                                className="size-full rounded-full object-contain p-1.5"
+                                className="size-full rounded-full object-contain"
                             />
                         </div>
                     </Link>
-                    <p className="mb-1.5 text-xs font-medium tracking-wide text-ustp-gold uppercase">
-                        USTP Balubal Campus
+                    <p className="mb-1 font-serif text-sm font-bold leading-snug text-white">
+                        University of Science and Technology of Southern Philippines
                     </p>
-                    <h1 className="text-base leading-snug font-medium text-white uppercase">
-                        A Web-Based ICT Management
-                        <br />
-                        and Information System
-                    </h1>
+                    <p className="text-[10px] uppercase tracking-[0.15em] text-ustp-gold">
+                        Balubal Campus, Cagayan de Oro City
+                    </p>
                 </div>
 
+                {/* Gold accent divider */}
                 <div className="h-1.5 bg-ustp-gold" />
 
-                <div className="bg-background px-8 py-8">
+                <div className="bg-white px-8 py-8">
                     <div className="mb-6 space-y-1 text-center">
-                        <h2 className="text-lg font-medium">{title}</h2>
-                        <p className="text-sm text-muted-foreground">
-                            {description}
-                        </p>
+                        <h2 className="font-serif text-xl font-bold text-ustp-navy">
+                            {title}
+                        </h2>
+                        <p className="text-sm text-ustp-navy/60">{description}</p>
                     </div>
 
                     {children}
