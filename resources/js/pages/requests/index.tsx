@@ -34,7 +34,7 @@ type ServiceRequestItem = {
 };
 
 type Props = {
-    requests: ServiceRequestItem[];
+    requests: ServiceRequestItem[] | { data: ServiceRequestItem[] };
     isAdmin: boolean;
 };
 
@@ -59,7 +59,9 @@ const priorityStyles: Record<string, string> = {
 export default function RequestsIndex({ requests, isAdmin }: Props) {
     const [search, setSearch] = useState('');
 
-    const filteredRequests = requests.filter((request) => {
+    const requestList = Array.isArray(requests) ? requests : requests.data ?? [];
+
+    const filteredRequests = requestList.filter((request) => {
         const query = search.toLowerCase();
 
         return (
