@@ -261,6 +261,7 @@ export default function Welcome() {
                                         { icon: Shield, label: 'Incidents', value: 'Accountable' },
                                     ].map((stat) => {
                                         const Icon = stat.icon;
+
                                         return (
                                             <div
                                                 key={stat.label}
@@ -301,6 +302,7 @@ export default function Welcome() {
                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {modules.map((mod) => {
                                 const Icon = mod.icon;
+
                                 return (
                                     <div
                                         key={mod.title}
@@ -374,6 +376,7 @@ export default function Welcome() {
                         <div className="grid gap-6 lg:grid-cols-3">
                             {roles.map((item) => {
                                 const Icon = item.icon;
+
                                 return (
                                     <div
                                         key={item.role}

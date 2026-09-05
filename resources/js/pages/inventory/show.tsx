@@ -62,13 +62,35 @@ type Props = {
 
 function getCategoryFromName(name: string): string {
     const lower = name.toLowerCase();
-    if (lower.startsWith('desktop')) return 'Desktop';
-    if (lower.startsWith('laptop')) return 'Laptop';
-    if (lower.startsWith('monitor')) return 'Monitor';
-    if (lower.startsWith('printer')) return 'Printer';
-    if (lower.startsWith('projector')) return 'Projector';
-    if (lower.startsWith('network')) return 'Network';
-    if (lower.startsWith('ups')) return 'UPS';
+
+    if (lower.startsWith('desktop')) {
+return 'Desktop';
+}
+
+    if (lower.startsWith('laptop')) {
+return 'Laptop';
+}
+
+    if (lower.startsWith('monitor')) {
+return 'Monitor';
+}
+
+    if (lower.startsWith('printer')) {
+return 'Printer';
+}
+
+    if (lower.startsWith('projector')) {
+return 'Projector';
+}
+
+    if (lower.startsWith('network')) {
+return 'Network';
+}
+
+    if (lower.startsWith('ups')) {
+return 'UPS';
+}
+
     return 'Other';
 }
 
@@ -131,22 +153,38 @@ const incidentStatusConfig: Record<string, string> = {
 };
 
 function formatAge(purchaseDate: string | null): string {
-    if (!purchaseDate) return '—';
+    if (!purchaseDate) {
+return '—';
+}
+
     const purchase = new Date(purchaseDate);
     const now = new Date();
     const diffMs = now.getTime() - purchase.getTime();
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (days < 0) return 'Future date';
-    if (days < 30) return `${days}d old`;
-    if (days < 365) return `${Math.floor(days / 30)}mo old`;
+    if (days < 0) {
+return 'Future date';
+}
+
+    if (days < 30) {
+return `${days}d old`;
+}
+
+    if (days < 365) {
+return `${Math.floor(days / 30)}mo old`;
+}
+
     const years = Math.floor(days / 365);
     const months = Math.floor((days % 365) / 30);
+
     return months > 0 ? `${years}y ${months}mo old` : `${years}y old`;
 }
 
 function formatDate(dateStr: string | null): string {
-    if (!dateStr) return '—';
+    if (!dateStr) {
+return '—';
+}
+
     return new Date(dateStr).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',

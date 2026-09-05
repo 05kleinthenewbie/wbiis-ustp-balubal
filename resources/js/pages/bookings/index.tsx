@@ -36,6 +36,7 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
 
     const filtered = bookings.filter((booking) => {
         const q = search.toLowerCase();
+
         return (
             booking.facility.facility_name.toLowerCase().includes(q) ||
             booking.user.name.toLowerCase().includes(q) ||

@@ -185,7 +185,11 @@ export default function JobOrdersShow({ jobOrder, isAdmin, isRequester, canRate,
 
     function handleRate(e: React.FormEvent) {
         e.preventDefault();
-        if (rating === 0) return;
+
+        if (rating === 0) {
+return;
+}
+
         setRatingProcessing(true);
         router.post(
             `/job-orders/${jobOrder.id}/rate`,

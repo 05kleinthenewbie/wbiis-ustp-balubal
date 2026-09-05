@@ -78,13 +78,35 @@ const conditionLabels: Record<string, string> = {
 
 function getCategoryFromName(name: string): string {
     const lower = name.toLowerCase();
-    if (lower.startsWith('desktop')) return 'Desktop';
-    if (lower.startsWith('laptop')) return 'Laptop';
-    if (lower.startsWith('monitor')) return 'Monitor';
-    if (lower.startsWith('printer')) return 'Printer';
-    if (lower.startsWith('projector')) return 'Projector';
-    if (lower.startsWith('network')) return 'Network';
-    if (lower.startsWith('ups')) return 'UPS';
+
+    if (lower.startsWith('desktop')) {
+return 'Desktop';
+}
+
+    if (lower.startsWith('laptop')) {
+return 'Laptop';
+}
+
+    if (lower.startsWith('monitor')) {
+return 'Monitor';
+}
+
+    if (lower.startsWith('printer')) {
+return 'Printer';
+}
+
+    if (lower.startsWith('projector')) {
+return 'Projector';
+}
+
+    if (lower.startsWith('network')) {
+return 'Network';
+}
+
+    if (lower.startsWith('ups')) {
+return 'UPS';
+}
+
     return 'Other';
 }
 

@@ -59,6 +59,7 @@ export default function RequestsCreate({ categories }: Props) {
     function toggleService(typeId: number, defaultAction: string | null) {
         setSelected((prev) => {
             const next = { ...prev };
+
             if (next[typeId]) {
                 delete next[typeId];
             } else {
@@ -69,6 +70,7 @@ export default function RequestsCreate({ categories }: Props) {
                     action_type: defaultAction ?? '',
                 };
             }
+
             return next;
         });
     }

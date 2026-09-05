@@ -51,6 +51,7 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
 
     const filteredPending = pendingUsers.filter((user) => {
         const q = searchPending.toLowerCase();
+
         return (
             user.name.toLowerCase().includes(q) ||
             user.email.toLowerCase().includes(q) ||
@@ -61,6 +62,7 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
 
     const filteredActive = activeUsers.filter((user) => {
         const q = searchActive.toLowerCase();
+
         return (
             user.name.toLowerCase().includes(q) ||
             user.email.toLowerCase().includes(q) ||

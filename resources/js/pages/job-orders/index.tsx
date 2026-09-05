@@ -33,6 +33,7 @@ export default function JobOrdersIndex({ jobOrders }: Props) {
 
     const filtered = jobOrderList.filter((jo) => {
         const q = search.toLowerCase();
+
         return (
             jo.service_request.user.name.toLowerCase().includes(q) ||
             jo.technician?.name?.toLowerCase().includes(q) ||

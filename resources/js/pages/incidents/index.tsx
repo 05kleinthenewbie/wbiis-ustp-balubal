@@ -31,6 +31,7 @@ export default function IncidentsIndex({ incidents }: Props) {
 
     const filtered = incidents.filter((incident) => {
         const q = search.toLowerCase();
+
         return (
             incident.incident_type.toLowerCase().includes(q) ||
             incident.reporter.name.toLowerCase().includes(q) ||
