@@ -32,4 +32,14 @@ class NotificationController extends Controller
 
         return redirect()->back();
     }
+
+    public function destroy(string $id)
+    {
+        Notification::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail()
+            ->delete();
+
+        return redirect()->back();
+    }
 }
