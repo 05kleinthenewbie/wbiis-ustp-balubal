@@ -9,13 +9,13 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    --color-ustp-navy: #0B1F3A;
-    --color-ustp-navy-dark: #061225;
-    --color-ustp-navy-light: #132d52;
-    --color-ustp-gold: #F2A900;
-    --color-ustp-gold-dark: #c88d00;
-    --color-ustp-gold-light: #f5be3d;
-    --color-ustp-blue-accent: #0d4a77;
+    --color-ustp-navy: #1a1851;
+    --color-ustp-navy-dark: #12103f;
+    --color-ustp-navy-light: #24226b;
+    --color-ustp-gold: #fcb315;
+    --color-ustp-gold-dark: #d89700;
+    --color-ustp-gold-light: #fdc94f;
+    --color-ustp-blue-accent: #1a1851;
     --color-ustp-light-blue: #329dea;
     --color-ustp-gray: #F5F5F5;
     --color-ustp-gray-medium: #E5E5E5;
