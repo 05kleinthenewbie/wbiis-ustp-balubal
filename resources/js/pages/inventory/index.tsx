@@ -18,7 +18,6 @@ import {
     ArrowUpRight,
 } from 'lucide-react';
 import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -80,32 +79,32 @@ function getCategoryFromName(name: string): string {
     const lower = name.toLowerCase();
 
     if (lower.startsWith('desktop')) {
-return 'Desktop';
-}
+        return 'Desktop';
+    }
 
     if (lower.startsWith('laptop')) {
-return 'Laptop';
-}
+        return 'Laptop';
+    }
 
     if (lower.startsWith('monitor')) {
-return 'Monitor';
-}
+        return 'Monitor';
+    }
 
     if (lower.startsWith('printer')) {
-return 'Printer';
-}
+        return 'Printer';
+    }
 
     if (lower.startsWith('projector')) {
-return 'Projector';
-}
+        return 'Projector';
+    }
 
     if (lower.startsWith('network')) {
-return 'Network';
-}
+        return 'Network';
+    }
 
     if (lower.startsWith('ups')) {
-return 'UPS';
-}
+        return 'UPS';
+    }
 
     return 'Other';
 }
@@ -122,7 +121,7 @@ const categoryIcons: Record<string, React.ElementType> = {
 };
 
 const categoryColors: Record<string, string> = {
-    Desktop: 'bg-ustp-light-blue/10 text-ustp-light-blue',
+    Desktop: 'bg-ustp-gold/10 text-ustp-gold',
     Laptop: 'bg-purple-400/10 text-purple-400',
     Monitor: 'bg-ustp-gold/10 text-ustp-gold',
     Printer: 'bg-emerald-400/10 text-emerald-400',
@@ -242,7 +241,7 @@ function CategoryBreakdown({ items }: { items: InventoryItemRow[] }) {
                         </div>
                         <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
                             <div
-                                className="h-full rounded-full bg-ustp-light-blue/60 transition-all duration-500"
+                                className="h-full rounded-full bg-ustp-gold/60 transition-all duration-500"
                                 style={{ width: `${pct}%` }}
                             />
                         </div>
@@ -287,37 +286,44 @@ export default function InventoryIndex({ items, filters }: Props) {
         <>
             <Head title="Inventory" />
 
-            <div className="min-h-full flex-1 bg-[#070b18] text-gray-100">
-                <div className="relative flex flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
-                    {/* Ambient accents */}
-                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                        <div className="absolute -top-40 right-1/4 size-105 rounded-full bg-ustp-navy/[0.04] blur-3xl" />
-                        <div className="absolute -bottom-40 left-1/4 size-90 rounded-full bg-ustp-gold/[0.015] blur-3xl" />
-                    </div>
+            <div className="relative min-h-full flex-1 overflow-hidden bg-[#070b18] px-4 py-6 text-white sm:px-6 lg:px-8">
+                {/* Ambient glow */}
+                <div className="pointer-events-none absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-ustp-navy/[0.04] blur-3xl" />
+                <div className="pointer-events-none absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-ustp-gold/[0.015] blur-3xl" />
 
+                {/* Subtle dot pattern */}
+                <div
+                    className="pointer-events-none absolute inset-0 opacity-[0.02]"
+                    style={{
+                        backgroundImage:
+                            'radial-gradient(circle, #fcb315 1px, transparent 1px)',
+                        backgroundSize: '28px 28px',
+                    }}
+                />
+
+                <div className="relative mx-auto max-w-7xl space-y-6">
                     {/* Header */}
-                    <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <div className="mb-2 flex items-center gap-2">
-                                <span className="size-1.5 rounded-full bg-ustp-light-blue shadow-[0_0_8px_rgba(50,157,234,0.6)]" />
-
-                                <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-gray-500">
+                            <div className="mb-3 flex items-center gap-2">
+                                <span className="size-2 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
+                                <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/50">
                                     ICT Asset Management
                                 </span>
                             </div>
 
-                            <h1 className="text-2xl font-semibold tracking-tight text-gray-50 md:text-3xl">
+                            <h1 className="text-3xl font-semibold tracking-tight text-white">
                                 Inventory
                             </h1>
 
-                            <p className="mt-1.5 max-w-xl text-sm text-gray-400">
+                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/50">
                                 Manage ICT equipment and property records.
                             </p>
                         </div>
 
                         <Button
                             asChild
-                            className="h-10 bg-ustp-navy px-4 text-sm font-medium text-white shadow-lg shadow-ustp-navy/20 hover:bg-ustp-navy-dark"
+                            className="h-10 bg-ustp-gold px-4 text-sm font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/20 transition-all hover:bg-ustp-gold-dark hover:text-white"
                         >
                             <Link href="/inventory/create">
                                 <Plus className="size-4" />
@@ -327,28 +333,28 @@ export default function InventoryIndex({ items, filters }: Props) {
                     </div>
 
                     {/* Stat cards */}
-                    <div className="relative grid grid-cols-2 gap-4 md:grid-cols-4">
-                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4">
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4 shadow-xl shadow-black/10">
                             <div className="mb-3 flex items-center justify-between">
-                                <p className="text-xs text-gray-400">Total Items</p>
-                                <div className="flex size-8 items-center justify-center rounded-lg bg-ustp-blue-accent/15 text-ustp-light-blue">
+                                <p className="text-xs text-white/40">Total Items</p>
+                                <div className="flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                     <Box className="size-4" />
                                 </div>
                             </div>
-                            <p className="text-2xl font-semibold text-gray-50">{totalCount}</p>
+                            <p className="text-2xl font-semibold text-white">{totalCount}</p>
                             <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
-                                <div className="h-full rounded-full bg-ustp-light-blue" style={{ width: '100%' }} />
+                                <div className="h-full rounded-full bg-ustp-gold" style={{ width: '100%' }} />
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4">
+                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4 shadow-xl shadow-black/10">
                             <div className="mb-3 flex items-center justify-between">
-                                <p className="text-xs text-gray-400">Active</p>
+                                <p className="text-xs text-white/40">Active</p>
                                 <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-400/10 text-emerald-300">
                                     <CheckCircle2 className="size-4" />
                                 </div>
                             </div>
-                            <p className="text-2xl font-semibold text-gray-50">{activeCount}</p>
+                            <p className="text-2xl font-semibold text-white">{activeCount}</p>
                             <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
                                 <div
                                     className="h-full rounded-full bg-emerald-400"
@@ -357,14 +363,14 @@ export default function InventoryIndex({ items, filters }: Props) {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4">
+                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4 shadow-xl shadow-black/10">
                             <div className="mb-3 flex items-center justify-between">
-                                <p className="text-xs text-gray-400">Defective</p>
+                                <p className="text-xs text-white/40">Defective</p>
                                 <div className="flex size-8 items-center justify-center rounded-lg bg-red-400/10 text-red-300">
                                     <AlertTriangle className="size-4" />
                                 </div>
                             </div>
-                            <p className="text-2xl font-semibold text-gray-50">{defectiveCount}</p>
+                            <p className="text-2xl font-semibold text-white">{defectiveCount}</p>
                             <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
                                 <div
                                     className="h-full rounded-full bg-red-400"
@@ -373,14 +379,14 @@ export default function InventoryIndex({ items, filters }: Props) {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4">
+                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4 shadow-xl shadow-black/10">
                             <div className="mb-3 flex items-center justify-between">
-                                <p className="text-xs text-gray-400">Under Repair</p>
+                                <p className="text-xs text-white/40">Under Repair</p>
                                 <div className="flex size-8 items-center justify-center rounded-lg bg-amber-400/10 text-amber-300">
                                     <Wrench className="size-4" />
                                 </div>
                             </div>
-                            <p className="text-2xl font-semibold text-gray-50">{repairCount}</p>
+                            <p className="text-2xl font-semibold text-white">{repairCount}</p>
                             <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
                                 <div
                                     className="h-full rounded-full bg-amber-400"
@@ -391,11 +397,11 @@ export default function InventoryIndex({ items, filters }: Props) {
                     </div>
 
                     {/* Health overview + Category breakdown */}
-                    <div className="relative grid gap-4 lg:grid-cols-3">
+                    <div className="grid gap-4 lg:grid-cols-3">
                         <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
                             <div className="mb-4 flex items-center gap-3">
-                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-blue-accent/15">
-                                    <CheckCircle2 className="size-4 text-ustp-light-blue" />
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                    <CheckCircle2 className="size-4 text-ustp-gold" />
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-semibold text-white">Condition Health</h3>
@@ -427,13 +433,13 @@ export default function InventoryIndex({ items, filters }: Props) {
                     </div>
 
                     {/* Search and filters */}
-                    <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <div className="relative flex-1 sm:max-w-lg">
-                            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+                            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
 
                             <Input
                                 placeholder="Search by name, property number, or brand..."
-                                className="h-10 border-[#1a2035] bg-[#0c1222] pl-9 text-sm text-gray-100 placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                className="h-10 border-white/[0.08] bg-white/[0.03] pl-9 text-sm text-white placeholder:text-white/40 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
                                 value={search}
                                 onChange={(e) => {
                                     setSearch(e.target.value);
@@ -449,11 +455,11 @@ export default function InventoryIndex({ items, filters }: Props) {
                                 applyFilters(search, value);
                             }}
                         >
-                            <SelectTrigger className="h-10 w-full border-[#1a2035] bg-[#0c1222] text-sm text-gray-300 focus:ring-1 focus:ring-ustp-navy/30 sm:w-48">
+                            <SelectTrigger className="h-10 w-full border-white/[0.08] bg-white/[0.03] text-sm text-white/80 focus:ring-1 focus:ring-ustp-gold/30 sm:w-48">
                                 <SelectValue />
                             </SelectTrigger>
 
-                            <SelectContent className="border-[#1a2035] bg-[#0f1723] text-gray-100">
+                            <SelectContent className="border-[#1a2035] bg-[#0f1723] text-white">
                                 <SelectItem value="all">All conditions</SelectItem>
                                 <SelectItem value="working">Working</SelectItem>
                                 <SelectItem value="defective">Defective</SelectItem>
@@ -464,18 +470,18 @@ export default function InventoryIndex({ items, filters }: Props) {
 
                     {/* Empty state */}
                     {items.length === 0 ? (
-                        <div className="relative flex min-h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-[#1a2035] bg-[#0c1222]/50 px-6 text-center">
-                            <div className="mb-4 flex size-14 items-center justify-center rounded-2xl border border-[#1a2035] bg-[#0f1723] text-ustp-light-blue">
+                        <div className="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.02] px-6 text-center">
+                            <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-ustp-gold/10 text-ustp-gold">
                                 <Box className="size-6" />
                             </div>
 
-                            <h2 className="text-sm font-medium text-gray-200">
+                            <h2 className="text-sm font-medium text-white">
                                 {search || condition !== 'all'
                                     ? 'No inventory items found'
                                     : 'No inventory items yet'}
                             </h2>
 
-                            <p className="mt-1.5 max-w-sm text-xs leading-5 text-gray-500">
+                            <p className="mt-1.5 max-w-sm text-xs leading-5 text-white/40">
                                 {search || condition !== 'all'
                                     ? 'Try changing your search or condition filter.'
                                     : 'Add your first equipment to start tracking inventory.'}
@@ -485,7 +491,7 @@ export default function InventoryIndex({ items, filters }: Props) {
                                 <Button
                                     asChild
                                     size="sm"
-                                    className="mt-5 bg-ustp-navy text-white hover:bg-ustp-navy-dark"
+                                    className="mt-5 bg-ustp-gold text-ustp-navy shadow-lg shadow-ustp-gold/20 transition-all hover:bg-ustp-gold-dark hover:text-white"
                                 >
                                     <Link href="/inventory/create">
                                         <Plus className="size-4" />
@@ -496,27 +502,27 @@ export default function InventoryIndex({ items, filters }: Props) {
                         </div>
                     ) : (
                         /* Table */
-                        <div className="relative overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-2xl shadow-black/20">
+                        <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-xl shadow-black/10">
                             <div className="overflow-x-auto">
                                 <table className="w-full min-w-[900px] text-sm">
                                     <thead>
-                                        <tr className="border-b border-[#1a2035] bg-[#0a0f1c]/80">
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                        <tr className="border-b border-white/[0.06] bg-[#0a0f1c]/80">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
                                                 Equipment
                                             </th>
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
                                                 Property No.
                                             </th>
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
                                                 Serial No.
                                             </th>
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
                                                 Location
                                             </th>
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
                                                 Condition
                                             </th>
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
                                                 Status
                                             </th>
                                             <th className="w-28 px-5 py-3.5" />
@@ -545,12 +551,12 @@ export default function InventoryIndex({ items, filters }: Props) {
                                                             <div className="min-w-0">
                                                                 <Link
                                                                     href={`/inventory/${item.id}`}
-                                                                    className="truncate font-medium text-gray-200 transition-colors hover:text-ustp-light-blue"
+                                                                    className="truncate font-medium text-white/90 transition-colors hover:text-ustp-gold"
                                                                 >
                                                                     {item.item_name}
                                                                 </Link>
 
-                                                                <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-500">
+                                                                <div className="mt-0.5 flex items-center gap-2 text-xs text-white/40">
                                                                     {item.brand && (
                                                                         <span className="flex items-center gap-1">
                                                                             <Tag className="size-3" />
@@ -558,7 +564,7 @@ export default function InventoryIndex({ items, filters }: Props) {
                                                                         </span>
                                                                     )}
                                                                     {item.model && (
-                                                                        <span className="text-gray-600">
+                                                                        <span className="text-white/30">
                                                                             · {item.model}
                                                                         </span>
                                                                     )}
@@ -569,7 +575,7 @@ export default function InventoryIndex({ items, filters }: Props) {
 
                                                     {/* Property No */}
                                                     <td className="px-5 py-4">
-                                                        <span className="font-mono text-[11px] text-gray-400">
+                                                        <span className="font-mono text-[11px] text-white/40">
                                                             {item.property_no}
                                                         </span>
                                                     </td>
@@ -577,45 +583,39 @@ export default function InventoryIndex({ items, filters }: Props) {
                                                     {/* Serial No */}
                                                     <td className="px-5 py-4">
                                                         {item.serial_no ? (
-                                                            <span className="font-mono text-[11px] text-gray-400">
+                                                            <span className="font-mono text-[11px] text-white/40">
                                                                 {item.serial_no}
                                                             </span>
                                                         ) : (
-                                                            <span className="text-gray-600">—</span>
+                                                            <span className="text-white/30">—</span>
                                                         )}
                                                     </td>
 
                                                     {/* Location */}
                                                     <td className="px-5 py-4">
                                                         {item.location ? (
-                                                            <span className="flex items-center gap-1.5 text-xs text-gray-400">
-                                                                <MapPin className="size-3 shrink-0 text-gray-500" />
+                                                            <span className="flex items-center gap-1.5 text-xs text-white/40">
+                                                                <MapPin className="size-3 shrink-0 text-white/30" />
                                                                 {item.location}
                                                             </span>
                                                         ) : (
-                                                            <span className="text-gray-600">—</span>
+                                                            <span className="text-white/30">—</span>
                                                         )}
                                                     </td>
 
                                                     {/* Condition */}
                                                     <td className="px-5 py-4">
-                                                        <Badge
-                                                            variant="outline"
-                                                            className={`gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-medium ${cc.badge}`}
-                                                        >
+                                                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${cc.badge}`}>
                                                             <span className={`size-1.5 rounded-full ${cc.dot}`} />
                                                             {conditionLabels[item.condition] ?? item.condition.replace('_', ' ')}
-                                                        </Badge>
+                                                        </span>
                                                     </td>
 
                                                     {/* Status */}
                                                     <td className="px-5 py-4">
-                                                        <Badge
-                                                            variant="outline"
-                                                            className={`rounded-md px-2 py-0.5 text-[10px] font-medium capitalize ${statusConfig[item.status] ?? 'border-[#1a2035] bg-[#070b18] text-gray-400'}`}
-                                                        >
+                                                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusConfig[item.status] ?? 'border-white/20 bg-white/5 text-white/60'}`}>
                                                             {item.status}
-                                                        </Badge>
+                                                        </span>
                                                     </td>
 
                                                     {/* Actions */}
@@ -623,7 +623,7 @@ export default function InventoryIndex({ items, filters }: Props) {
                                                         <div className="flex items-center justify-end gap-1">
                                                             <Link
                                                                 href={`/inventory/${item.id}`}
-                                                                className="flex size-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-ustp-light-blue/10 hover:text-ustp-light-blue"
+                                                                className="flex size-8 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-ustp-gold/10 hover:text-ustp-gold"
                                                             >
                                                                 <ArrowUpRight className="size-3.5" />
                                                             </Link>
@@ -632,7 +632,7 @@ export default function InventoryIndex({ items, filters }: Props) {
                                                                 asChild
                                                                 variant="ghost"
                                                                 size="sm"
-                                                                className="h-8 px-2.5 text-xs text-gray-400 hover:bg-[#111827] hover:text-gray-200"
+                                                                className="h-8 px-2.5 text-xs text-white/50 hover:bg-[#111827] hover:text-white"
                                                             >
                                                                 <Link href={`/inventory/${item.id}/edit`}>
                                                                     Edit
@@ -643,7 +643,7 @@ export default function InventoryIndex({ items, filters }: Props) {
                                                                 type="button"
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                className="size-8 text-gray-500 hover:bg-red-400/10 hover:text-red-400"
+                                                                className="size-8 text-white/40 hover:bg-red-400/10 hover:text-red-400"
                                                                 onClick={() => handleDelete(item.id)}
                                                             >
                                                                 <Trash2 className="size-3.5" />
@@ -658,13 +658,13 @@ export default function InventoryIndex({ items, filters }: Props) {
                             </div>
 
                             {/* Table footer */}
-                            <div className="flex items-center justify-between border-t border-[#1a2035] bg-[#0a0f1c]/60 px-5 py-3">
-                                <p className="text-[11px] text-gray-500">
+                            <div className="flex items-center justify-between border-t border-white/[0.06] bg-[#0a0f1c]/60 px-5 py-3">
+                                <p className="text-[11px] text-white/40">
                                     Showing {totalCount} {totalCount === 1 ? 'record' : 'records'}
                                 </p>
 
-                                <div className="flex items-center gap-2 text-[10px] text-gray-500">
-                                    <span className="size-1 rounded-full bg-ustp-light-blue" />
+                                <div className="flex items-center gap-2 text-[10px] text-white/40">
+                                    <span className="size-1 rounded-full bg-ustp-gold" />
                                     Inventory Management
                                 </div>
                             </div>
