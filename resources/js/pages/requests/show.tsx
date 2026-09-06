@@ -1,15 +1,14 @@
 import { Head, router } from '@inertiajs/react';
 import {
-    Check,
-    ClipboardList,
-    Clock3,
-    UserRound,
-    X,
-    FileText,
     AlertTriangle,
+    Check,
     CheckCircle2,
     Circle,
-
+    ClipboardList,
+    Clock3,
+    FileText,
+    UserRound,
+    X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { BackButton } from '@/components/back-button';
@@ -87,8 +86,8 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; b
 };
 
 const priorityConfig: Record<string, { label: string; color: string; bg: string }> = {
-    low: { label: 'Low', color: 'text-gray-400', bg: 'bg-gray-400/10' },
-    medium: { label: 'Medium', color: 'text-amber-400', bg: 'bg-amber-400/10' },
+    low: { label: 'Low', color: 'text-slate-400', bg: 'bg-slate-400/10' },
+    medium: { label: 'Medium', color: 'text-blue-400', bg: 'bg-blue-400/10' },
     high: { label: 'High', color: 'text-orange-400', bg: 'bg-orange-400/10' },
     urgent: { label: 'Urgent', color: 'text-red-400', bg: 'bg-red-400/10' },
 };
@@ -121,40 +120,50 @@ export default function RequestsShow({ request, isAdmin }: Props) {
         <>
             <Head title={`Request #${request.id}`} />
 
-            <div className="min-h-full flex-1 bg-[#070b18] text-gray-100">
-                <div className="relative mx-auto flex max-w-4xl flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
-                    {/* Ambient accents */}
-                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                        <div className="absolute -top-40 right-1/4 size-100 rounded-full bg-ustp-navy/[0.04] blur-3xl" />
-                    </div>
+            <div className="relative min-h-full flex-1 overflow-hidden bg-[#070b18] px-4 py-6 text-white sm:px-6 lg:px-8">
+                {/* Ambient glow */}
+                <div className="pointer-events-none absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-ustp-navy/[0.04] blur-3xl" />
+                <div className="pointer-events-none absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-ustp-gold/[0.015] blur-3xl" />
 
-                    <div className="relative">
-                        <BackButton href="/requests" />
-                    </div>
+                {/* Subtle dot pattern */}
+                <div
+                    className="pointer-events-none absolute inset-0 opacity-[0.02]"
+                    style={{
+                        backgroundImage:
+                            'radial-gradient(circle, #fcb315 1px, transparent 1px)',
+                        backgroundSize: '28px 28px',
+                    }}
+                />
+
+                <div className="relative mx-auto max-w-4xl space-y-6">
+                    <BackButton href="/requests" />
 
                     {/* Header */}
-                    <div className="relative rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-2xl shadow-black/20 md:p-6">
+                    <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10 md:p-6">
                         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                             <div className="flex gap-4">
                                 <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${statusConfig_.bg} ${statusConfig_.color}`}>
                                     {statusConfig_.icon}
                                 </div>
+
                                 <div>
                                     <div className="mb-1 flex items-center gap-2">
-                                        <span className="font-mono text-[10px] text-gray-500">
+                                        <span className="font-mono text-[10px] text-white/40">
                                             {request.form_number || `REQUEST #${request.id}`}
                                         </span>
-                                        <span className="size-1 rounded-full bg-gray-600" />
-                                        <span className="text-[10px] uppercase tracking-wider text-gray-500">
+                                        <span className="size-1 rounded-full bg-white/20" />
+                                        <span className="text-[10px] uppercase tracking-wider text-white/40">
                                             ICT Service
                                         </span>
                                     </div>
-                                    <h1 className="text-xl font-semibold tracking-tight text-gray-50 md:text-2xl">
+
+                                    <h1 className="text-xl font-semibold tracking-tight text-white md:text-2xl">
                                         {request.request_services
                                             .map((s) => s.service_type.service_name)
                                             .join(', ') || 'Service request'}
                                     </h1>
-                                    <p className="mt-1.5 text-xs text-gray-500">
+
+                                    <p className="mt-1.5 text-xs text-white/40">
                                         Submitted {new Date(request.date_requested).toLocaleString()}
                                     </p>
                                 </div>
@@ -170,8 +179,11 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                     </div>
 
                     {/* Timeline Progress */}
-                    <div className="relative rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10 md:p-6">
-                        <p className="mb-4 text-sm font-medium text-gray-200">Request Progress</p>
+                    <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10 md:p-6">
+                        <p className="mb-4 text-sm font-semibold text-white">
+                            Request Progress
+                        </p>
+
                         <div className="flex items-center justify-between">
                             {statusSteps.map((step, index) => {
                                 const stepConfig = statusConfig[step];
@@ -185,7 +197,7 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                                                 className={`flex size-10 items-center justify-center rounded-full border-2 transition-all ${
                                                     isCompleted
                                                         ? `${stepConfig.border} ${stepConfig.bg} ${stepConfig.color}`
-                                                        : 'border-gray-700 bg-[#070b18] text-gray-600'
+                                                        : 'border-white/15 bg-[#0a0f1c] text-white/30'
                                                 } ${isCurrent ? 'ring-2 ring-offset-2 ring-offset-[#0f1723] ' + stepConfig.border : ''}`}
                                             >
                                                 {isCompleted ? (
@@ -194,12 +206,14 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                                                     <Circle className="size-5" />
                                                 )}
                                             </div>
-                                            <span className={`mt-2 text-[10px] font-medium ${isCompleted ? stepConfig.color : 'text-gray-600'}`}>
+
+                                            <span className={`mt-2 text-[10px] font-medium ${isCompleted ? stepConfig.color : 'text-white/30'}`}>
                                                 {stepConfig.label}
                                             </span>
                                         </div>
+
                                         {index < statusSteps.length - 1 && (
-                                            <div className={`mx-2 h-0.5 flex-1 ${index < currentStepIndex ? 'bg-ustp-light-blue' : 'bg-gray-700'}`} />
+                                            <div className={`mx-2 h-0.5 flex-1 ${index < currentStepIndex ? 'bg-ustp-gold' : 'bg-white/10'}`} />
                                         )}
                                     </div>
                                 );
@@ -208,18 +222,18 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                     </div>
 
                     {/* Request metadata */}
-                    <div className="relative grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-4 md:grid-cols-3">
                         <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-4">
-                            <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-blue-accent/15 text-ustp-light-blue">
+                            <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                 <UserRound className="size-4" />
                             </div>
-                            <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                            <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
                                 Requested by
                             </p>
-                            <p className="mt-1 text-sm font-medium text-gray-200">
+                            <p className="mt-1 text-sm font-medium text-white">
                                 {request.user.name}
                             </p>
-                            <p className="mt-0.5 text-xs text-gray-500">
+                            <p className="mt-0.5 text-xs text-white/40">
                                 {request.user.department ?? 'No department'}
                             </p>
                         </div>
@@ -228,13 +242,13 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                             <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                 <Clock3 className="size-4" />
                             </div>
-                            <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                            <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
                                 Date requested
                             </p>
-                            <p className="mt-1 text-sm font-medium text-gray-200">
+                            <p className="mt-1 text-sm font-medium text-white">
                                 {new Date(request.date_requested).toLocaleDateString()}
                             </p>
-                            <p className="mt-0.5 text-xs text-gray-500">
+                            <p className="mt-0.5 text-xs text-white/40">
                                 {new Date(request.date_requested).toLocaleTimeString([], {
                                     hour: 'numeric',
                                     minute: '2-digit',
@@ -243,32 +257,32 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                         </div>
 
                         <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-4">
-                            <div className={`mb-3 flex size-8 items-center justify-center rounded-lg ${priorityConfig_?.bg || 'bg-gray-400/10'} ${priorityConfig_?.color || 'text-gray-400'}`}>
+                            <div className={`mb-3 flex size-8 items-center justify-center rounded-lg ${priorityConfig_?.bg || 'bg-white/5'} ${priorityConfig_?.color || 'text-white/40'}`}>
                                 <AlertTriangle className="size-4" />
                             </div>
-                            <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                            <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
                                 Priority
                             </p>
-                            <p className={`mt-1 text-sm font-medium capitalize ${priorityConfig_?.color || 'text-gray-400'}`}>
+                            <p className={`mt-1 text-sm font-medium capitalize ${priorityConfig_?.color || 'text-white/40'}`}>
                                 {request.priority_level ?? 'Not set yet'}
                             </p>
-                            <p className="mt-0.5 text-xs text-gray-500">
+                            <p className="mt-0.5 text-xs text-white/40">
                                 Assigned by ICT Admin
                             </p>
                         </div>
                     </div>
 
                     {/* SLA Status, Location, and Contact */}
-                    <div className="relative grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-4 md:grid-cols-3">
                         {request.sla_deadline && (
                             <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-4">
-                                <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-blue-accent/15 text-ustp-light-blue">
+                                <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                     <Clock3 className="size-4" />
                                 </div>
-                                <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                                <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
                                     SLA Deadline
                                 </p>
-                                <p className="mt-1 text-sm font-medium text-gray-200">
+                                <p className="mt-1 text-sm font-medium text-white">
                                     {new Date(request.sla_deadline).toLocaleString()}
                                 </p>
                                 <p className={`mt-0.5 text-xs capitalize ${
@@ -288,10 +302,10 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                                 <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                     <FileText className="size-4" />
                                 </div>
-                                <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                                <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
                                     Location
                                 </p>
-                                <p className="mt-1 text-sm font-medium text-gray-200">
+                                <p className="mt-1 text-sm font-medium text-white">
                                     {request.location}
                                 </p>
                             </div>
@@ -299,13 +313,13 @@ export default function RequestsShow({ request, isAdmin }: Props) {
 
                         {request.contact_details && (
                             <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-4">
-                                <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-blue-accent/15 text-ustp-light-blue">
+                                <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                     <FileText className="size-4" />
                                 </div>
-                                <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                                <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
                                     Contact Details
                                 </p>
-                                <p className="mt-1 text-sm font-medium text-gray-200">
+                                <p className="mt-1 text-sm font-medium text-white">
                                     {request.contact_details}
                                 </p>
                             </div>
@@ -313,17 +327,20 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                     </div>
 
                     {/* Services */}
-                    <section className="relative overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723]">
-                        <div className="border-b border-[#1a2035] px-5 py-4 md:px-6">
-                            <div className="flex items-center gap-2">
-                                <FileText className="size-4 text-ustp-light-blue" />
-                                <p className="text-sm font-medium text-gray-200">
+                    <section className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-xl shadow-black/10">
+                        <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4 md:px-6">
+                            <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                <FileText className="size-4 text-ustp-gold" />
+                            </div>
+
+                            <div>
+                                <p className="text-sm font-semibold text-white">
                                     Services requested
                                 </p>
+                                <p className="mt-0.5 text-[11px] text-white/40">
+                                    Services and specifications included in this request.
+                                </p>
                             </div>
-                            <p className="mt-1 text-xs text-gray-500">
-                                Services and specifications included in this request.
-                            </p>
                         </div>
 
                         <div className="divide-y divide-[#151c2c]">
@@ -333,14 +350,15 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                                     className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="flex size-8 items-center justify-center rounded-lg bg-ustp-blue-accent/15 text-ustp-light-blue">
+                                        <div className="flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                             <ClipboardList className="size-4" />
                                         </div>
+
                                         <div>
-                                            <p className="text-sm font-medium text-gray-200">
+                                            <p className="text-sm font-medium text-white">
                                                 {service.service_type.service_name}
                                             </p>
-                                            <p className="mt-0.5 text-[10px] uppercase tracking-wider text-gray-500">
+                                            <p className="mt-0.5 text-[10px] uppercase tracking-wider text-white/40">
                                                 {service.service_type.category.category_name}
                                             </p>
                                         </div>
@@ -348,15 +366,17 @@ export default function RequestsShow({ request, isAdmin }: Props) {
 
                                     <div className="flex flex-wrap gap-2 text-xs">
                                         {service.specification && (
-                                            <span className="rounded-lg border border-[#1a2035] bg-[#070b18] px-2.5 py-1 text-gray-400">
+                                            <span className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-white/50">
                                                 {service.specification}
                                             </span>
                                         )}
-                                        <span className="rounded-lg border border-[#1a2035] bg-[#070b18] px-2.5 py-1 text-gray-400">
+
+                                        <span className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-white/50">
                                             Qty: {service.quantity}
                                         </span>
+
                                         {service.action_type && (
-                                            <span className="rounded-lg border border-ustp-navy/20 bg-ustp-navy/5 px-2.5 py-1 text-ustp-light-blue">
+                                            <span className="rounded-lg border border-ustp-gold/30 bg-ustp-gold/10 px-2.5 py-1 text-ustp-gold">
                                                 {service.action_type}
                                             </span>
                                         )}
@@ -367,15 +387,19 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                     </section>
 
                     {/* Problem */}
-                    <section className="relative rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 md:p-6">
-                        <div className="flex items-center gap-2">
-                            <AlertTriangle className="size-4 text-amber-400" />
-                            <p className="text-sm font-medium text-gray-200">
+                    <section className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10 md:p-6">
+                        <div className="flex items-center gap-3">
+                            <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                <AlertTriangle className="size-4 text-ustp-gold" />
+                            </div>
+
+                            <p className="text-sm font-semibold text-white">
                                 Problem description
                             </p>
                         </div>
-                        <div className="mt-4 rounded-xl border border-[#1a2035] bg-[#070b18] p-4">
-                            <p className="whitespace-pre-wrap text-sm leading-6 text-gray-300">
+
+                        <div className="mt-4 rounded-xl border border-white/[0.08] bg-[#0c1222] p-4">
+                            <p className="whitespace-pre-wrap text-sm leading-6 text-white/70">
                                 {request.problem_description}
                             </p>
                         </div>
@@ -383,13 +407,14 @@ export default function RequestsShow({ request, isAdmin }: Props) {
 
                     {/* Rejection reason */}
                     {request.request_status === 'rejected' && request.rejection_reason && (
-                        <section className="relative rounded-2xl border border-red-400/20 bg-red-400/5 p-5 md:p-6">
+                        <section className="rounded-2xl border border-red-400/20 bg-red-400/5 p-5 md:p-6">
                             <div className="flex items-center gap-2">
                                 <X className="size-4 text-red-400" />
                                 <p className="text-sm font-medium text-red-300">
                                     Rejection Reason
                                 </p>
                             </div>
+
                             <div className="mt-4 rounded-xl border border-red-400/10 bg-red-400/5 p-4">
                                 <p className="whitespace-pre-wrap text-sm leading-6 text-red-200">
                                     {request.rejection_reason}
@@ -400,29 +425,33 @@ export default function RequestsShow({ request, isAdmin }: Props) {
 
                     {/* Admin review */}
                     {isAdmin && request.request_status === 'pending' && (
-                        <section className="relative overflow-hidden rounded-2xl border border-ustp-navy/20 bg-[#0f1723]">
-                            <div className="border-b border-[#1a2035] bg-ustp-navy/[0.04] px-5 py-4 md:px-6">
-                                <div className="flex items-center gap-2">
-                                    <Check className="size-4 text-ustp-light-blue" />
-                                    <p className="text-sm font-medium text-gray-200">
+                        <section className="overflow-hidden rounded-2xl border border-ustp-gold/30 bg-[#0f1723] shadow-xl shadow-black/10">
+                            <div className="flex items-center gap-3 border-b border-white/[0.06] bg-ustp-gold/[0.04] px-5 py-4 md:px-6">
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                    <Check className="size-4 text-ustp-gold" />
+                                </div>
+
+                                <div>
+                                    <p className="text-sm font-semibold text-white">
                                         Review request
                                     </p>
+                                    <p className="mt-0.5 text-[11px] text-white/40">
+                                        Set the request priority before approving or rejecting it.
+                                    </p>
                                 </div>
-                                <p className="mt-1 text-xs text-gray-500">
-                                    Set the request priority before approving or rejecting it.
-                                </p>
                             </div>
 
                             <div className="p-5 md:p-6">
                                 <div className="max-w-sm">
-                                    <label className="mb-2 block text-xs font-medium text-gray-300">
+                                    <label className="mb-2 block text-xs font-medium text-white/70">
                                         Priority
                                     </label>
+
                                     <Select value={priority} onValueChange={setPriority}>
-                                        <SelectTrigger className="h-10 w-full border-[#1a2035] bg-[#070b18] text-gray-300 focus:ring-1 focus:ring-ustp-navy/30">
+                                        <SelectTrigger className="h-10 w-full border-[#1a2035] bg-[#0c1222] text-white/80 focus:ring-1 focus:ring-ustp-gold/30">
                                             <SelectValue placeholder="Select priority" />
                                         </SelectTrigger>
-                                        <SelectContent className="border-[#1a2035] bg-[#0f1723] text-gray-100">
+                                        <SelectContent className="border-[#1a2035] bg-[#0f1723] text-white">
                                             <SelectItem value="low">Low</SelectItem>
                                             <SelectItem value="medium">Medium</SelectItem>
                                             <SelectItem value="high">High</SelectItem>
@@ -441,10 +470,11 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                                         <X className="size-4" />
                                         Reject
                                     </Button>
+
                                     <Button
                                         disabled={processing}
                                         onClick={() => updateStatus('approved')}
-                                        className="bg-ustp-navy text-white hover:bg-ustp-navy-dark"
+                                        className="bg-ustp-gold text-ustp-navy hover:bg-ustp-gold-dark hover:text-white"
                                     >
                                         <Check className="size-4" />
                                         Approve Request
