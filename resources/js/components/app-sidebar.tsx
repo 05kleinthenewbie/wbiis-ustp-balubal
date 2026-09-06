@@ -32,7 +32,7 @@ export function AppSidebar() {
     const roleName = auth?.user?.role?.role_name;
 
     const adminNavItems: NavItem[] = [
-        { title: 'Overview', href: dashboardUrl, icon: LayoutGrid },
+        { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
         { title: 'Requests', href: '/requests', icon: FileText },
         { title: 'Job Orders', href: '/job-orders', icon: ClipboardList },
         { title: 'Inventory', href: '/inventory', icon: Box },
@@ -44,14 +44,14 @@ export function AppSidebar() {
     ];
 
     const facultyStaffNavItems: NavItem[] = [
-        { title: 'Overview', href: dashboardUrl, icon: LayoutGrid },
+        { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
         { title: 'My Requests', href: '/requests', icon: FileText },
         { title: 'Bookings', href: '/bookings', icon: Calendar },
         { title: 'Incidents', href: '/incidents', icon: AlertTriangle },
     ];
 
     const studentNavItems: NavItem[] = [
-        { title: 'Overview', href: dashboardUrl, icon: LayoutGrid },
+        { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
         { title: 'Request Email/O365', href: '/requests', icon: Mail },
     ];
 
