@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Send, ShieldAlert } from 'lucide-react';
 import { BackButton } from '@/components/back-button';
 import { Button } from '@/components/ui/button';
 
@@ -19,6 +19,9 @@ type Props = {
     inventoryItems: InventoryItemOption[];
 };
 
+const fieldClass =
+    'border-[#1a2035] bg-[#0c1222] text-white placeholder:text-white/40 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20';
+
 export default function IncidentsCreate({ inventoryItems }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         incident_type: '',
@@ -36,71 +39,76 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
         <>
             <Head title="Report Incident" />
 
-            <div className="min-h-full flex-1 bg-[#070b18] text-gray-100">
-                <div className="relative mx-auto flex max-w-2xl flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
-                    {/* Ambient accents */}
-                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                        <div className="absolute -top-40 left-1/4 size-105 rounded-full bg-ustp-navy/[0.04] blur-3xl" />
-                        <div className="absolute -bottom-40 right-1/4 size-90 rounded-full bg-ustp-gold/[0.015] blur-3xl" />
-                    </div>
+            <div className="relative min-h-full flex-1 overflow-hidden bg-[#070b18] px-4 py-6 text-white sm:px-6 lg:px-8">
+                {/* Ambient glow */}
+                <div className="pointer-events-none absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-ustp-navy/[0.04] blur-3xl" />
+                <div className="pointer-events-none absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-ustp-gold/[0.015] blur-3xl" />
 
-                    <div className="relative">
-                        <BackButton href="/incidents" />
-                    </div>
+                {/* Subtle dot pattern */}
+                <div
+                    className="pointer-events-none absolute inset-0 opacity-[0.02]"
+                    style={{
+                        backgroundImage:
+                            'radial-gradient(circle, #fcb315 1px, transparent 1px)',
+                        backgroundSize: '28px 28px',
+                    }}
+                />
+
+                <div className="relative mx-auto max-w-3xl space-y-6">
+                    <BackButton href="/incidents" />
 
                     {/* Heading */}
-                    <div className="relative">
-                        <div className="mb-2 flex items-center gap-2">
-                            <span className="size-1.5 rounded-full bg-ustp-light-blue shadow-[0_0_8px_rgba(50,157,234,0.6)]" />
-
-                            <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-gray-500">
-                                ICT Incidents
-                            </span>
+                    <div className="flex items-start gap-4">
+                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-ustp-gold/10 text-ustp-gold">
+                            <AlertTriangle className="size-5" />
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="flex size-11 items-center justify-center rounded-xl border border-[#1a2035] bg-[#0f1723] text-ustp-light-blue">
-                                <AlertTriangle className="size-5" />
+                        <div>
+                            <div className="mb-2.5 flex items-center gap-2">
+                                <span className="size-2 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
+                                <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/50">
+                                    ICT Incidents
+                                </span>
                             </div>
 
-                            <div>
-                                <h1 className="text-2xl font-semibold tracking-tight text-gray-50 md:text-3xl">
-                                    Report an Incident
-                                </h1>
+                            <h1 className="text-3xl font-semibold tracking-tight text-white">
+                                Report an Incident
+                            </h1>
 
-                                <p className="mt-1 text-sm text-gray-400">
-                                    Report damage, misuse, or safety concerns involving ICT
-                                    equipment.
-                                </p>
-                            </div>
+                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/50">
+                                Report damage, misuse, or safety concerns involving ICT
+                                equipment.
+                            </p>
                         </div>
                     </div>
 
-                    <form
-                        onSubmit={handleSubmit}
-                        className="relative flex flex-col gap-5"
-                    >
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                         {/* Incident type */}
-                        <section className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 md:p-6">
-                            <div className="mb-4">
-                                <p className="text-sm font-medium text-gray-200">
-                                    Incident type
-                                </p>
+                        <section className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10 md:p-6">
+                            <div className="mb-4 flex items-center gap-3">
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                    <ShieldAlert className="size-4 text-ustp-gold" />
+                                </div>
 
-                                <p className="mt-1 text-xs text-gray-500">
-                                    Select the type of incident being reported.
-                                </p>
+                                <div>
+                                    <p className="text-sm font-semibold text-white">
+                                        Incident type
+                                    </p>
+                                    <p className="mt-0.5 text-[11px] text-white/40">
+                                        Select the type of incident being reported.
+                                    </p>
+                                </div>
                             </div>
 
                             <Select
                                 value={data.incident_type}
                                 onValueChange={(value) => setData('incident_type', value)}
                             >
-                                <SelectTrigger className="h-10 w-full border-[#1a2035] bg-[#070b18] text-gray-300 focus:ring-1 focus:ring-ustp-navy/30">
+                                <SelectTrigger className={`h-10 w-full ${fieldClass}`}>
                                     <SelectValue placeholder="Select incident type" />
                                 </SelectTrigger>
 
-                                <SelectContent className="border-[#1a2035] bg-[#0f1723] text-gray-100">
+                                <SelectContent className="border-[#1a2035] bg-[#0f1723] text-white">
                                     <SelectItem value="Equipment damage">Equipment damage</SelectItem>
                                     <SelectItem value="Unauthorized use">Unauthorized use</SelectItem>
                                     <SelectItem value="Theft or loss">Theft or loss</SelectItem>
@@ -114,27 +122,34 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
                         </section>
 
                         {/* Equipment */}
-                        <section className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 md:p-6">
-                            <div className="mb-4">
-                                <p className="text-sm font-medium text-gray-200">
-                                    Related equipment{' '}
-                                    <span className="text-xs text-gray-500">(optional)</span>
-                                </p>
+                        <section className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10 md:p-6">
+                            <div className="mb-4 flex items-center gap-3">
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                    <AlertTriangle className="size-4 text-ustp-gold" />
+                                </div>
 
-                                <p className="mt-1 text-xs text-gray-500">
-                                    Link this incident to an inventory item if applicable.
-                                </p>
+                                <div>
+                                    <p className="text-sm font-semibold text-white">
+                                        Related equipment{' '}
+                                        <span className="text-[11px] font-normal text-white/40">
+                                            (optional)
+                                        </span>
+                                    </p>
+                                    <p className="mt-0.5 text-[11px] text-white/40">
+                                        Link this incident to an inventory item if applicable.
+                                    </p>
+                                </div>
                             </div>
 
                             <Select
                                 value={data.item_id}
                                 onValueChange={(value) => setData('item_id', value)}
                             >
-                                <SelectTrigger className="h-10 w-full border-[#1a2035] bg-[#070b18] text-gray-300 focus:ring-1 focus:ring-ustp-navy/30">
+                                <SelectTrigger className={`h-10 w-full ${fieldClass}`}>
                                     <SelectValue placeholder="None" />
                                 </SelectTrigger>
 
-                                <SelectContent className="border-[#1a2035] bg-[#0f1723] text-gray-100">
+                                <SelectContent className="border-[#1a2035] bg-[#0f1723] text-white">
                                     {inventoryItems.map((item) => (
                                         <SelectItem key={item.id} value={String(item.id)}>
                                             {item.item_name} ({item.property_no})
@@ -145,15 +160,20 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
                         </section>
 
                         {/* Description */}
-                        <section className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 md:p-6">
-                            <div className="mb-4">
-                                <p className="text-sm font-medium text-gray-200">
-                                    Description
-                                </p>
+                        <section className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10 md:p-6">
+                            <div className="mb-4 flex items-center gap-3">
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                    <AlertTriangle className="size-4 text-ustp-gold" />
+                                </div>
 
-                                <p className="mt-1 text-xs text-gray-500">
-                                    Explain what happened, when, and who was involved.
-                                </p>
+                                <div>
+                                    <p className="text-sm font-semibold text-white">
+                                        Description
+                                    </p>
+                                    <p className="mt-0.5 text-[11px] text-white/40">
+                                        Explain what happened, when, and who was involved.
+                                    </p>
+                                </div>
                             </div>
 
                             <Textarea
@@ -164,7 +184,7 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
                                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                                     setData('incident_description', e.target.value)
                                 }
-                                className="resize-none border-[#1a2035] bg-[#070b18] text-sm leading-6 text-gray-100 placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                className={`resize-none text-sm leading-6 ${fieldClass}`}
                             />
 
                             {errors.incident_description && (
@@ -175,19 +195,19 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
                         </section>
 
                         {/* Notice */}
-                        <div className="rounded-xl border border-[#1a2035] bg-[#0f1723]/50 p-3 text-xs text-gray-400">
+                        <div className="rounded-xl border border-ustp-gold/20 bg-ustp-gold/[0.04] p-3 text-xs leading-5 text-white/50">
                             After review, ICT admin may assign liability to involved parties. You'll
                             be notified of any resulting action.
                         </div>
 
                         {/* Submit */}
-                        <div className="flex flex-col gap-3 rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
+                        <div className="flex flex-col gap-3 rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4 shadow-xl shadow-black/10 sm:flex-row sm:items-center sm:justify-between md:p-5">
                             <div>
-                                <p className="text-xs font-medium text-gray-300">
+                                <p className="text-xs font-medium text-white">
                                     Ready to submit?
                                 </p>
 
-                                <p className="mt-1 text-[11px] text-gray-500">
+                                <p className="mt-1 text-[11px] text-white/40">
                                     Ensure all details are accurate before reporting.
                                 </p>
                             </div>
@@ -195,9 +215,9 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
                             <Button
                                 type="submit"
                                 disabled={processing}
-                                className="h-10 bg-ustp-navy px-5 text-sm font-medium text-white shadow-lg shadow-ustp-navy/20 hover:bg-ustp-navy-dark disabled:cursor-not-allowed disabled:opacity-40"
+                                className="h-10 bg-ustp-gold px-5 text-sm font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/20 transition-all hover:bg-ustp-gold-dark hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                                {processing && <Spinner />}
+                                {processing ? <Spinner /> : <Send className="size-4" />}
                                 Submit Report
                             </Button>
                         </div>
