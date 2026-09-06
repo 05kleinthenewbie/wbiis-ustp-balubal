@@ -1,20 +1,15 @@
 import { Link } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { X } from 'lucide-react';
 
-export function BackButton({
-    href,
-    label = 'Back',
-}: {
-    href: string;
-    label?: string;
-}) {
+export function BackButton({ href }: { href: string }) {
     return (
         <Link
             href={href}
-            className="group mb-3 inline-flex w-fit items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3.5 py-2 text-sm font-medium text-white/70 shadow-md shadow-black/20 transition-all hover:-translate-x-0.5 hover:border-ustp-gold/40 hover:bg-white/[0.06] hover:text-ustp-gold focus-visible:ring-2 focus-visible:ring-ustp-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#070b18] focus-visible:outline-none"
+            aria-label="Close"
+            title="Close"
+            className="group absolute top-0 right-0 z-10 flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/60 shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 hover:border-ustp-gold/60 hover:bg-ustp-gold/10 hover:text-ustp-gold hover:shadow-xl hover:shadow-ustp-gold/10 focus-visible:ring-2 focus-visible:ring-ustp-gold focus-visible:ring-offset-2 focus-visible:ring-offset-[#070b18] focus-visible:outline-none"
         >
-            <ArrowLeft className="size-4 text-white/40 transition-all group-hover:-translate-x-0.5 group-hover:text-ustp-gold" />
-            {label}
+            <X className="size-5 transition-transform group-hover:rotate-90" />
         </Link>
     );
 }
