@@ -31,7 +31,7 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'role' => ['required', Rule::in(['faculty_staff', 'student'])],
-            'department' => ['required', 'string', 'max:100'],
+            'department' => ['required_if:role,student', 'nullable', 'string', 'max:100'],
             'password' => $this->passwordRules(),
         ])->validate();
 
@@ -43,7 +43,7 @@ class CreateNewUser implements CreatesNewUsers
                 'email' => $input['email'],
                 'password' => $input['password'],
                 'role_id' => $role->id,
-                'department' => $input['department'],
+                'department' => $input['department'] ?? null,
                 'status' => 'pending',
             ]);
 

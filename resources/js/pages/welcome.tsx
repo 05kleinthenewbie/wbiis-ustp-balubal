@@ -5,7 +5,6 @@ import {
     Box,
     Calendar,
     CheckCircle,
-    ChevronDown,
     ClipboardList,
     Facebook,
     FileText,
@@ -19,21 +18,6 @@ import {
 } from 'lucide-react';
 import ustpLogo from '@/assets/ustp-logo.png';
 import { dashboard, login, register } from '@/routes';
-
-const navItems = [
-    {
-        label: 'About',
-        children: ['About the System', 'USTP Balubal Campus', 'Vision & Mission', 'Contact'],
-    },
-    {
-        label: 'Services',
-        children: ['Service Requests', 'Facility Booking', 'Incident Reports', 'Email / O365 Requests'],
-    },
-    {
-        label: 'Modules',
-        children: ['Dashboard', 'Job Orders', 'Inventory', 'Reports', 'User Management', 'Audit Log', 'Notifications'],
-    },
-];
 
 const modules = [
     {
@@ -128,28 +112,6 @@ export default function Welcome() {
                                 </p>
                             </div>
                         </div>
-
-                        <nav className="hidden items-center gap-1 lg:flex">
-                            {navItems.map((item) => (
-                                <div key={item.label} className="group relative">
-                                    <button className="flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-medium text-ustp-navy transition-colors hover:bg-ustp-gray">
-                                        {item.label}
-                                        <ChevronDown className="size-3.5 text-ustp-navy/50 transition-transform group-hover:rotate-180" />
-                                    </button>
-                                    <div className="invisible absolute left-0 top-full z-50 mt-1 w-56 rounded-xl border border-ustp-gray-medium bg-white py-2 opacity-0 shadow-lg transition-all group-hover:visible group-hover:opacity-100">
-                                        {item.children.map((child) => (
-                                            <a
-                                                key={child}
-                                                href="#"
-                                                className="block px-4 py-2 text-sm text-ustp-navy/70 transition-colors hover:bg-ustp-gray hover:text-ustp-navy"
-                                            >
-                                                {child}
-                                            </a>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </nav>
 
                         <div className="flex items-center gap-3">
                             {auth.user ? (

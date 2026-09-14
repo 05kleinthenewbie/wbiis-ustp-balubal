@@ -1,5 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
 import { Building, Lock, Mail, User } from 'lucide-react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -22,6 +23,8 @@ type Props = {
 };
 
 export default function Register({ passwordRules }: Props) {
+    const [role, setRole] = useState<string>('');
+
     return (
         <>
             <Head title="Register" />
@@ -85,7 +88,7 @@ export default function Register({ passwordRules }: Props) {
                                 </p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className={role !== 'faculty_staff' ? 'grid grid-cols-2 gap-3' : ''}>
                                 <div className="grid gap-2">
                                     <Label
                                         htmlFor="role"
@@ -93,7 +96,7 @@ export default function Register({ passwordRules }: Props) {
                                     >
                                         Role
                                     </Label>
-                                    <Select name="role" required>
+                                    <Select name="role" required onValueChange={setRole}>
                                         <SelectTrigger
                                             id="role"
                                             className="h-11 rounded-lg border-border text-sm transition-colors focus:border-ustp-navy focus:ring-ustp-navy/20"
@@ -112,27 +115,29 @@ export default function Register({ passwordRules }: Props) {
                                     <InputError message={errors.role} />
                                 </div>
 
-                                <div className="grid gap-2">
-                                    <Label
-                                        htmlFor="department"
-                                        className="text-sm font-medium text-foreground"
-                                    >
-                                        Department
-                                    </Label>
-                                    <div className="relative">
-                                        <Building className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                                        <Input
-                                            id="department"
-                                            type="text"
-                                            required
-                                            tabIndex={3}
-                                            name="department"
-                                        placeholder="e.g. CITC"
-                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
-                                    />
+                                {role !== 'faculty_staff' && (
+                                    <div className="grid gap-2">
+                                        <Label
+                                            htmlFor="department"
+                                            className="text-sm font-medium text-foreground"
+                                        >
+                                            Department
+                                        </Label>
+                                        <div className="relative">
+                                            <Building className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                            <Input
+                                                id="department"
+                                                type="text"
+                                                required
+                                                tabIndex={3}
+                                                name="department"
+                                                placeholder="e.g. CITC"
+                                                className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                            />
+                                        </div>
+                                        <InputError message={errors.department} />
                                     </div>
-                                    <InputError message={errors.department} />
-                                </div>
+                                )}
                             </div>
 
                             <div className="grid gap-2">
