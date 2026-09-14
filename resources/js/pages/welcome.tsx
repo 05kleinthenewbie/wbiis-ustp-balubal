@@ -5,6 +5,8 @@ import {
     Box,
     Calendar,
     CheckCircle,
+    ChevronLeft,
+    ChevronRight,
     ClipboardList,
     Facebook,
     FileText,
@@ -16,6 +18,7 @@ import {
     Users,
     Wifi,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import ustpLogo from '@/assets/ustp-logo.png';
 import { dashboard, login, register } from '@/routes';
 
@@ -83,6 +86,46 @@ const workflowSteps = [
 export default function Welcome() {
     const { auth } = usePage().props;
     const dashboardUrl = dashboard();
+    const [currentPage, setCurrentPage] = useState(0);
+    const [itemsPerView, setItemsPerView] = useState(1);
+
+    useEffect(() => {
+        const queries = [
+            { query: '(min-width: 1024px)', count: 3 },
+            { query: '(min-width: 640px)', count: 2 },
+            { query: '(max-width: 639px)', count: 1 },
+        ];
+
+        const mediaQueryLists = queries.map(({ query, count }) => {
+            const maxPage = Math.ceil(modules.length / count) - 1;
+
+            const mql = window.matchMedia(query);
+
+            if (mql.matches) {
+                setItemsPerView(count);
+                setCurrentPage((page) => Math.min(page, maxPage));
+            }
+
+            const handler = (event: MediaQueryListEvent) => {
+                if (event.matches) {
+                    setItemsPerView(count);
+                    setCurrentPage((page) => Math.min(page, maxPage));
+                }
+            };
+
+            mql.addEventListener('change', handler);
+
+            return { mql, handler };
+        });
+
+        return () => {
+            mediaQueryLists.forEach(({ mql, handler }) => {
+                mql.removeEventListener('change', handler);
+            });
+        };
+    }, []);
+
+    const totalPages = Math.ceil(modules.length / itemsPerView);
 
     return (
         <>
@@ -261,27 +304,76 @@ export default function Welcome() {
                             </p>
                         </div>
 
-                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {modules.map((mod) => {
-                                const Icon = mod.icon;
+                        <div className="relative">
+                            <div className="mx-auto overflow-hidden py-2">
+                                <div
+                                    className="flex transition-transform duration-500 ease-out"
+                                    style={{ transform: `translateX(-${currentPage * (100 / itemsPerView)}%)` }}
+                                >
+                                    {modules.map((mod) => {
+                                        const Icon = mod.icon;
 
-                                return (
-                                    <div
-                                        key={mod.title}
-                                        className="group rounded-xl border border-ustp-gray-medium bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-ustp-gold/30 hover:shadow-lg"
+                                        return (
+                                            <div
+                                                key={mod.title}
+                                                className="min-w-0 shrink-0 px-3"
+                                                style={{ flexBasis: `${100 / itemsPerView}%` }}
+                                            >
+                                                <div className="group flex h-full flex-col rounded-xl border border-ustp-gray-medium bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-ustp-gold/30 hover:shadow-lg">
+                                                    <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-ustp-navy/5 text-ustp-navy transition-colors group-hover:bg-ustp-gold/10 group-hover:text-ustp-gold">
+                                                        <Icon className="size-6" />
+                                                    </div>
+                                                    <h3 className="font-serif text-lg font-bold text-ustp-navy">
+                                                        {mod.title}
+                                                    </h3>
+                                                    <p className="mt-2 text-sm leading-relaxed text-ustp-navy/60">
+                                                        {mod.description}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {totalPages > 1 && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentPage((page) => Math.max(page - 1, 0))}
+                                        disabled={currentPage === 0}
+                                        aria-label="Previous slide"
+                                        className="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-ustp-gray-medium bg-white text-ustp-navy shadow-md transition-all hover:border-ustp-gold hover:text-ustp-gold disabled:cursor-not-allowed disabled:opacity-40"
                                     >
-                                        <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-ustp-navy/5 text-ustp-navy transition-colors group-hover:bg-ustp-gold/10 group-hover:text-ustp-gold">
-                                            <Icon className="size-6" />
-                                        </div>
-                                        <h3 className="font-serif text-lg font-bold text-ustp-navy">
-                                            {mod.title}
-                                        </h3>
-                                        <p className="mt-2 text-sm leading-relaxed text-ustp-navy/60">
-                                            {mod.description}
-                                        </p>
+                                        <ChevronLeft className="size-5" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages - 1))}
+                                        disabled={currentPage === totalPages - 1}
+                                        aria-label="Next slide"
+                                        className="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-ustp-gray-medium bg-white text-ustp-navy shadow-md transition-all hover:border-ustp-gold hover:text-ustp-gold disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                        <ChevronRight className="size-5" />
+                                    </button>
+
+                                    <div className="mt-8 flex items-center justify-center gap-2">
+                                        {Array.from({ length: totalPages }).map((_, index) => (
+                                            <button
+                                                key={index}
+                                                type="button"
+                                                onClick={() => setCurrentPage(index)}
+                                                aria-label={`Go to slide ${index + 1}`}
+                                                className={`h-2.5 rounded-full transition-all ${
+                                                    index === currentPage
+                                                        ? 'w-8 bg-ustp-gold'
+                                                        : 'w-2.5 bg-ustp-navy/20 hover:bg-ustp-navy/40'
+                                                }`}
+                                            />
+                                        ))}
                                     </div>
-                                );
-                            })}
+                                </>
+                            )}
                         </div>
                     </div>
                 </section>
