@@ -313,12 +313,14 @@ class JobOrderController extends Controller
                 $jobOrder->id
             );
 
-            Notification::create([
-                'user_id' => $jobOrder->technician_id,
-                'message' => 'Job order #'.$jobOrder->job_order_number.' has been verified and closed by the requester.',
-                'notification_type' => 'job_order',
-                'notification_status' => 'unread',
-            ]);
+            if ($jobOrder->assigned_to) {
+                Notification::create([
+                    'user_id' => $jobOrder->assigned_to,
+                    'message' => 'Job order #'.$jobOrder->job_order_number.' has been verified and closed by the requester.',
+                    'notification_type' => 'job_order',
+                    'notification_status' => 'unread',
+                ]);
+            }
 
             $this->updateServiceRequestStatus($jobOrder);
 
@@ -335,12 +337,14 @@ class JobOrderController extends Controller
             $jobOrder->id
         );
 
-        Notification::create([
-            'user_id' => $jobOrder->technician_id,
-            'message' => 'Job order #'.$jobOrder->job_order_number.' has been returned by the requester. The issue persists.',
-            'notification_type' => 'job_order',
-            'notification_status' => 'unread',
-        ]);
+        if ($jobOrder->assigned_to) {
+            Notification::create([
+                'user_id' => $jobOrder->assigned_to,
+                'message' => 'Job order #'.$jobOrder->job_order_number.' has been returned by the requester. The issue persists.',
+                'notification_type' => 'job_order',
+                'notification_status' => 'unread',
+            ]);
+        }
 
         return redirect()->back()->with('status', 'Job order returned to technician for further work.');
     }
