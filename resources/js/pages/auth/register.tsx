@@ -45,7 +45,7 @@ export default function Register({ passwordRules }: Props) {
                                     Full name
                                 </Label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <User className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         id="name"
                                         type="text"
@@ -69,7 +69,7 @@ export default function Register({ passwordRules }: Props) {
                                     Email address
                                 </Label>
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Mail className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         id="email"
                                         type="email"
@@ -83,12 +83,18 @@ export default function Register({ passwordRules }: Props) {
                                 </div>
                                 <InputError message={errors.email} />
                                 <p className="text-xs text-muted-foreground">
-                                    Don't have a USTP email yet? You can
-                                    request one after registering.
+                                    Don't have a USTP email yet? You can request
+                                    one after registering.
                                 </p>
                             </div>
 
-                            <div className={role !== 'faculty_staff' ? 'grid grid-cols-2 gap-3' : ''}>
+                            <div
+                                className={
+                                    role !== 'faculty_staff'
+                                        ? 'grid grid-cols-2 gap-3'
+                                        : ''
+                                }
+                            >
                                 <div className="grid gap-2">
                                     <Label
                                         htmlFor="role"
@@ -96,7 +102,11 @@ export default function Register({ passwordRules }: Props) {
                                     >
                                         Role
                                     </Label>
-                                    <Select name="role" required onValueChange={setRole}>
+                                    <Select
+                                        name="role"
+                                        required
+                                        onValueChange={setRole}
+                                    >
                                         <SelectTrigger
                                             id="role"
                                             className="h-11 rounded-lg border-border text-sm transition-colors focus:border-ustp-navy focus:ring-ustp-navy/20"
@@ -124,7 +134,7 @@ export default function Register({ passwordRules }: Props) {
                                             Department
                                         </Label>
                                         <div className="relative">
-                                            <Building className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                            <Building className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                             <Input
                                                 id="department"
                                                 type="text"
@@ -135,7 +145,9 @@ export default function Register({ passwordRules }: Props) {
                                                 className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                             />
                                         </div>
-                                        <InputError message={errors.department} />
+                                        <InputError
+                                            message={errors.department}
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -148,7 +160,7 @@ export default function Register({ passwordRules }: Props) {
                                     Password
                                 </Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Lock className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <PasswordInput
                                         id="password"
                                         required
@@ -171,7 +183,7 @@ export default function Register({ passwordRules }: Props) {
                                     Confirm password
                                 </Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Lock className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <PasswordInput
                                         id="password_confirmation"
                                         required
@@ -202,7 +214,7 @@ export default function Register({ passwordRules }: Props) {
 
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-border" />
+                                <div className="w-full border-t border-border dark:border-white/10" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
                                 <span className="bg-background px-2 text-muted-foreground">
@@ -217,7 +229,7 @@ export default function Register({ passwordRules }: Props) {
                                 href={login()}
                                 data-test="team-invitation-login-link"
                                 tabIndex={7}
-                                className="font-medium text-ustp-navy hover:text-ustp-navy-dark"
+                                className="font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
                             >
                                 Sign in
                             </TextLink>
