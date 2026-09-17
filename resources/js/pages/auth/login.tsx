@@ -1,5 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
-import { Mail } from 'lucide-react';
+import { ArrowRight, Info, Mail } from 'lucide-react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -25,20 +25,23 @@ export default function Login({ status, canResetPassword }: Props) {
             <Form
                 {...store.form()}
                 resetOnSuccess={['password']}
-                className="flex flex-col gap-6"
+                className="flex flex-col gap-5"
             >
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-5">
-                            <div className="grid gap-2">
+                            <div className="grid gap-1.5">
                                 <Label
                                     htmlFor="email"
-                                    className="text-sm font-medium text-foreground"
+                                    className="flex items-center justify-between text-sm font-medium text-foreground"
                                 >
-                                    Email address
+                                    <span>USTP Email Address</span>
+                                    <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+                                        Official
+                                    </span>
                                 </Label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                <div className="relative flex items-center">
+                                    <Mail className="pointer-events-none absolute top-1/2 left-3 size-[18px] -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         id="email"
                                         type="email"
@@ -47,15 +50,15 @@ export default function Login({ status, canResetPassword }: Props) {
                                         autoFocus
                                         tabIndex={1}
                                         autoComplete="email"
-                                        placeholder="your.email@example.com"
-                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                        placeholder="name.id@ustp.edu.ph"
+                                        className="h-11 rounded-lg border-border pl-10 text-sm transition-all focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
                                 <InputError message={errors.email} />
                             </div>
 
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
+                            <div className="grid gap-1.5">
+                                <div className="flex items-center justify-between">
                                     <Label
                                         htmlFor="password"
                                         className="text-sm font-medium text-foreground"
@@ -65,7 +68,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="ml-auto text-xs font-medium text-ustp-navy hover:text-ustp-navy-dark"
+                                            className="text-xs font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
                                             tabIndex={5}
                                         >
                                             Forgot password?
@@ -78,18 +81,18 @@ export default function Login({ status, canResetPassword }: Props) {
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Enter your password"
-                                    className="h-11 rounded-lg border-border text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                    placeholder="••••••••"
+                                    className="h-11 rounded-lg border-border pl-10 text-sm transition-all focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center gap-2.5">
                                 <Checkbox
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
-                                    className="border-border data-[state=checked]:bg-ustp-navy data-[state=checked]:border-ustp-navy"
+                                    className="border-border data-[state=checked]:border-ustp-navy data-[state=checked]:bg-ustp-navy dark:border-neutral-600"
                                 />
                                 <Label
                                     htmlFor="remember"
@@ -101,34 +104,47 @@ export default function Login({ status, canResetPassword }: Props) {
 
                             <Button
                                 type="submit"
-                                className="mt-2 h-11 w-full rounded-lg bg-ustp-gold font-semibold text-ustp-navy shadow-md shadow-ustp-gold/20 transition-all hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-lg hover:shadow-ustp-gold/30 active:scale-[0.98]"
+                                className="mt-1 h-11 w-full rounded-xl bg-ustp-gold font-semibold text-ustp-navy shadow-sm shadow-ustp-gold/30 transition-all hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-md hover:shadow-ustp-gold/30 active:scale-[0.98]"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Log in
+                                Log in to Portal
+                                {!processing && (
+                                    <ArrowRight className="size-[18px]" />
+                                )}
                             </Button>
                         </div>
 
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-border" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-background px-2 text-muted-foreground">
-                                    or
-                                </span>
+                        <div className="relative my-1 flex items-center justify-center">
+                            <div className="h-px w-full bg-border dark:bg-white/10" />
+                            <span className="absolute bg-white px-3 text-[11px] font-medium tracking-wider text-muted-foreground uppercase dark:bg-neutral-900">
+                                or
+                            </span>
+                        </div>
+
+                        <div className="flex flex-col gap-2.5">
+                            <div className="flex items-start gap-2 rounded-lg border border-ustp-gold/40 bg-ustp-gold/10 p-2.5">
+                                <Info className="mt-0.5 size-4 shrink-0 text-ustp-gold-dark dark:text-ustp-gold-light" />
+                                <p className="text-[11px] leading-relaxed text-ustp-navy/70 dark:text-white/60">
+                                    <strong className="font-semibold text-ustp-navy dark:text-white">
+                                        Notice:
+                                    </strong>{' '}
+                                    This system is exclusive to USTP Balubal
+                                    Campus operations. Accounts from other USTP
+                                    campuses cannot be authenticated here.
+                                </p>
                             </div>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
+                        <div className="pt-1 text-center text-sm text-muted-foreground">
                             Don't have an account?{' '}
                             <TextLink
                                 href={register()}
                                 data-test="register-link"
                                 tabIndex={5}
-                                className="font-medium text-ustp-navy hover:text-ustp-navy-dark"
+                                className="font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
                             >
                                 Create an account
                             </TextLink>
@@ -147,6 +163,7 @@ export default function Login({ status, canResetPassword }: Props) {
 }
 
 Login.layout = {
-    title: 'Welcome back',
-    description: 'Sign in to your USTP Balubal ICT Portal account',
+    title: 'Welcome Back!',
+    description:
+        'Authorized access for USTP Balubal Campus faculty, staff, and personnel only.',
 };
