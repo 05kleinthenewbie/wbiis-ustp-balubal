@@ -521,10 +521,10 @@ export default function Welcome() {
                                     USTP Balubal Campus, Cagayan de Oro City.
                                 </p>
                                 <div className="mt-4 flex gap-3">
-                                    <a href="#" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
+                                    <a href="https://www.facebook.com/USTPBalubal" target="_blank" rel="noopener noreferrer" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
                                         <Facebook className="size-4" />
                                     </a>
-                                    <a href="#" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
+                                    <a href="mailto:balubal@ustp.edu.ph" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
                                         <Mail className="size-4" />
                                     </a>
                                     <a href="#" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
@@ -566,7 +566,7 @@ export default function Welcome() {
                                     </li>
                                     <li className="flex items-center gap-2">
                                         <Mail className="size-4 shrink-0 text-ustp-gold/60" />
-                                        <span>ict@ustp.edu.ph</span>
+                                        <span>balubal@ustp.edu.ph</span>
                                     </li>
                                 </ul>
                                 <div className="mt-6 flex gap-3">
