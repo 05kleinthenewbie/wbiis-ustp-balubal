@@ -28,6 +28,9 @@ class InventoryItemFactory extends Factory
 
         $conditions = ['working', 'defective', 'under_repair'];
         $statuses = ['active', 'retired', 'disposed'];
+        $campuses = ['Balubal Campus', 'Main Campus'];
+        $buildings = ['Academic Building', 'Administration Building', 'Library', 'DT Building'];
+        $rooms = ['Room 101', 'Room 201', 'Computer Laboratory A', 'Computer Laboratory B'];
         $locations = [
             'ICT Office - Room 101', 'Computer Lab A - Room 201', 'Computer Lab B - Room 202',
             'AV Room - Room 301', 'Admin Office - Room 102', 'Library - Room 401',
@@ -35,15 +38,30 @@ class InventoryItemFactory extends Factory
         ];
 
         return [
-            'property_no' => 'USTP-ICT-'.strtoupper(fake()->bothLetters(2)).'-'.fake()->unique()->numberBetween(1000, 9999),
-            'item_name' => $category.' - '.$brand.' '.$model,
+            'property_no' => fake()->unique()->numerify('####-##-##-######-###'),
+            'item_inventory_no' => fake()->optional(0.6)->numerify('INV-####'),
+            'item_name' => strtoupper($category.' Computer'),
+            'category' => $category,
             'brand' => $brand,
             'model' => $model,
             'serial_no' => strtoupper(fake()->bothLetters(2)).fake()->numerify('#######'),
+            'specification' => implode(', ', [fake()->words(4, true), fake()->words(4, true)]),
+            'description' => fake()->optional(0.7)->sentence(8),
             'location' => fake()->randomElement($locations),
+            'purchase_date' => fake()->dateTimeBetween('-3 years', 'now'),
+            'unit_cost' => fake()->optional(0.8)->randomFloat(2, 5000, 150000),
+            'purchase_order_no' => fake()->optional(0.8)->bothify('USTP - ##/C/???/PO ##-####'),
+            'end_user' => fake()->optional(0.8)->name(),
+            'department' => fake()->optional(0.7)->randomElement(['College of Engineering', 'College of Education', 'Administration', 'Library', 'Information Technology Services']),
+            'campus' => fake()->randomElement($campuses),
+            'building' => fake()->optional(0.8)->randomElement($buildings),
+            'room' => fake()->optional(0.7)->randomElement($rooms),
+            'specific_location' => fake()->optional(0.5)->randomElement(['Near the entrance', 'Back corner', 'Window side', 'Above the cabinet']),
             'condition' => fake()->randomElement($conditions),
             'status' => fake()->randomElement($statuses),
-            'purchase_date' => fake()->dateTimeBetween('-3 years', 'now'),
+            'validation' => fake()->optional(0.7)->randomElement(['Validated', 'For Inspection', 'Pending']),
+            'inspection_date' => fake()->optional(0.6)->dateTimeBetween('-1 year', 'now'),
+            'inspection_remarks' => fake()->optional(0.5)->sentence(8),
         ];
     }
 }

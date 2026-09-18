@@ -75,29 +75,23 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
         <>
             <Head title="User Management" />
 
-            <div className="min-h-full flex-1 bg-[#070b18] text-gray-100">
+            <div className="min-h-full flex-1 bg-slate-50 text-slate-800">
                 <div className="relative flex flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
-                    {/* Ambient accents */}
-                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                        <div className="absolute -top-40 right-1/4 size-105 rounded-full bg-ustp-navy/[0.04] blur-3xl" />
-                        <div className="absolute -bottom-40 left-1/4 size-90 rounded-full bg-ustp-gold/[0.015] blur-3xl" />
-                    </div>
-
                     {/* Header */}
                     <div className="relative">
                         <div className="mb-2 flex items-center gap-2">
                             <span className="size-1.5 rounded-full bg-ustp-light-blue shadow-[0_0_8px_rgba(50,157,234,0.6)]" />
 
-                            <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-gray-500">
+                            <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
                                 Administration
                             </span>
                         </div>
 
-                        <h1 className="text-2xl font-semibold tracking-tight text-gray-50 md:text-3xl">
+                        <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                             User Management
                         </h1>
 
-                        <p className="mt-1.5 max-w-xl text-sm text-gray-400">
+                        <p className="mt-1.5 max-w-xl text-sm text-slate-400">
                             Review and approve new account registrations.
                         </p>
                     </div>
@@ -106,58 +100,66 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
                     <section className="relative">
                         <div className="mb-4 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <div className="flex size-8 items-center justify-center rounded-lg bg-amber-400/10 text-amber-300">
+                                <div className="flex size-8 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
                                     <UserCheck className="size-4" />
                                 </div>
 
                                 <div>
-                                    <p className="text-sm font-medium text-gray-200">
+                                    <p className="text-sm font-medium text-slate-600">
                                         Pending Approval
                                     </p>
-                                    <p className="text-xs text-gray-500">
-                                        {pendingUsers.length} account{pendingUsers.length !== 1 ? 's' : ''} awaiting review
+                                    <p className="text-xs text-slate-500">
+                                        {pendingUsers.length} account
+                                        {pendingUsers.length !== 1
+                                            ? 's'
+                                            : ''}{' '}
+                                        awaiting review
                                     </p>
                                 </div>
                             </div>
 
                             <div className="relative w-full max-w-xs">
-                                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+                                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
 
                                 <Input
                                     value={searchPending}
-                                    onChange={(e) => setSearchPending(e.target.value)}
+                                    onChange={(e) =>
+                                        setSearchPending(e.target.value)
+                                    }
                                     placeholder="Search pending..."
-                                    className="h-9 border-[#1a2035] bg-[#0c1222] pl-9 text-xs text-gray-100 placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                    className="h-9 border-slate-300 bg-white pl-9 text-xs text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
                                 />
                             </div>
                         </div>
 
                         {filteredPending.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#1a2035] bg-[#0c1222]/50 py-12 text-center">
-                                <UserCheck className="mb-3 size-8 text-gray-600" />
-                                <p className="text-sm text-gray-400">
-                                    {searchPending ? 'No matching pending users' : 'No accounts awaiting approval.'}
+                            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
+                                <UserCheck className="mb-3 size-8 text-slate-400" />
+                                <p className="text-sm text-slate-400">
+                                    {searchPending
+                                        ? 'No matching pending users'
+                                        : 'No accounts awaiting approval.'}
                                 </p>
                             </div>
                         ) : (
-                            <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-2xl shadow-black/20">
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                                 <div className="overflow-x-auto">
                                     <table className="w-full min-w-180 text-sm">
                                         <thead>
-                                            <tr className="border-b border-[#1a2035] bg-[#0a0f1c]/80">
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                            <tr className="border-b border-slate-200 bg-slate-50">
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Name
                                                 </th>
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Email
                                                 </th>
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Role
                                                 </th>
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Department
                                                 </th>
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Registered
                                                 </th>
                                                 <th className="px-5 py-3.5" />
@@ -168,31 +170,44 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
                                             {filteredPending.map((user) => (
                                                 <tr
                                                     key={user.id}
-                                                    className="border-b border-[#151c2c] transition-colors last:border-0 hover:bg-[#111827]/70"
+                                                    className="border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
                                                 >
-                                                    <td className="px-5 py-4 font-medium text-gray-200">
+                                                    <td className="px-5 py-4 font-medium text-slate-600">
                                                         {user.name}
                                                     </td>
-                                                    <td className="px-5 py-4 text-xs text-gray-400">
+                                                    <td className="px-5 py-4 text-xs text-slate-400">
                                                         {user.email}
                                                     </td>
-                                                    <td className="px-5 py-4 text-xs text-gray-400">
-                                                        {roleLabels[user.role?.role_name ?? ''] ?? '—'}
+                                                    <td className="px-5 py-4 text-xs text-slate-400">
+                                                        {roleLabels[
+                                                            user.role
+                                                                ?.role_name ??
+                                                                ''
+                                                        ] ?? '—'}
                                                     </td>
-                                                    <td className="px-5 py-4 text-xs text-gray-400">
+                                                    <td className="px-5 py-4 text-xs text-slate-400">
                                                         {user.department ?? '—'}
                                                     </td>
-                                                    <td className="px-5 py-4 text-xs text-gray-400">
-                                                        {new Date(user.created_at).toLocaleDateString()}
+                                                    <td className="px-5 py-4 text-xs text-slate-400">
+                                                        {new Date(
+                                                            user.created_at,
+                                                        ).toLocaleDateString()}
                                                     </td>
                                                     <td className="px-5 py-4 text-right">
                                                         <div className="flex items-center justify-end gap-2">
                                                             <Button
                                                                 size="sm"
                                                                 variant="outline"
-                                                                disabled={processingId === user.id}
-                                                                onClick={() => rejectUser(user.id)}
-                                                                className="h-8 border-rose-400/25 bg-transparent px-3 text-xs text-rose-300 hover:border-rose-400/40 hover:bg-rose-400/10 hover:text-rose-200"
+                                                                disabled={
+                                                                    processingId ===
+                                                                    user.id
+                                                                }
+                                                                onClick={() =>
+                                                                    rejectUser(
+                                                                        user.id,
+                                                                    )
+                                                                }
+                                                                className="h-8 border-rose-200 bg-white px-3 text-xs text-rose-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"
                                                             >
                                                                 <X className="mr-1 size-3" />
                                                                 Reject
@@ -200,8 +215,15 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
 
                                                             <Button
                                                                 size="sm"
-                                                                disabled={processingId === user.id}
-                                                                onClick={() => approveUser(user.id)}
+                                                                disabled={
+                                                                    processingId ===
+                                                                    user.id
+                                                                }
+                                                                onClick={() =>
+                                                                    approveUser(
+                                                                        user.id,
+                                                                    )
+                                                                }
                                                                 className="h-8 bg-ustp-navy px-3 text-xs text-white shadow-lg shadow-ustp-navy/20 hover:bg-ustp-navy-dark"
                                                             >
                                                                 Approve
@@ -221,58 +243,66 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
                     <section className="relative">
                         <div className="mb-4 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-400/10 text-emerald-300">
+                                <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
                                     <Users className="size-4" />
                                 </div>
 
                                 <div>
-                                    <p className="text-sm font-medium text-gray-200">
+                                    <p className="text-sm font-medium text-slate-600">
                                         Active Users
                                     </p>
-                                    <p className="text-xs text-gray-500">
-                                        {activeUsers.length} user{activeUsers.length !== 1 ? 's' : ''} registered
+                                    <p className="text-xs text-slate-500">
+                                        {activeUsers.length} user
+                                        {activeUsers.length !== 1
+                                            ? 's'
+                                            : ''}{' '}
+                                        registered
                                     </p>
                                 </div>
                             </div>
 
                             <div className="relative w-full max-w-xs">
-                                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+                                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
 
                                 <Input
                                     value={searchActive}
-                                    onChange={(e) => setSearchActive(e.target.value)}
+                                    onChange={(e) =>
+                                        setSearchActive(e.target.value)
+                                    }
                                     placeholder="Search active..."
-                                    className="h-9 border-[#1a2035] bg-[#0c1222] pl-9 text-xs text-gray-100 placeholder:text-gray-500 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                    className="h-9 border-slate-300 bg-white pl-9 text-xs text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
                                 />
                             </div>
                         </div>
 
                         {filteredActive.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#1a2035] bg-[#0c1222]/50 py-12 text-center">
-                                <Users className="mb-3 size-8 text-gray-600" />
-                                <p className="text-sm text-gray-400">
-                                    {searchActive ? 'No matching active users' : 'No active users yet.'}
+                            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
+                                <Users className="mb-3 size-8 text-slate-400" />
+                                <p className="text-sm text-slate-400">
+                                    {searchActive
+                                        ? 'No matching active users'
+                                        : 'No active users yet.'}
                                 </p>
                             </div>
                         ) : (
-                            <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-2xl shadow-black/20">
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                                 <div className="overflow-x-auto">
                                     <table className="w-full min-w-180 text-sm">
                                         <thead>
-                                            <tr className="border-b border-[#1a2035] bg-[#0a0f1c]/80">
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                            <tr className="border-b border-slate-200 bg-slate-50">
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Name
                                                 </th>
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Email
                                                 </th>
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Role
                                                 </th>
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Department
                                                 </th>
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Status
                                                 </th>
                                             </tr>
@@ -282,24 +312,28 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
                                             {filteredActive.map((user) => (
                                                 <tr
                                                     key={user.id}
-                                                    className="border-b border-[#151c2c] transition-colors last:border-0 hover:bg-[#111827]/70"
+                                                    className="border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
                                                 >
-                                                    <td className="px-5 py-4 font-medium text-gray-200">
+                                                    <td className="px-5 py-4 font-medium text-slate-600">
                                                         {user.name}
                                                     </td>
-                                                    <td className="px-5 py-4 text-xs text-gray-400">
+                                                    <td className="px-5 py-4 text-xs text-slate-400">
                                                         {user.email}
                                                     </td>
-                                                    <td className="px-5 py-4 text-xs text-gray-400">
-                                                        {roleLabels[user.role?.role_name ?? ''] ?? '—'}
+                                                    <td className="px-5 py-4 text-xs text-slate-400">
+                                                        {roleLabels[
+                                                            user.role
+                                                                ?.role_name ??
+                                                                ''
+                                                        ] ?? '—'}
                                                     </td>
-                                                    <td className="px-5 py-4 text-xs text-gray-400">
+                                                    <td className="px-5 py-4 text-xs text-slate-400">
                                                         {user.department ?? '—'}
                                                     </td>
                                                     <td className="px-5 py-4">
                                                         <Badge
                                                             variant="outline"
-                                                            className="rounded-md border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium capitalize text-emerald-300"
+                                                            className="rounded-md border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 capitalize"
                                                         >
                                                             {user.status}
                                                         </Badge>

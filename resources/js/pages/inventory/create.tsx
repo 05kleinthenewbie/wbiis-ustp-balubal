@@ -13,6 +13,12 @@ import {
     Box,
     CheckCircle2,
     AlertTriangle,
+    LocateFixed,
+    BadgeCheck,
+    Banknote,
+    User as UserIcon,
+    Building2,
+    StickyNote,
 } from 'lucide-react';
 import { BackButton } from '@/components/back-button';
 import { Button } from '@/components/ui/button';
@@ -26,35 +32,46 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
+
+type UserOption = {
+    id: number;
+    name: string;
+    department: string | null;
+};
+
+type Props = {
+    users: UserOption[];
+};
 
 function getCategoryFromName(name: string): string {
     const lower = name.toLowerCase();
 
-    if (lower.startsWith('desktop')) {
+    if (lower.includes('desktop')) {
         return 'Desktop';
     }
 
-    if (lower.startsWith('laptop')) {
+    if (lower.includes('laptop')) {
         return 'Laptop';
     }
 
-    if (lower.startsWith('monitor')) {
+    if (lower.includes('monitor')) {
         return 'Monitor';
     }
 
-    if (lower.startsWith('printer')) {
+    if (lower.includes('printer')) {
         return 'Printer';
     }
 
-    if (lower.startsWith('projector')) {
+    if (lower.includes('projector')) {
         return 'Projector';
     }
 
-    if (lower.startsWith('network')) {
+    if (lower.includes('network')) {
         return 'Network';
     }
 
-    if (lower.startsWith('ups')) {
+    if (lower.includes('ups')) {
         return 'UPS';
     }
 
@@ -80,10 +97,26 @@ const categoryColors: Record<string, string> = {
     Projector: 'bg-orange-400/15 text-orange-400 border-orange-400/20',
     Network: 'bg-cyan-400/15 text-cyan-400 border-cyan-400/20',
     UPS: 'bg-amber-400/15 text-amber-400 border-amber-400/20',
-    Other: 'bg-white/5 text-white/40 border-white/10',
+    Other: 'bg-slate-50 text-slate-400 border-slate-200',
 };
 
-const conditionVisuals: Record<string, { icon: React.ElementType; color: string; ring: string }> = {
+const categoryOptions = [
+    'Desktop',
+    'Laptop',
+    'Monitor',
+    'Printer',
+    'Projector',
+    'Network',
+    'UPS',
+    'Other',
+];
+
+const validationOptions = ['Validated', 'For Inspection', 'Pending'];
+
+const conditionVisuals: Record<
+    string,
+    { icon: React.ElementType; color: string; ring: string }
+> = {
     working: {
         icon: CheckCircle2,
         color: 'border-emerald-400/40 bg-emerald-400/10 text-emerald-400',
@@ -102,10 +135,13 @@ const conditionVisuals: Record<string, { icon: React.ElementType; color: string;
 };
 
 const inputClass =
-    'h-10 border-[#1a2035] bg-[#0c1222] text-white placeholder:text-white/40 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20';
+    'h-10 border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20';
+
+const textareaClass =
+    'border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20';
 
 const selectClass =
-    'h-10 w-full border-[#1a2035] bg-[#0c1222] text-white/80 focus:ring-1 focus:ring-ustp-gold/30';
+    'h-10 w-full border-slate-300 bg-white text-slate-800 focus:ring-1 focus:ring-ustp-gold/30';
 
 const stepClasses: Record<number, string> = {
     1: 'bg-ustp-gold/15 text-ustp-gold',
@@ -113,53 +149,82 @@ const stepClasses: Record<number, string> = {
     3: 'bg-ustp-gold/15 text-ustp-gold',
     4: 'bg-emerald-400/15 text-emerald-400',
     5: 'bg-orange-400/15 text-orange-400',
+    6: 'bg-purple-400/15 text-purple-400',
 };
 
-export default function InventoryCreate() {
+function formatCurrency(value: string): string {
+    const parsed = parseFloat(value);
+
+    if (Number.isNaN(parsed)) {
+        return '';
+    }
+
+    return parsed.toLocaleString('en-PH', {
+        style: 'currency',
+        currency: 'PHP',
+        maximumFractionDigits: 2,
+    });
+}
+
+export default function InventoryCreate({ users }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         property_no: '',
+        item_inventory_no: '',
         item_name: '',
+        category: 'Desktop',
         brand: '',
         model: '',
         serial_no: '',
+        specification: '',
+        description: '',
         location: '',
+        purchase_date: '',
+        unit_cost: '',
+        purchase_order_no: '',
+        end_user: '',
+        department: '',
+        campus: '',
+        building: '',
+        room: '',
+        specific_location: '',
         condition: 'working',
         status: 'active',
-        purchase_date: '',
+        validation: 'Pending',
+        inspection_date: '',
+        inspection_remarks: '',
     });
+
+    const departments = Array.from(
+        new Set(users.map((u) => u.department).filter(Boolean) as string[]),
+    ).sort();
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+
+        setData(
+            'location',
+            [data.building, data.room].filter(Boolean).join(' - ') ||
+                data.campus,
+        );
         post('/inventory');
     }
 
-    const category = getCategoryFromName(data.item_name);
+    const category = data.category || getCategoryFromName(data.item_name);
     const CatIcon = categoryIcons[category] ?? Box;
-    const catColor = categoryColors[category] ?? 'bg-white/5 text-white/40 border-white/10';
+    const catColor =
+        categoryColors[category] ??
+        'bg-slate-50 text-slate-400 border-slate-200';
     const cv = conditionVisuals[data.condition] ?? conditionVisuals.working;
     const CondIcon = cv.icon;
 
-    const hasAnyData = data.property_no || data.item_name || data.brand || data.model;
+    const hasAnyData =
+        data.property_no || data.item_name || data.brand || data.model;
 
     return (
         <>
             <Head title="Add Inventory Item" />
 
-            <div className="relative min-h-full flex-1 overflow-hidden bg-[#070b18] px-4 py-6 text-white sm:px-6 lg:px-8">
-                {/* Ambient glow */}
-                <div className="pointer-events-none absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-ustp-navy/[0.04] blur-3xl" />
-                <div className="pointer-events-none absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-ustp-gold/[0.015] blur-3xl" />
-
-                {/* Subtle dot pattern */}
-                <div
-                    className="pointer-events-none absolute inset-0 opacity-[0.02]"
-                    style={{
-                        backgroundImage:
-                            'radial-gradient(circle, #fcb315 1px, transparent 1px)',
-                        backgroundSize: '28px 28px',
-                    }}
-                />
-
+            <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-6xl space-y-6">
                     <BackButton href="/inventory" />
 
@@ -172,17 +237,18 @@ export default function InventoryCreate() {
                         <div>
                             <div className="mb-2.5 flex items-center gap-2">
                                 <span className="size-2 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
-                                <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/50">
+                                <span className="text-[11px] font-medium tracking-[0.2em] text-slate-500 uppercase">
                                     Inventory Management
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl font-semibold tracking-tight text-white">
+                            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
                                 Add Equipment
                             </h1>
 
-                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/50">
-                                Register new ICT equipment in the inventory.
+                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">
+                                Register new ICT equipment with complete
+                                property-label and inspection information.
                             </p>
                         </div>
                     </div>
@@ -192,201 +258,786 @@ export default function InventoryCreate() {
                         {/* Form column */}
                         <form
                             onSubmit={handleSubmit}
-                            className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-xl shadow-black/10 lg:col-span-2"
+                            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-2"
                         >
                             <div className="flex flex-col gap-7 p-5 md:p-6">
-                                {/* Step 1: Identification */}
+                                {/* Step 1: Property Information */}
                                 <section>
                                     <div className="mb-4 flex items-start gap-3">
-                                        <div className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${stepClasses[1]}`}>
+                                        <div
+                                            className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${stepClasses[1]}`}
+                                        >
                                             1
                                         </div>
                                         <div>
-                                            <p className="text-sm font-semibold text-white">Identification</p>
-                                            <p className="mt-0.5 text-xs text-white/40">
-                                                Basic information used to identify this equipment.
+                                            <p className="text-sm font-semibold text-slate-800">
+                                                Property Information
+                                            </p>
+                                            <p className="mt-0.5 text-xs text-slate-400">
+                                                Identifiers printed on the
+                                                physical property label.
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="ml-10 grid gap-4 md:grid-cols-2">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="property_no" className="text-xs font-medium text-white/70">
-                                                Property no. <span className="text-red-400">*</span>
+                                            <Label
+                                                htmlFor="property_no"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Property no.{' '}
+                                                <span className="text-red-400">
+                                                    *
+                                                </span>
                                             </Label>
                                             <Input
                                                 id="property_no"
                                                 value={data.property_no}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('property_no', e.target.value)}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                ) =>
+                                                    setData(
+                                                        'property_no',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="USTP-ICT-XX-0001"
-                                                className={inputClass}
+                                                className={`${inputClass} font-mono`}
                                             />
-                                            {errors.property_no && <p className="text-xs text-red-400">{errors.property_no}</p>}
+                                            {errors.property_no && (
+                                                <p className="text-xs text-red-400">
+                                                    {errors.property_no}
+                                                </p>
+                                            )}
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="item_name" className="text-xs font-medium text-white/70">
-                                                Item name <span className="text-red-400">*</span>
+                                            <Label
+                                                htmlFor="item_inventory_no"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Item/Inventory no.
+                                            </Label>
+                                            <Input
+                                                id="item_inventory_no"
+                                                value={data.item_inventory_no}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                ) =>
+                                                    setData(
+                                                        'item_inventory_no',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="e.g. 24-1001"
+                                                className={`${inputClass} font-mono`}
+                                            />
+                                            {errors.item_inventory_no && (
+                                                <p className="text-xs text-red-400">
+                                                    {errors.item_inventory_no}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="item_name"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Property name{' '}
+                                                <span className="text-red-400">
+                                                    *
+                                                </span>
                                             </Label>
                                             <Input
                                                 id="item_name"
                                                 value={data.item_name}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('item_name', e.target.value)}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                ) =>
+                                                    setData(
+                                                        'item_name',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="Desktop - Dell OptiPlex 7090"
                                                 className={inputClass}
                                             />
-                                            {errors.item_name && <p className="text-xs text-red-400">{errors.item_name}</p>}
+                                            {errors.item_name && (
+                                                <p className="text-xs text-red-400">
+                                                    {errors.item_name}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="category"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Category
+                                            </Label>
+                                            <Select
+                                                value={data.category}
+                                                onValueChange={(value) =>
+                                                    setData('category', value)
+                                                }
+                                            >
+                                                <SelectTrigger
+                                                    id="category"
+                                                    className={selectClass}
+                                                >
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                                    {categoryOptions.map(
+                                                        (c) => (
+                                                            <SelectItem
+                                                                key={c}
+                                                                value={c}
+                                                            >
+                                                                {c}
+                                                            </SelectItem>
+                                                        ),
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.category && (
+                                                <p className="text-xs text-red-400">
+                                                    {errors.category}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 </section>
 
-                                {/* Step 2: Product Details */}
-                                <section className="border-t border-white/[0.06] pt-6">
+                                {/* Step 2: Specifications */}
+                                <section className="border-t border-slate-200 pt-6">
                                     <div className="mb-4 flex items-start gap-3">
-                                        <div className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${stepClasses[2]}`}>
+                                        <div
+                                            className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${stepClasses[2]}`}
+                                        >
                                             2
                                         </div>
                                         <div>
-                                            <p className="text-sm font-semibold text-white">Product Details</p>
-                                            <p className="mt-0.5 text-xs text-white/40">
-                                                Manufacturer and model information.
+                                            <p className="text-sm font-semibold text-slate-800">
+                                                Specifications
+                                            </p>
+                                            <p className="mt-0.5 text-xs text-slate-400">
+                                                Manufacturer, model, serial and
+                                                technical details.
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="ml-10 grid gap-4 md:grid-cols-2">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="brand" className="text-xs font-medium text-white/70">Brand</Label>
+                                            <Label
+                                                htmlFor="brand"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Brand
+                                            </Label>
                                             <Input
                                                 id="brand"
                                                 value={data.brand}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('brand', e.target.value)}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                ) =>
+                                                    setData(
+                                                        'brand',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="Dell"
                                                 className={inputClass}
                                             />
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="model" className="text-xs font-medium text-white/70">Model</Label>
+                                            <Label
+                                                htmlFor="model"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Model
+                                            </Label>
                                             <Input
                                                 id="model"
                                                 value={data.model}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('model', e.target.value)}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                ) =>
+                                                    setData(
+                                                        'model',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="OptiPlex 7090"
                                                 className={inputClass}
                                             />
                                         </div>
-                                    </div>
-                                </section>
 
-                                {/* Step 3: Asset Details */}
-                                <section className="border-t border-white/[0.06] pt-6">
-                                    <div className="mb-4 flex items-start gap-3">
-                                        <div className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${stepClasses[3]}`}>
-                                            3
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-white">Asset Details</p>
-                                            <p className="mt-0.5 text-xs text-white/40">
-                                                Serial information and current equipment location.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="ml-10 grid gap-4 md:grid-cols-2">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="serial_no" className="text-xs font-medium text-white/70">Serial no.</Label>
+                                            <Label
+                                                htmlFor="serial_no"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Serial no.
+                                            </Label>
                                             <Input
                                                 id="serial_no"
                                                 value={data.serial_no}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('serial_no', e.target.value)}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                ) =>
+                                                    setData(
+                                                        'serial_no',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="SN-123456789"
-                                                className={inputClass}
+                                                className={`${inputClass} font-mono`}
                                             />
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="location" className="text-xs font-medium text-white/70">Location</Label>
-                                            <Input
-                                                id="location"
-                                                value={data.location}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('location', e.target.value)}
-                                                placeholder="ICT Office - Room 101"
-                                                className={inputClass}
+                                            <Label
+                                                htmlFor="specification"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Specification
+                                            </Label>
+                                            <Textarea
+                                                id="specification"
+                                                value={data.specification}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLTextAreaElement>,
+                                                ) =>
+                                                    setData(
+                                                        'specification',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="Processor, RAM, storage, etc."
+                                                className={`${textareaClass} min-h-20`}
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-2 md:col-span-2">
+                                            <Label
+                                                htmlFor="description"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Description
+                                            </Label>
+                                            <Textarea
+                                                id="description"
+                                                value={data.description}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLTextAreaElement>,
+                                                ) =>
+                                                    setData(
+                                                        'description',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="Additional notes about this equipment."
+                                                className={`${textareaClass} min-h-20`}
                                             />
                                         </div>
                                     </div>
                                 </section>
 
-                                {/* Step 4: Status & Condition */}
-                                <section className="border-t border-white/[0.06] pt-6">
+                                {/* Step 3: Acquisition */}
+                                <section className="border-t border-slate-200 pt-6">
                                     <div className="mb-4 flex items-start gap-3">
-                                        <div className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${stepClasses[4]}`}>
-                                            4
+                                        <div
+                                            className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${stepClasses[3]}`}
+                                        >
+                                            3
                                         </div>
                                         <div>
-                                            <p className="text-sm font-semibold text-white">Status & Condition</p>
-                                            <p className="mt-0.5 text-xs text-white/40">
-                                                Set the current operational state of the equipment.
+                                            <p className="text-sm font-semibold text-slate-800">
+                                                Acquisition
+                                            </p>
+                                            <p className="mt-0.5 text-xs text-slate-400">
+                                                Purchase details and reference
+                                                documents.
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="ml-10 grid gap-4 md:grid-cols-2">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="condition" className="text-xs font-medium text-white/70">Condition</Label>
-                                            <Select value={data.condition} onValueChange={(value) => setData('condition', value)}>
-                                                <SelectTrigger id="condition" className={selectClass}>
+                                            <Label
+                                                htmlFor="purchase_date"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Date acquired
+                                            </Label>
+                                            <div className="relative">
+                                                <CalendarDays className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                                                <Input
+                                                    id="purchase_date"
+                                                    type="date"
+                                                    value={data.purchase_date}
+                                                    onChange={(
+                                                        e: React.ChangeEvent<HTMLInputElement>,
+                                                    ) =>
+                                                        setData(
+                                                            'purchase_date',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className={`${inputClass} pl-10 scheme-light`}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="unit_cost"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Unit cost (PHP)
+                                            </Label>
+                                            <div className="relative">
+                                                <Banknote className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                                                <Input
+                                                    id="unit_cost"
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value={data.unit_cost}
+                                                    onChange={(
+                                                        e: React.ChangeEvent<HTMLInputElement>,
+                                                    ) =>
+                                                        setData(
+                                                            'unit_cost',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="45000.00"
+                                                    className={`${inputClass} pl-10 font-mono`}
+                                                />
+                                            </div>
+                                            {errors.unit_cost && (
+                                                <p className="text-xs text-red-400">
+                                                    {errors.unit_cost}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="grid gap-2 md:col-span-2">
+                                            <Label
+                                                htmlFor="purchase_order_no"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Reference / Purchase order
+                                            </Label>
+                                            <Input
+                                                id="purchase_order_no"
+                                                value={data.purchase_order_no}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                ) =>
+                                                    setData(
+                                                        'purchase_order_no',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="USTP - Main/F/C/New/PO 0112"
+                                                className={`${inputClass} font-mono`}
+                                            />
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Step 4: Assignment & Location */}
+                                <section className="border-t border-slate-200 pt-6">
+                                    <div className="mb-4 flex items-start gap-3">
+                                        <div
+                                            className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${stepClasses[4]}`}
+                                        >
+                                            4
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-800">
+                                                Assignment &amp; Location
+                                            </p>
+                                            <p className="mt-0.5 text-xs text-slate-400">
+                                                Current custodian and where the
+                                                equipment is placed.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="ml-10 grid gap-4 md:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="end_user"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                End user
+                                            </Label>
+                                            <div className="relative">
+                                                <UserIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                                                <Input
+                                                    id="end_user"
+                                                    list="create-end-users"
+                                                    value={data.end_user}
+                                                    onChange={(
+                                                        e: React.ChangeEvent<HTMLInputElement>,
+                                                    ) =>
+                                                        setData(
+                                                            'end_user',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Person assigned to the equipment"
+                                                    className={`${inputClass} pl-9`}
+                                                />
+                                                <datalist id="create-end-users">
+                                                    {users.map((u) => (
+                                                        <option
+                                                            key={u.id}
+                                                            value={u.name}
+                                                        />
+                                                    ))}
+                                                </datalist>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="department"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Department
+                                            </Label>
+                                            <Input
+                                                id="department"
+                                                list="create-departments"
+                                                value={data.department}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                ) =>
+                                                    setData(
+                                                        'department',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="College of Engineering"
+                                                className={inputClass}
+                                            />
+                                            <datalist id="create-departments">
+                                                {departments.map((d) => (
+                                                    <option key={d} value={d} />
+                                                ))}
+                                            </datalist>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="campus"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Campus / Location
+                                            </Label>
+                                            <div className="relative">
+                                                <LocateFixed className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                                                <Input
+                                                    id="campus"
+                                                    list="create-campuses"
+                                                    value={data.campus}
+                                                    onChange={(
+                                                        e: React.ChangeEvent<HTMLInputElement>,
+                                                    ) =>
+                                                        setData(
+                                                            'campus',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Balubal Campus"
+                                                    className={`${inputClass} pl-9`}
+                                                />
+                                                <datalist id="create-campuses">
+                                                    {[
+                                                        'Balubal Campus',
+                                                        'Main Campus',
+                                                    ].map((c) => (
+                                                        <option
+                                                            key={c}
+                                                            value={c}
+                                                        />
+                                                    ))}
+                                                </datalist>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="building"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Building
+                                            </Label>
+                                            <div className="relative">
+                                                <Building2 className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                                                <Input
+                                                    id="building"
+                                                    value={data.building}
+                                                    onChange={(
+                                                        e: React.ChangeEvent<HTMLInputElement>,
+                                                    ) =>
+                                                        setData(
+                                                            'building',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="ICT Office"
+                                                    className={`${inputClass} pl-9`}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="room"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Room
+                                            </Label>
+                                            <Input
+                                                id="room"
+                                                value={data.room}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                ) =>
+                                                    setData(
+                                                        'room',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="Room 101"
+                                                className={inputClass}
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="specific_location"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Specific location
+                                            </Label>
+                                            <Input
+                                                id="specific_location"
+                                                value={data.specific_location}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                ) =>
+                                                    setData(
+                                                        'specific_location',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="Server rack, cabinet 2"
+                                                className={inputClass}
+                                            />
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Step 5: Condition & Status */}
+                                <section className="border-t border-slate-200 pt-6">
+                                    <div className="mb-4 flex items-start gap-3">
+                                        <div
+                                            className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${stepClasses[5]}`}
+                                        >
+                                            5
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-800">
+                                                Condition &amp; Status
+                                            </p>
+                                            <p className="mt-0.5 text-xs text-slate-400">
+                                                Set the current operational
+                                                state of the equipment.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="ml-10 grid gap-4 md:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="condition"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Condition
+                                            </Label>
+                                            <Select
+                                                value={data.condition}
+                                                onValueChange={(value) =>
+                                                    setData('condition', value)
+                                                }
+                                            >
+                                                <SelectTrigger
+                                                    id="condition"
+                                                    className={selectClass}
+                                                >
                                                     <SelectValue />
                                                 </SelectTrigger>
-                                                <SelectContent className="border-[#1a2035] bg-[#0f1723] text-white">
-                                                    <SelectItem value="working">Working</SelectItem>
-                                                    <SelectItem value="defective">Defective</SelectItem>
-                                                    <SelectItem value="under_repair">Under Repair</SelectItem>
+                                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                                    <SelectItem value="working">
+                                                        Working
+                                                    </SelectItem>
+                                                    <SelectItem value="defective">
+                                                        Defective
+                                                    </SelectItem>
+                                                    <SelectItem value="under_repair">
+                                                        Under Repair
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="status" className="text-xs font-medium text-white/70">Status</Label>
-                                            <Select value={data.status} onValueChange={(value) => setData('status', value)}>
-                                                <SelectTrigger id="status" className={selectClass}>
+                                            <Label
+                                                htmlFor="status"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Status
+                                            </Label>
+                                            <Select
+                                                value={data.status}
+                                                onValueChange={(value) =>
+                                                    setData('status', value)
+                                                }
+                                            >
+                                                <SelectTrigger
+                                                    id="status"
+                                                    className={selectClass}
+                                                >
                                                     <SelectValue />
                                                 </SelectTrigger>
-                                                <SelectContent className="border-[#1a2035] bg-[#0f1723] text-white">
-                                                    <SelectItem value="active">Active</SelectItem>
-                                                    <SelectItem value="retired">Retired</SelectItem>
-                                                    <SelectItem value="disposed">Disposed</SelectItem>
+                                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                                    <SelectItem value="active">
+                                                        Active
+                                                    </SelectItem>
+                                                    <SelectItem value="retired">
+                                                        Retired
+                                                    </SelectItem>
+                                                    <SelectItem value="disposed">
+                                                        Disposed
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                     </div>
                                 </section>
 
-                                {/* Step 5: Acquisition */}
-                                <section className="border-t border-white/[0.06] pt-6">
+                                {/* Step 6: Inspection */}
+                                <section className="border-t border-slate-200 pt-6">
                                     <div className="mb-4 flex items-start gap-3">
-                                        <div className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${stepClasses[5]}`}>
-                                            5
+                                        <div
+                                            className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${stepClasses[6]}`}
+                                        >
+                                            6
                                         </div>
                                         <div>
-                                            <p className="text-sm font-semibold text-white">Acquisition</p>
-                                            <p className="mt-0.5 text-xs text-white/40">
-                                                Record when the equipment was purchased.
+                                            <p className="text-sm font-semibold text-slate-800">
+                                                Inspection
+                                            </p>
+                                            <p className="mt-0.5 text-xs text-slate-400">
+                                                Verification and inspection
+                                                details.
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="ml-10 grid max-w-md gap-2">
-                                        <Label htmlFor="purchase_date" className="text-xs font-medium text-white/70">Purchase date</Label>
-                                        <div className="relative">
-                                            <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
-                                            <Input
-                                                id="purchase_date"
-                                                type="date"
-                                                value={data.purchase_date}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('purchase_date', e.target.value)}
-                                                className={`${inputClass} pl-10 scheme-dark`}
+                                    <div className="ml-10 grid gap-4 md:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="validation"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Validation
+                                            </Label>
+                                            <Select
+                                                value={data.validation}
+                                                onValueChange={(value) =>
+                                                    setData('validation', value)
+                                                }
+                                            >
+                                                <SelectTrigger
+                                                    id="validation"
+                                                    className={selectClass}
+                                                >
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                                    {validationOptions.map(
+                                                        (v) => (
+                                                            <SelectItem
+                                                                key={v}
+                                                                value={v}
+                                                            >
+                                                                {v}
+                                                            </SelectItem>
+                                                        ),
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="inspection_date"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Inspection date
+                                            </Label>
+                                            <div className="relative">
+                                                <CalendarDays className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                                                <Input
+                                                    id="inspection_date"
+                                                    type="date"
+                                                    value={data.inspection_date}
+                                                    onChange={(
+                                                        e: React.ChangeEvent<HTMLInputElement>,
+                                                    ) =>
+                                                        setData(
+                                                            'inspection_date',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className={`${inputClass} pl-10 scheme-light`}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-2 md:col-span-2">
+                                            <Label
+                                                htmlFor="inspection_remarks"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Inspection remarks
+                                            </Label>
+                                            <Textarea
+                                                id="inspection_remarks"
+                                                value={data.inspection_remarks}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLTextAreaElement>,
+                                                ) =>
+                                                    setData(
+                                                        'inspection_remarks',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="Findings during inspection, verified by..."
+                                                className={`${textareaClass} min-h-20`}
                                             />
                                         </div>
                                     </div>
@@ -394,9 +1045,10 @@ export default function InventoryCreate() {
                             </div>
 
                             {/* Footer */}
-                            <div className="flex flex-col-reverse gap-3 border-t border-white/[0.06] bg-[#0a0f1c]/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
-                                <p className="text-[11px] text-white/40">
-                                    Make sure the property number and item details are correct before saving.
+                            <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+                                <p className="text-[11px] text-slate-400">
+                                    Make sure the property number and item
+                                    details are correct before saving.
                                 </p>
 
                                 <div className="flex justify-end gap-3">
@@ -404,7 +1056,7 @@ export default function InventoryCreate() {
                                         type="button"
                                         variant="ghost"
                                         onClick={() => window.history.back()}
-                                        className="text-white/50 hover:bg-[#111827] hover:text-white"
+                                        className="border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
                                     >
                                         Cancel
                                     </Button>
@@ -412,7 +1064,7 @@ export default function InventoryCreate() {
                                     <Button
                                         type="submit"
                                         disabled={processing}
-                                        className="bg-ustp-gold text-ustp-navy shadow-lg shadow-ustp-gold/20 transition-all hover:bg-ustp-gold-dark hover:text-white"
+                                        className="bg-ustp-gold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
                                     >
                                         {processing && <Spinner />}
                                         Add Equipment
@@ -423,10 +1075,10 @@ export default function InventoryCreate() {
 
                         {/* Live preview sidebar */}
                         <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-                            <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                 <div className="mb-4 flex items-center gap-2">
                                     <span className="size-1.5 rounded-full bg-ustp-gold" />
-                                    <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/40">
+                                    <p className="text-[10px] font-semibold tracking-[0.15em] text-slate-400 uppercase">
                                         Live Preview
                                     </p>
                                 </div>
@@ -435,100 +1087,187 @@ export default function InventoryCreate() {
                                     <div className="space-y-4">
                                         {/* Icon + Name */}
                                         <div className="flex items-start gap-3">
-                                            <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl border ${catColor}`}>
+                                            <div
+                                                className={`flex size-12 shrink-0 items-center justify-center rounded-xl border ${catColor}`}
+                                            >
                                                 <CatIcon className="size-6" />
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="truncate font-medium text-white">
-                                                    {data.item_name || 'Item name'}
+                                                <p className="truncate font-medium text-slate-800">
+                                                    {data.item_name ||
+                                                        'Item name'}
                                                 </p>
-                                                {data.brand && (
-                                                    <p className="mt-0.5 text-xs text-white/40">
-                                                        {data.brand}{data.model ? ` ${data.model}` : ''}
+                                                {(data.brand || data.model) && (
+                                                    <p className="mt-0.5 text-xs text-slate-400">
+                                                        {data.brand}
+                                                        {data.brand &&
+                                                        data.model
+                                                            ? ' '
+                                                            : ''}
+                                                        {data.model}
                                                     </p>
                                                 )}
                                             </div>
                                         </div>
 
-                                        <div className="h-px bg-white/[0.06]" />
+                                        <div className="h-px bg-slate-200" />
 
                                         {/* Details */}
                                         <div className="space-y-3 text-sm">
                                             {data.property_no && (
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-white/40">Property No.</span>
-                                                    <span className="font-mono text-xs text-white/80">{data.property_no}</span>
+                                                    <span className="text-xs text-slate-400">
+                                                        Property No.
+                                                    </span>
+                                                    <span className="font-mono text-xs text-slate-600">
+                                                        {data.property_no}
+                                                    </span>
                                                 </div>
                                             )}
                                             {data.serial_no && (
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-white/40">Serial No.</span>
-                                                    <span className="font-mono text-xs text-white/80">{data.serial_no}</span>
+                                                    <span className="text-xs text-slate-400">
+                                                        Serial No.
+                                                    </span>
+                                                    <span className="font-mono text-xs text-slate-600">
+                                                        {data.serial_no}
+                                                    </span>
                                                 </div>
                                             )}
-                                            {data.location && (
+                                            {data.end_user && (
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-white/40">Location</span>
-                                                    <span className="flex items-center gap-1 text-xs text-white/80">
-                                                        <MapPin className="size-3 text-white/40" />
-                                                        {data.location}
+                                                    <span className="text-xs text-slate-400">
+                                                        End user
+                                                    </span>
+                                                    <span className="flex items-center gap-1 text-xs text-slate-600">
+                                                        <UserIcon className="size-3 text-slate-400" />
+                                                        {data.end_user}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {(data.campus ||
+                                                data.building ||
+                                                data.room) && (
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs text-slate-400">
+                                                        Location
+                                                    </span>
+                                                    <span className="flex items-center gap-1 text-xs text-slate-600">
+                                                        <MapPin className="size-3 text-slate-400" />
+                                                        {[
+                                                            data.campus,
+                                                            data.building,
+                                                            data.room,
+                                                        ]
+                                                            .filter(Boolean)
+                                                            .join(' · ')}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {data.unit_cost && (
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs text-slate-400">
+                                                        Unit cost
+                                                    </span>
+                                                    <span className="flex items-center gap-1 text-xs text-slate-600">
+                                                        <Banknote className="size-3 text-slate-400" />
+                                                        {formatCurrency(
+                                                            data.unit_cost,
+                                                        )}
                                                     </span>
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="h-px bg-white/[0.06]" />
+                                        <div className="h-px bg-slate-200" />
 
-                                        {/* Condition + Status */}
-                                        <div className="flex items-center gap-3">
-                                            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium capitalize ${cv.color}`}>
+                                        {/* Condition + Status + Validation */}
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span
+                                                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium capitalize ${cv.color}`}
+                                            >
                                                 <CondIcon className="size-3" />
-                                                {data.condition === 'under_repair' ? 'Under Repair' : data.condition.charAt(0).toUpperCase() + data.condition.slice(1)}
+                                                {data.condition ===
+                                                'under_repair'
+                                                    ? 'Under Repair'
+                                                    : data.condition}
                                             </span>
-                                            <span className="inline-flex items-center rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium capitalize text-emerald-300">
+                                            <span className="inline-flex items-center rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-600 capitalize">
                                                 {data.status}
+                                            </span>
+                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-ustp-gold/25 bg-ustp-gold/10 px-2.5 py-1 text-[11px] font-medium text-ustp-gold">
+                                                <BadgeCheck className="size-3" />
+                                                {data.validation}
                                             </span>
                                         </div>
 
                                         {data.purchase_date && (
                                             <>
-                                                <div className="h-px bg-white/[0.06]" />
-                                                <div className="flex items-center gap-2 text-xs text-white/40">
+                                                <div className="h-px bg-slate-200" />
+                                                <div className="flex items-center gap-2 text-xs text-slate-400">
                                                     <CalendarDays className="size-3.5" />
-                                                    Purchased {new Date(data.purchase_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    Acquired{' '}
+                                                    {new Date(
+                                                        data.purchase_date,
+                                                    ).toLocaleDateString(
+                                                        'en-US',
+                                                        {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            year: 'numeric',
+                                                        },
+                                                    )}
                                                 </div>
                                             </>
+                                        )}
+
+                                        {data.inspection_remarks && (
+                                            <div className="flex items-start gap-2 text-xs text-slate-400">
+                                                <StickyNote className="mt-0.5 size-3.5 shrink-0" />
+                                                {data.inspection_remarks}
+                                            </div>
                                         )}
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center py-8 text-center">
-                                        <div className="mb-3 flex size-12 items-center justify-center rounded-xl border border-[#1a2035] bg-[#070b18] text-white/40">
+                                        <div className="mb-3 flex size-12 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-400">
                                             <PackagePlus className="size-5" />
                                         </div>
-                                        <p className="text-xs text-white/40">
-                                            Start filling in the form to see a live preview of the equipment record.
+                                        <p className="text-xs text-slate-400">
+                                            Start filling in the form to see a
+                                            live preview of the equipment
+                                            record.
                                         </p>
                                     </div>
                                 )}
                             </div>
 
                             {/* Tips */}
-                            <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
-                                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/40">
+                            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                <p className="mb-3 text-[10px] font-semibold tracking-[0.15em] text-slate-400 uppercase">
                                     Tips
                                 </p>
-                                <ul className="space-y-2 text-xs text-white/50">
+                                <ul className="space-y-2 text-xs text-slate-500">
                                     <li className="flex items-start gap-2">
                                         <span className="mt-1 size-1 shrink-0 rounded-full bg-ustp-gold" />
-                                        Use the format <span className="font-mono text-white/80">USTP-ICT-XX-0001</span> for property numbers.
+                                        Use the physical property number exactly
+                                        as printed on the label — it is the
+                                        primary identifier.
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <span className="mt-1 size-1 shrink-0 rounded-full bg-ustp-gold" />
-                                        Prefix item names with the category (e.g., "Desktop - ...", "Laptop - ...").
+                                        Keep the item/inventory number separate
+                                        from the property number and room.
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <span className="mt-1 size-1 shrink-0 rounded-full bg-emerald-400" />
-                                        Serial numbers help track manufacturer warranty and service history.
+                                        Serial numbers help track manufacturer
+                                        warranty and service history.
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="mt-1 size-1 shrink-0 rounded-full bg-ustp-gold" />
+                                        A QR code is generated automatically on
+                                        the detail page for the property label.
                                     </li>
                                 </ul>
                             </div>

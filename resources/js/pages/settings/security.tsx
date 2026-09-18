@@ -52,12 +52,12 @@ export default function Security(props: Props) {
                     className="space-y-6"
                 >
                     {({ errors, processing }) => (
-                        <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-6">
+                        <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
                             <div className="space-y-5">
                                 <div className="grid gap-2">
                                     <Label
                                         htmlFor="current_password"
-                                        className="text-sm text-white/60"
+                                        className="text-slate-700"
                                     >
                                         Current password
                                     </Label>
@@ -66,7 +66,7 @@ export default function Security(props: Props) {
                                         id="current_password"
                                         ref={currentPasswordInput}
                                         name="current_password"
-                                        className="mt-1 block w-full border-[#1a2035] bg-[#070b18] text-white placeholder:text-white/30 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                        className="mt-1 block w-full"
                                         autoComplete="current-password"
                                         placeholder="Current password"
                                     />
@@ -77,7 +77,7 @@ export default function Security(props: Props) {
                                 <div className="grid gap-2">
                                     <Label
                                         htmlFor="password"
-                                        className="text-sm text-white/60"
+                                        className="text-slate-700"
                                     >
                                         New password
                                     </Label>
@@ -86,7 +86,7 @@ export default function Security(props: Props) {
                                         id="password"
                                         ref={passwordInput}
                                         name="password"
-                                        className="mt-1 block w-full border-[#1a2035] bg-[#070b18] text-white placeholder:text-white/30 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                        className="mt-1 block w-full"
                                         autoComplete="new-password"
                                         placeholder="New password"
                                         passwordrules={props.passwordRules}
@@ -98,7 +98,7 @@ export default function Security(props: Props) {
                                 <div className="grid gap-2">
                                     <Label
                                         htmlFor="password_confirmation"
-                                        className="text-sm text-white/60"
+                                        className="text-slate-700"
                                     >
                                         Confirm password
                                     </Label>
@@ -106,7 +106,7 @@ export default function Security(props: Props) {
                                     <PasswordInput
                                         id="password_confirmation"
                                         name="password_confirmation"
-                                        className="mt-1 block w-full border-[#1a2035] bg-[#070b18] text-white placeholder:text-white/30 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                        className="mt-1 block w-full"
                                         autoComplete="new-password"
                                         placeholder="Confirm password"
                                         passwordrules={props.passwordRules}
@@ -118,7 +118,7 @@ export default function Security(props: Props) {
                                 </div>
                             </div>
 
-                            <div className="mt-6 flex items-center gap-4 border-t border-[#1a2035] pt-5">
+                            <div className="mt-6 flex items-center gap-4 border-t border-slate-100 pt-5">
                                 <Button
                                     disabled={processing}
                                     data-test="update-password-button"

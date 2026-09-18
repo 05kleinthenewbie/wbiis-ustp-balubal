@@ -60,7 +60,7 @@ export default function TeamsIndex({ teams }: Props) {
                             <div
                                 key={team.id}
                                 data-test="team-row"
-                                className="flex items-center justify-between gap-4 rounded-xl border border-[#1a2035] bg-[#0f1723] p-5 transition-all hover:border-white/10 hover:bg-[#111827]"
+                                className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50/60"
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="flex size-10 items-center justify-center rounded-xl bg-ustp-blue-accent/15 text-ustp-light-blue">
@@ -68,16 +68,16 @@ export default function TeamsIndex({ teams }: Props) {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <span className="font-medium text-white">
+                                            <span className="font-medium text-slate-900">
                                                 {team.name}
                                             </span>
                                             {team.isPersonal ? (
-                                                <span className="rounded-full bg-ustp-gold/10 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-ustp-gold">
+                                                <span className="rounded-full bg-ustp-gold/10 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-ustp-gold-dark">
                                                     Personal
                                                 </span>
                                             ) : null}
                                         </div>
-                                        <span className="text-sm text-white/40">
+                                        <span className="text-sm text-slate-500">
                                             {team.roleLabel}
                                         </span>
                                     </div>
@@ -95,7 +95,7 @@ export default function TeamsIndex({ teams }: Props) {
                                                                 team,
                                                             )
                                                         }
-                                                        className="rounded-lg p-2 text-white/40 transition-colors hover:bg-red-400/10 hover:text-red-400"
+                                                        className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
                                                     >
                                                         <LogOut className="size-4" />
                                                     </button>
@@ -112,7 +112,7 @@ export default function TeamsIndex({ teams }: Props) {
                                                     <Link
                                                         href={edit(team.slug)}
                                                         data-test="team-view-button"
-                                                        className="rounded-lg p-2 text-white/40 transition-colors hover:bg-white/5 hover:text-white"
+                                                        className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900"
                                                     >
                                                         <Eye className="size-4" />
                                                     </Link>
@@ -127,7 +127,7 @@ export default function TeamsIndex({ teams }: Props) {
                                                     <Link
                                                         href={edit(team.slug)}
                                                         data-test="team-edit-button"
-                                                        className="rounded-lg p-2 text-white/40 transition-colors hover:bg-white/5 hover:text-white"
+                                                        className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900"
                                                     >
                                                         <Pencil className="size-4" />
                                                     </Link>
@@ -144,11 +144,11 @@ export default function TeamsIndex({ teams }: Props) {
                     })}
 
                     {teams.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-[#1a2035] bg-[#0f1723]/50 py-12 text-center">
-                            <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-xl bg-white/[0.03]">
-                                <Users className="size-5 text-white/20" />
+                        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 py-12 text-center">
+                            <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-xl bg-white">
+                                <Users className="size-5 text-slate-300" />
                             </div>
-                            <p className="text-sm text-white/30">
+                            <p className="text-sm text-slate-400">
                                 You don't belong to any teams yet.
                             </p>
                         </div>

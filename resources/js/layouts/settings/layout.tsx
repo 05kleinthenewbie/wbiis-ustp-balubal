@@ -1,36 +1,39 @@
 import { Link } from '@inertiajs/react';
-import type { PropsWithChildren } from 'react';
-import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Palette, Shield, User, Users } from 'lucide-react';
+import type { ComponentType, PropsWithChildren } from 'react';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import { index as teams } from '@/routes/teams';
-import type { NavItem } from '@/types';
 
-const sidebarNavItems: NavItem[] = [
+type SettingsNavItem = {
+    title: string;
+    href: string;
+    icon: ComponentType<{ className?: string }>;
+};
+
+const settingsNavItems: SettingsNavItem[] = [
     {
         title: 'Profile',
         href: edit(),
-        icon: null,
+        icon: User,
     },
     {
         title: 'Security',
         href: editSecurity(),
-        icon: null,
+        icon: Shield,
     },
     {
         title: 'Teams',
         href: teams(),
-        icon: null,
+        icon: Users,
     },
     {
         title: 'Appearance',
         href: editAppearance(),
-        icon: null,
+        icon: Palette,
     },
 ];
 
@@ -38,58 +41,48 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
-        <div className="min-h-full flex-1 bg-[#070b18] p-4 text-gray-100 md:p-6 lg:p-8">
-            <div className="relative mx-auto max-w-5xl">
-                {/* Ambient accents */}
-                <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-40 right-1/4 size-105 rounded-full bg-ustp-navy/[0.04] blur-3xl" />
+        <div className="min-h-full flex-1 bg-slate-50 p-4 text-slate-800 md:p-6 lg:p-8">
+            <div className="mx-auto max-w-6xl space-y-8">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
+                        Settings
+                    </h1>
+                    <p className="text-sm text-slate-500">
+                        Manage your profile and account settings
+                    </p>
                 </div>
 
-                <div className="relative">
-                    <Heading
-                        title="Settings"
-                        description="Manage your profile and account settings"
-                    />
+                <nav
+                    className="flex items-center gap-2 overflow-x-auto border-b border-slate-200 pb-4"
+                    aria-label="Settings"
+                >
+                    {settingsNavItems.map((item, index) => {
+                        const active = isCurrentOrParentUrl(item.href);
+                        const Icon = item.icon;
 
-                    <div className="flex flex-col lg:flex-row lg:space-x-12">
-                        <aside className="w-full max-w-xl lg:w-48">
-                            <nav
-                                className="flex flex-col space-y-1 space-x-0"
-                                aria-label="Settings"
+                        return (
+                            <Link
+                                key={`${toUrl(item.href)}-${index}`}
+                                href={item.href}
+                                className={cn(
+                                    'flex items-center gap-2 whitespace-nowrap rounded-full px-5 py-2 text-sm transition-colors',
+                                    {
+                                        'bg-ustp-navy font-semibold text-white shadow-sm': active,
+                                        'border border-slate-200 bg-white font-medium text-slate-600 shadow-xs hover:bg-slate-100':
+                                            !active,
+                                    },
+                                )}
                             >
-                                {sidebarNavItems.map((item, index) => (
-                                    <Button
-                                        key={`${toUrl(item.href)}-${index}`}
-                                        size="sm"
-                                        variant="ghost"
-                                        asChild
-                                        className={cn(
-                                            'w-full justify-start text-gray-400 hover:bg-[#111827] hover:text-gray-200',
-                                            {
-                                                'bg-[#111827] text-gray-100': isCurrentOrParentUrl(item.href),
-                                            },
-                                        )}
-                                    >
-                                        <Link href={item.href}>
-                                            {item.icon && (
-                                                <item.icon className="h-4 w-4" />
-                                            )}
-                                            {item.title}
-                                        </Link>
-                                    </Button>
-                                ))}
-                            </nav>
-                        </aside>
+                                {active && (
+                                    <Icon className="size-4 text-ustp-gold" />
+                                )}
+                                <span>{item.title}</span>
+                            </Link>
+                        );
+                    })}
+                </nav>
 
-                        <Separator className="my-6 lg:hidden" />
-
-                        <div className="flex-1 md:max-w-2xl">
-                            <section className="max-w-xl space-y-12">
-                                {children}
-                            </section>
-                        </div>
-                    </div>
-                </div>
+                <section className="space-y-8">{children}</section>
             </div>
         </div>
     );

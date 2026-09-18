@@ -177,7 +177,25 @@ class InventoryItemSeeder extends Seeder
             ],
         ];
 
-        foreach ($items as $item) {
+        $endUsers = ['Prof. Maria Santos', 'Engr. John Dela Cruz', 'Ms. Ana Reyes', 'Mr. Carlo Bautista', 'Dr. Letty Ramos'];
+        $departments = ['College of Engineering', 'College of Education', 'Administration', 'Library', 'Information Technology Services'];
+
+        foreach ($items as $index => $item) {
+            $category = ucfirst(strtolower((string) explode(' - ', $item['item_name'])[0]));
+            $locationParts = explode(' - ', $item['location'] ?? '');
+
+            $item['category'] = $category;
+            $item['campus'] = 'Balubal Campus';
+            $item['building'] = $locationParts[0] ?? null;
+            $item['room'] = count($locationParts) > 1 ? $locationParts[1] : null;
+            $item['end_user'] = $endUsers[$index % count($endUsers)];
+            $item['department'] = $departments[$index % count($departments)];
+            $item['unit_cost'] = 15000 + ($index * 4375.5);
+            $item['purchase_order_no'] = 'USTP - Main/F/C/New/PO '.str_pad((string) (1000 + $index), 4, '0', STR_PAD_LEFT);
+            $item['validation'] = 'Validated';
+            $item['inspection_date'] = $item['purchase_date'];
+            $item['inspection_remarks'] = 'Inspected and verified by the Property Custodian.';
+
             InventoryItem::updateOrCreate(
                 ['property_no' => $item['property_no']],
                 $item,

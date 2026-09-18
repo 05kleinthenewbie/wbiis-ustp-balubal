@@ -11,14 +11,19 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import { switchMethod } from '@/routes/teams';
 import type { Team } from '@/types';
 
 type TeamSwitcherProps = {
     inHeader?: boolean;
+    triggerClassName?: string;
 };
 
-export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
+export function TeamSwitcher({
+    inHeader = false,
+    triggerClassName = '',
+}: TeamSwitcherProps) {
     const page = usePage();
     const isMobile = useIsMobile();
     const currentTeam = page.props.currentTeam;
@@ -57,11 +62,12 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
                 <Button
                     variant="ghost"
                     data-test="team-switcher-trigger"
-                    className={
+                    className={cn(
                         inHeader
                             ? 'h-8 gap-1 px-2'
-                            : 'w-full justify-start px-2 has-[>svg]:px-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-                    }
+                            : 'w-full justify-start px-2 has-[>svg]:px-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground',
+                        triggerClassName,
+                    )}
                 >
                     <Users
                         className={

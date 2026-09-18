@@ -53,6 +53,7 @@ Route::name('api.v1.')->prefix('v1')->group(function () {
         Route::get('inventory/{id}', [InventoryItemController::class, 'show']);
         Route::put('inventory/{id}', [InventoryItemController::class, 'update']);
         Route::delete('inventory/{id}', [InventoryItemController::class, 'destroy']);
+        Route::get('inventory/{id}/qr', [InventoryItemController::class, 'qr']);
 
         Route::get('users', [UserController::class, 'index']);
         Route::put('users/{id}', [UserController::class, 'update']);

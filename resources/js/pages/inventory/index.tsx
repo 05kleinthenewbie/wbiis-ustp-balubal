@@ -16,6 +16,7 @@ import {
     Wifi,
     Battery,
     ArrowUpRight,
+    User as UserIcon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -31,42 +32,77 @@ import {
 type InventoryItemRow = {
     id: number;
     property_no: string;
+    item_inventory_no: string | null;
     item_name: string;
+    category: string | null;
     brand: string | null;
     model: string | null;
     serial_no: string | null;
-    location: string | null;
+    campus: string | null;
+    building: string | null;
+    room: string | null;
+    end_user: string | null;
     condition: string;
     status: string;
 };
 
-type Props = {
-    items: InventoryItemRow[];
-    filters: { search?: string; condition?: string };
+type Filters = {
+    search?: string;
+    category?: string;
+    condition?: string;
+    status?: string;
+    campus?: string;
+    end_user?: string;
 };
 
-const conditionConfig: Record<string, { icon: React.ElementType; badge: string; dot: string }> = {
+type Options = {
+    categories: string[];
+    campuses: string[];
+    endUsers: string[];
+};
+
+type Stats = {
+    total: number;
+    working: number;
+    defective: number;
+    under_repair: number;
+    active: number;
+    retired: number;
+    disposed: number;
+};
+
+type Props = {
+    items: InventoryItemRow[];
+    filters: Filters;
+    stats: Stats;
+    options: Options;
+};
+
+const conditionConfig: Record<
+    string,
+    { icon: React.ElementType; badge: string; dot: string }
+> = {
     working: {
         icon: CheckCircle2,
-        badge: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
+        badge: 'border-emerald-200 bg-emerald-50 text-emerald-700',
         dot: 'bg-emerald-400',
     },
     defective: {
         icon: AlertTriangle,
-        badge: 'border-red-400/30 bg-red-400/10 text-red-300',
+        badge: 'border-red-200 bg-red-50 text-red-600',
         dot: 'bg-red-400',
     },
     under_repair: {
         icon: Wrench,
-        badge: 'border-amber-400/30 bg-amber-400/10 text-amber-300',
+        badge: 'border-amber-200 bg-amber-50 text-amber-700',
         dot: 'bg-amber-400',
     },
 };
 
 const statusConfig: Record<string, string> = {
-    active: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
-    retired: 'border-slate-400/30 bg-slate-400/10 text-slate-300',
-    disposed: 'border-red-400/30 bg-red-400/10 text-red-300',
+    active: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    retired: 'border-slate-200 bg-slate-50 text-slate-600',
+    disposed: 'border-red-200 bg-red-50 text-red-600',
 };
 
 const conditionLabels: Record<string, string> = {
@@ -78,35 +114,43 @@ const conditionLabels: Record<string, string> = {
 function getCategoryFromName(name: string): string {
     const lower = name.toLowerCase();
 
-    if (lower.startsWith('desktop')) {
+    if (lower.includes('desktop')) {
         return 'Desktop';
     }
 
-    if (lower.startsWith('laptop')) {
+    if (lower.includes('laptop')) {
         return 'Laptop';
     }
 
-    if (lower.startsWith('monitor')) {
+    if (lower.includes('monitor')) {
         return 'Monitor';
     }
 
-    if (lower.startsWith('printer')) {
+    if (lower.includes('printer')) {
         return 'Printer';
     }
 
-    if (lower.startsWith('projector')) {
+    if (lower.includes('projector')) {
         return 'Projector';
     }
 
-    if (lower.startsWith('network')) {
+    if (lower.includes('network')) {
         return 'Network';
     }
 
-    if (lower.startsWith('ups')) {
+    if (lower.includes('ups')) {
         return 'UPS';
     }
 
     return 'Other';
+}
+
+function resolveCategory(item: InventoryItemRow): string {
+    if (item.category) {
+        return item.category;
+    }
+
+    return getCategoryFromName(item.item_name);
 }
 
 const categoryIcons: Record<string, React.ElementType> = {
@@ -128,7 +172,7 @@ const categoryColors: Record<string, string> = {
     Projector: 'bg-orange-400/10 text-orange-400',
     Network: 'bg-cyan-400/10 text-cyan-400',
     UPS: 'bg-amber-400/10 text-amber-400',
-    Other: 'bg-white/5 text-white/40',
+    Other: 'bg-slate-50 text-slate-400',
 };
 
 function ConditionRingChart({
@@ -150,7 +194,11 @@ function ConditionRingChart({
     const segments = [
         { key: 'working', count: working, color: 'rgba(52,211,153,0.9)' },
         { key: 'defective', count: defective, color: 'rgba(248,113,113,0.9)' },
-        { key: 'under_repair', count: underRepair, color: 'rgba(251,191,36,0.9)' },
+        {
+            key: 'under_repair',
+            count: underRepair,
+            color: 'rgba(251,191,36,0.9)',
+        },
     ].filter((s) => s.count > 0);
 
     let accumulated = 0;
@@ -172,7 +220,7 @@ function ConditionRingChart({
                         cy={size / 2}
                         r={radius}
                         fill="none"
-                        stroke="rgba(255,255,255,0.06)"
+                        stroke="rgba(226,232,240,0.9)"
                         strokeWidth={strokeWidth}
                     />
                     {arcs.map((arc) => (
@@ -192,21 +240,41 @@ function ConditionRingChart({
                     ))}
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-lg font-bold text-white">{total}</span>
-                    <span className="text-[8px] uppercase tracking-wider text-white/40">total</span>
+                    <span className="text-lg font-bold text-slate-800">
+                        {total}
+                    </span>
+                    <span className="text-[8px] tracking-wider text-slate-400 uppercase">
+                        total
+                    </span>
                 </div>
             </div>
 
             <div className="space-y-2">
                 {[
-                    { label: 'Working', count: working, color: 'bg-emerald-400' },
-                    { label: 'Defective', count: defective, color: 'bg-red-400' },
-                    { label: 'Under Repair', count: underRepair, color: 'bg-amber-400' },
+                    {
+                        label: 'Working',
+                        count: working,
+                        color: 'bg-emerald-400',
+                    },
+                    {
+                        label: 'Defective',
+                        count: defective,
+                        color: 'bg-red-400',
+                    },
+                    {
+                        label: 'Under Repair',
+                        count: underRepair,
+                        color: 'bg-amber-400',
+                    },
                 ].map((item) => (
                     <div key={item.label} className="flex items-center gap-2">
                         <span className={`size-2 rounded-full ${item.color}`} />
-                        <span className="text-xs text-white/60">{item.label}</span>
-                        <span className="text-xs font-semibold text-white/80">{item.count}</span>
+                        <span className="text-xs text-slate-500">
+                            {item.label}
+                        </span>
+                        <span className="text-xs font-semibold text-slate-600">
+                            {item.count}
+                        </span>
                     </div>
                 ))}
             </div>
@@ -217,7 +285,7 @@ function ConditionRingChart({
 function CategoryBreakdown({ items }: { items: InventoryItemRow[] }) {
     const counts: Record<string, number> = {};
     items.forEach((item) => {
-        const cat = getCategoryFromName(item.item_name);
+        const cat = resolveCategory(item);
         counts[cat] = (counts[cat] || 0) + 1;
     });
 
@@ -234,12 +302,16 @@ function CategoryBreakdown({ items }: { items: InventoryItemRow[] }) {
                     <div key={cat}>
                         <div className="mb-1 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Icon className="size-3.5 text-white/40" />
-                                <span className="text-xs text-white/60">{cat}</span>
+                                <Icon className="size-3.5 text-slate-400" />
+                                <span className="text-xs text-slate-500">
+                                    {cat}
+                                </span>
                             </div>
-                            <span className="text-xs font-semibold text-white/80">{count}</span>
+                            <span className="text-xs font-semibold text-slate-600">
+                                {count}
+                            </span>
                         </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+                        <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                             <div
                                 className="h-full rounded-full bg-ustp-gold/60 transition-all duration-500"
                                 style={{ width: `${pct}%` }}
@@ -249,22 +321,47 @@ function CategoryBreakdown({ items }: { items: InventoryItemRow[] }) {
                 );
             })}
             {sorted.length === 0 && (
-                <p className="py-4 text-center text-xs text-white/30">No items yet</p>
+                <p className="py-4 text-center text-xs text-slate-400">
+                    No items yet
+                </p>
             )}
         </div>
     );
 }
 
-export default function InventoryIndex({ items, filters }: Props) {
+export default function InventoryIndex({
+    items,
+    filters,
+    stats,
+    options,
+}: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
+    const [category, setCategory] = useState(filters.category ?? 'all');
     const [condition, setCondition] = useState(filters.condition ?? 'all');
+    const [status, setStatus] = useState(filters.status ?? 'all');
+    const [campus, setCampus] = useState(filters.campus ?? 'all');
+    const [endUser, setEndUser] = useState(filters.end_user ?? '');
 
-    function applyFilters(newSearch: string, newCondition: string) {
+    function applyFilters(overrides: Partial<Filters> = {}) {
+        const next = {
+            search: overrides.search ?? search,
+            category: overrides.category ?? category,
+            condition: overrides.condition ?? condition,
+            status: overrides.status ?? status,
+            campus: overrides.campus ?? campus,
+            end_user: overrides.end_user ?? endUser,
+        };
+
         router.get(
             '/inventory',
             {
-                search: newSearch || undefined,
-                condition: newCondition !== 'all' ? newCondition : undefined,
+                search: next.search || undefined,
+                category: next.category !== 'all' ? next.category : undefined,
+                condition:
+                    next.condition !== 'all' ? next.condition : undefined,
+                status: next.status !== 'all' ? next.status : undefined,
+                campus: next.campus !== 'all' ? next.campus : undefined,
+                end_user: next.end_user || undefined,
             },
             { preserveState: true, replace: true },
         );
@@ -277,53 +374,43 @@ export default function InventoryIndex({ items, filters }: Props) {
     }
 
     const totalCount = items.length;
-    const workingCount = items.filter((i) => i.condition === 'working').length;
-    const defectiveCount = items.filter((i) => i.condition === 'defective').length;
-    const repairCount = items.filter((i) => i.condition === 'under_repair').length;
-    const activeCount = items.filter((i) => i.status === 'active').length;
+
+    const hasActiveFilters =
+        search ||
+        category !== 'all' ||
+        condition !== 'all' ||
+        status !== 'all' ||
+        campus !== 'all' ||
+        endUser;
 
     return (
         <>
             <Head title="Inventory" />
 
-            <div className="relative min-h-full flex-1 overflow-hidden bg-[#070b18] px-4 py-6 text-white sm:px-6 lg:px-8">
-                {/* Ambient glow */}
-                <div className="pointer-events-none absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-ustp-navy/[0.04] blur-3xl" />
-                <div className="pointer-events-none absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-ustp-gold/[0.015] blur-3xl" />
-
-                {/* Subtle dot pattern */}
-                <div
-                    className="pointer-events-none absolute inset-0 opacity-[0.02]"
-                    style={{
-                        backgroundImage:
-                            'radial-gradient(circle, #fcb315 1px, transparent 1px)',
-                        backgroundSize: '28px 28px',
-                    }}
-                />
-
+            <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-7xl space-y-6">
                     {/* Header */}
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <div className="mb-3 flex items-center gap-2">
                                 <span className="size-2 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
-                                <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/50">
+                                <span className="text-[11px] font-medium tracking-[0.2em] text-slate-500 uppercase">
                                     ICT Asset Management
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl font-semibold tracking-tight text-white">
+                            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
                                 Inventory
                             </h1>
 
-                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/50">
-                                Manage ICT equipment and property records.
+                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">
+                                ICT property records for USTP Balubal Campus.
                             </p>
                         </div>
 
                         <Button
                             asChild
-                            className="h-10 bg-ustp-gold px-4 text-sm font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/20 transition-all hover:bg-ustp-gold-dark hover:text-white"
+                            className="h-10 bg-ustp-gold px-4 text-sm font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
                         >
                             <Link href="/inventory/create">
                                 <Plus className="size-4" />
@@ -334,63 +421,80 @@ export default function InventoryIndex({ items, filters }: Props) {
 
                     {/* Stat cards */}
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4 shadow-xl shadow-black/10">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                             <div className="mb-3 flex items-center justify-between">
-                                <p className="text-xs text-white/40">Total Items</p>
+                                <p className="text-xs text-slate-400">
+                                    Total Items
+                                </p>
                                 <div className="flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                     <Box className="size-4" />
                                 </div>
                             </div>
-                            <p className="text-2xl font-semibold text-white">{totalCount}</p>
-                            <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
-                                <div className="h-full rounded-full bg-ustp-gold" style={{ width: '100%' }} />
-                            </div>
+                            <p className="text-2xl font-semibold text-slate-800">
+                                {stats.total}
+                            </p>
                         </div>
 
-                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4 shadow-xl shadow-black/10">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                             <div className="mb-3 flex items-center justify-between">
-                                <p className="text-xs text-white/40">Active</p>
-                                <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-400/10 text-emerald-300">
+                                <p className="text-xs text-slate-400">Active</p>
+                                <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-400/10 text-emerald-400">
                                     <CheckCircle2 className="size-4" />
                                 </div>
                             </div>
-                            <p className="text-2xl font-semibold text-white">{activeCount}</p>
-                            <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+                            <p className="text-2xl font-semibold text-slate-800">
+                                {stats.active}
+                            </p>
+                            <div className="mt-2 h-1 overflow-hidden rounded-full bg-slate-100">
                                 <div
                                     className="h-full rounded-full bg-emerald-400"
-                                    style={{ width: `${totalCount > 0 ? (activeCount / totalCount) * 100 : 0}%` }}
+                                    style={{
+                                        width: `${stats.total > 0 ? (stats.active / stats.total) * 100 : 0}%`,
+                                    }}
                                 />
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4 shadow-xl shadow-black/10">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                             <div className="mb-3 flex items-center justify-between">
-                                <p className="text-xs text-white/40">Defective</p>
-                                <div className="flex size-8 items-center justify-center rounded-lg bg-red-400/10 text-red-300">
+                                <p className="text-xs text-slate-400">
+                                    Defective
+                                </p>
+                                <div className="flex size-8 items-center justify-center rounded-lg bg-red-400/10 text-red-400">
                                     <AlertTriangle className="size-4" />
                                 </div>
                             </div>
-                            <p className="text-2xl font-semibold text-white">{defectiveCount}</p>
-                            <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+                            <p className="text-2xl font-semibold text-slate-800">
+                                {stats.defective}
+                            </p>
+                            <div className="mt-2 h-1 overflow-hidden rounded-full bg-slate-100">
                                 <div
                                     className="h-full rounded-full bg-red-400"
-                                    style={{ width: `${totalCount > 0 ? (defectiveCount / totalCount) * 100 : 0}%` }}
+                                    style={{
+                                        width: `${stats.total > 0 ? (stats.defective / stats.total) * 100 : 0}%`,
+                                    }}
                                 />
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-4 shadow-xl shadow-black/10">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                             <div className="mb-3 flex items-center justify-between">
-                                <p className="text-xs text-white/40">Under Repair</p>
-                                <div className="flex size-8 items-center justify-center rounded-lg bg-amber-400/10 text-amber-300">
+                                <p className="text-xs text-slate-400">
+                                    Under Repair
+                                </p>
+                                <div className="flex size-8 items-center justify-center rounded-lg bg-amber-400/10 text-amber-600">
                                     <Wrench className="size-4" />
                                 </div>
                             </div>
-                            <p className="text-2xl font-semibold text-white">{repairCount}</p>
-                            <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+                            <p className="text-2xl font-semibold text-slate-800">
+                                {stats.under_repair}
+                            </p>
+                            <div className="mt-2 h-1 overflow-hidden rounded-full bg-slate-100">
                                 <div
                                     className="h-full rounded-full bg-amber-400"
-                                    style={{ width: `${totalCount > 0 ? (repairCount / totalCount) * 100 : 0}%` }}
+                                    style={{
+                                        width: `${stats.total > 0 ? (stats.under_repair / stats.total) * 100 : 0}%`,
+                                    }}
                                 />
                             </div>
                         </div>
@@ -398,33 +502,39 @@ export default function InventoryIndex({ items, filters }: Props) {
 
                     {/* Health overview + Category breakdown */}
                     <div className="grid gap-4 lg:grid-cols-3">
-                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                             <div className="mb-4 flex items-center gap-3">
                                 <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                     <CheckCircle2 className="size-4 text-ustp-gold" />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-semibold text-white">Condition Health</h3>
-                                    <p className="text-[11px] text-white/40">Equipment status overview</p>
+                                    <h3 className="text-sm font-semibold text-slate-800">
+                                        Condition Health
+                                    </h3>
+                                    <p className="text-[11px] text-slate-400">
+                                        Equipment status overview
+                                    </p>
                                 </div>
                             </div>
                             <ConditionRingChart
-                                working={workingCount}
-                                defective={defectiveCount}
-                                underRepair={repairCount}
-                                total={totalCount}
+                                working={stats.working}
+                                defective={stats.defective}
+                                underRepair={stats.under_repair}
+                                total={stats.total}
                             />
                         </div>
 
-                        <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10 lg:col-span-2">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
                             <div className="mb-4 flex items-center gap-3">
                                 <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                     <Box className="size-4 text-ustp-gold" />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-semibold text-white">By Category</h3>
-                                    <p className="text-[11px] text-white/40">
-                                        Distribution across {Object.keys(categoryIcons).length} equipment types
+                                    <h3 className="text-sm font-semibold text-slate-800">
+                                        By Category
+                                    </h3>
+                                    <p className="text-[11px] text-slate-400">
+                                        Distribution across equipment types
                                     </p>
                                 </div>
                             </div>
@@ -432,66 +542,167 @@ export default function InventoryIndex({ items, filters }: Props) {
                         </div>
                     </div>
 
-                    {/* Search and filters */}
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                        <div className="relative flex-1 sm:max-w-lg">
-                            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+                    {/* Filters */}
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+                            <div className="relative">
+                                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                                <Input
+                                    placeholder="Search PN, serial, name..."
+                                    className="h-10 border-slate-300 bg-white pl-9 text-sm text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
+                                    value={search}
+                                    onChange={(e) => {
+                                        setSearch(e.target.value);
+                                        applyFilters({
+                                            search: e.target.value,
+                                        });
+                                    }}
+                                />
+                            </div>
 
-                            <Input
-                                placeholder="Search by name, property number, or brand..."
-                                className="h-10 border-white/[0.08] bg-white/[0.03] pl-9 text-sm text-white placeholder:text-white/40 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
-                                value={search}
-                                onChange={(e) => {
-                                    setSearch(e.target.value);
-                                    applyFilters(e.target.value, condition);
+                            <Select
+                                value={category}
+                                onValueChange={(value) => {
+                                    setCategory(value);
+                                    applyFilters({ category: value });
                                 }}
-                            />
+                            >
+                                <SelectTrigger className="h-10 w-full border-slate-300 bg-white text-sm text-slate-600 focus:ring-1 focus:ring-ustp-gold/30">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                    <SelectItem value="all">
+                                        All categories
+                                    </SelectItem>
+                                    {options.categories.map((c) => (
+                                        <SelectItem key={c} value={c}>
+                                            {c}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
+                            <Select
+                                value={condition}
+                                onValueChange={(value) => {
+                                    setCondition(value);
+                                    applyFilters({ condition: value });
+                                }}
+                            >
+                                <SelectTrigger className="h-10 w-full border-slate-300 bg-white text-sm text-slate-600 focus:ring-1 focus:ring-ustp-gold/30">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                    <SelectItem value="all">
+                                        All conditions
+                                    </SelectItem>
+                                    <SelectItem value="working">
+                                        Working
+                                    </SelectItem>
+                                    <SelectItem value="defective">
+                                        Defective
+                                    </SelectItem>
+                                    <SelectItem value="under_repair">
+                                        Under Repair
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Select
+                                value={status}
+                                onValueChange={(value) => {
+                                    setStatus(value);
+                                    applyFilters({ status: value });
+                                }}
+                            >
+                                <SelectTrigger className="h-10 w-full border-slate-300 bg-white text-sm text-slate-600 focus:ring-1 focus:ring-ustp-gold/30">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                    <SelectItem value="all">
+                                        All statuses
+                                    </SelectItem>
+                                    <SelectItem value="active">
+                                        Active
+                                    </SelectItem>
+                                    <SelectItem value="retired">
+                                        Retired
+                                    </SelectItem>
+                                    <SelectItem value="disposed">
+                                        Disposed
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Select
+                                value={campus}
+                                onValueChange={(value) => {
+                                    setCampus(value);
+                                    applyFilters({ campus: value });
+                                }}
+                            >
+                                <SelectTrigger className="h-10 w-full border-slate-300 bg-white text-sm text-slate-600 focus:ring-1 focus:ring-ustp-gold/30">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                    <SelectItem value="all">
+                                        All locations
+                                    </SelectItem>
+                                    {options.campuses.map((c) => (
+                                        <SelectItem key={c} value={c}>
+                                            {c}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
+                            <div className="relative">
+                                <UserIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                                <Input
+                                    list="inventory-end-users"
+                                    placeholder="End user..."
+                                    className="h-10 border-slate-300 bg-white pl-9 text-sm text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
+                                    value={endUser}
+                                    onChange={(e) => {
+                                        setEndUser(e.target.value);
+                                        applyFilters({
+                                            end_user: e.target.value,
+                                        });
+                                    }}
+                                />
+                                <datalist id="inventory-end-users">
+                                    {options.endUsers.map((u) => (
+                                        <option key={u} value={u} />
+                                    ))}
+                                </datalist>
+                            </div>
                         </div>
-
-                        <Select
-                            value={condition}
-                            onValueChange={(value) => {
-                                setCondition(value);
-                                applyFilters(search, value);
-                            }}
-                        >
-                            <SelectTrigger className="h-10 w-full border-white/[0.08] bg-white/[0.03] text-sm text-white/80 focus:ring-1 focus:ring-ustp-gold/30 sm:w-48">
-                                <SelectValue />
-                            </SelectTrigger>
-
-                            <SelectContent className="border-[#1a2035] bg-[#0f1723] text-white">
-                                <SelectItem value="all">All conditions</SelectItem>
-                                <SelectItem value="working">Working</SelectItem>
-                                <SelectItem value="defective">Defective</SelectItem>
-                                <SelectItem value="under_repair">Under Repair</SelectItem>
-                            </SelectContent>
-                        </Select>
                     </div>
 
                     {/* Empty state */}
                     {items.length === 0 ? (
-                        <div className="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.02] px-6 text-center">
+                        <div className="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white px-6 text-center">
                             <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-ustp-gold/10 text-ustp-gold">
                                 <Box className="size-6" />
                             </div>
 
-                            <h2 className="text-sm font-medium text-white">
-                                {search || condition !== 'all'
+                            <h2 className="text-sm font-medium text-slate-800">
+                                {hasActiveFilters
                                     ? 'No inventory items found'
                                     : 'No inventory items yet'}
                             </h2>
 
-                            <p className="mt-1.5 max-w-sm text-xs leading-5 text-white/40">
-                                {search || condition !== 'all'
-                                    ? 'Try changing your search or condition filter.'
+                            <p className="mt-1.5 max-w-sm text-xs leading-5 text-slate-400">
+                                {hasActiveFilters
+                                    ? 'Try changing your filters or search terms.'
                                     : 'Add your first equipment to start tracking inventory.'}
                             </p>
 
-                            {!search && condition === 'all' && (
+                            {!hasActiveFilters && (
                                 <Button
                                     asChild
                                     size="sm"
-                                    className="mt-5 bg-ustp-gold text-ustp-navy shadow-lg shadow-ustp-gold/20 transition-all hover:bg-ustp-gold-dark hover:text-white"
+                                    className="mt-5 bg-ustp-gold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
                                 >
                                     <Link href="/inventory/create">
                                         <Plus className="size-4" />
@@ -502,27 +713,33 @@ export default function InventoryIndex({ items, filters }: Props) {
                         </div>
                     ) : (
                         /* Table */
-                        <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-xl shadow-black/10">
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                             <div className="overflow-x-auto">
-                                <table className="w-full min-w-[900px] text-sm">
+                                <table className="w-full min-w-[1150px] text-sm">
                                     <thead>
-                                        <tr className="border-b border-white/[0.06] bg-[#0a0f1c]/80">
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                                        <tr className="border-b border-slate-200 bg-slate-50">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Equipment
                                             </th>
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Property No.
                                             </th>
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                Category
+                                            </th>
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Serial No.
                                             </th>
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Location
                                             </th>
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                End User
+                                            </th>
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Condition
                                             </th>
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Status
                                             </th>
                                             <th className="w-28 px-5 py-3.5" />
@@ -531,41 +748,64 @@ export default function InventoryIndex({ items, filters }: Props) {
 
                                     <tbody>
                                         {items.map((item) => {
-                                            const cc = conditionConfig[item.condition] ?? conditionConfig.working;
-                                            const category = getCategoryFromName(item.item_name);
-                                            const CatIcon = categoryIcons[category] ?? Box;
-                                            const catColor = categoryColors[category] ?? 'bg-white/5 text-white/40';
+                                            const cc =
+                                                conditionConfig[
+                                                    item.condition
+                                                ] ?? conditionConfig.working;
+                                            const category =
+                                                resolveCategory(item);
+                                            const CatIcon =
+                                                categoryIcons[category] ?? Box;
+                                            const catColor =
+                                                categoryColors[category] ??
+                                                'bg-slate-50 text-slate-400';
+                                            const locationParts = [
+                                                item.campus,
+                                                item.building,
+                                                item.room,
+                                            ]
+                                                .filter(Boolean)
+                                                .join(' · ');
 
                                             return (
                                                 <tr
                                                     key={item.id}
-                                                    className="group border-b border-[#151c2c] transition-colors last:border-0 hover:bg-[#111827]/70"
+                                                    className="group border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
                                                 >
                                                     {/* Equipment */}
                                                     <td className="px-5 py-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${catColor}`}>
+                                                            <div
+                                                                className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${catColor}`}
+                                                            >
                                                                 <CatIcon className="size-4" />
                                                             </div>
 
                                                             <div className="min-w-0">
                                                                 <Link
                                                                     href={`/inventory/${item.id}`}
-                                                                    className="truncate font-medium text-white/90 transition-colors hover:text-ustp-gold"
+                                                                    className="truncate font-medium text-slate-800 transition-colors hover:text-ustp-gold"
                                                                 >
-                                                                    {item.item_name}
+                                                                    {
+                                                                        item.item_name
+                                                                    }
                                                                 </Link>
 
-                                                                <div className="mt-0.5 flex items-center gap-2 text-xs text-white/40">
+                                                                <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-400">
                                                                     {item.brand && (
                                                                         <span className="flex items-center gap-1">
                                                                             <Tag className="size-3" />
-                                                                            {item.brand}
+                                                                            {
+                                                                                item.brand
+                                                                            }
                                                                         </span>
                                                                     )}
                                                                     {item.model && (
-                                                                        <span className="text-white/30">
-                                                                            · {item.model}
+                                                                        <span className="text-slate-300">
+                                                                            ·{' '}
+                                                                            {
+                                                                                item.model
+                                                                            }
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -575,45 +815,83 @@ export default function InventoryIndex({ items, filters }: Props) {
 
                                                     {/* Property No */}
                                                     <td className="px-5 py-4">
-                                                        <span className="font-mono text-[11px] text-white/40">
+                                                        <span className="font-mono text-[11px] text-slate-400">
                                                             {item.property_no}
+                                                        </span>
+                                                    </td>
+
+                                                    {/* Category */}
+                                                    <td className="px-5 py-4">
+                                                        <span
+                                                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${catColor}`}
+                                                        >
+                                                            {category}
                                                         </span>
                                                     </td>
 
                                                     {/* Serial No */}
                                                     <td className="px-5 py-4">
                                                         {item.serial_no ? (
-                                                            <span className="font-mono text-[11px] text-white/40">
+                                                            <span className="font-mono text-[11px] text-slate-400">
                                                                 {item.serial_no}
                                                             </span>
                                                         ) : (
-                                                            <span className="text-white/30">—</span>
+                                                            <span className="text-slate-300">
+                                                                —
+                                                            </span>
                                                         )}
                                                     </td>
 
                                                     {/* Location */}
                                                     <td className="px-5 py-4">
-                                                        {item.location ? (
-                                                            <span className="flex items-center gap-1.5 text-xs text-white/40">
-                                                                <MapPin className="size-3 shrink-0 text-white/30" />
-                                                                {item.location}
+                                                        {locationParts ? (
+                                                            <span className="flex items-center gap-1.5 text-xs text-slate-400">
+                                                                <MapPin className="size-3 shrink-0 text-slate-300" />
+                                                                {locationParts}
                                                             </span>
                                                         ) : (
-                                                            <span className="text-white/30">—</span>
+                                                            <span className="text-slate-300">
+                                                                —
+                                                            </span>
+                                                        )}
+                                                    </td>
+
+                                                    {/* End User */}
+                                                    <td className="px-5 py-4">
+                                                        {item.end_user ? (
+                                                            <span className="text-xs text-slate-500">
+                                                                {item.end_user}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-slate-300">
+                                                                —
+                                                            </span>
                                                         )}
                                                     </td>
 
                                                     {/* Condition */}
                                                     <td className="px-5 py-4">
-                                                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${cc.badge}`}>
-                                                            <span className={`size-1.5 rounded-full ${cc.dot}`} />
-                                                            {conditionLabels[item.condition] ?? item.condition.replace('_', ' ')}
+                                                        <span
+                                                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${cc.badge}`}
+                                                        >
+                                                            <span
+                                                                className={`size-1.5 rounded-full ${cc.dot}`}
+                                                            />
+                                                            {conditionLabels[
+                                                                item.condition
+                                                            ] ??
+                                                                item.condition.replace(
+                                                                    '_',
+                                                                    ' ',
+                                                                )}
                                                         </span>
                                                     </td>
 
                                                     {/* Status */}
                                                     <td className="px-5 py-4">
-                                                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusConfig[item.status] ?? 'border-white/20 bg-white/5 text-white/60'}`}>
+                                                        <span
+                                                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusConfig[item.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
+                                                        >
                                                             {item.status}
                                                         </span>
                                                     </td>
@@ -623,7 +901,7 @@ export default function InventoryIndex({ items, filters }: Props) {
                                                         <div className="flex items-center justify-end gap-1">
                                                             <Link
                                                                 href={`/inventory/${item.id}`}
-                                                                className="flex size-8 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-ustp-gold/10 hover:text-ustp-gold"
+                                                                className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-ustp-gold/10 hover:text-ustp-gold"
                                                             >
                                                                 <ArrowUpRight className="size-3.5" />
                                                             </Link>
@@ -632,9 +910,11 @@ export default function InventoryIndex({ items, filters }: Props) {
                                                                 asChild
                                                                 variant="ghost"
                                                                 size="sm"
-                                                                className="h-8 px-2.5 text-xs text-white/50 hover:bg-[#111827] hover:text-white"
+                                                                className="h-8 px-2.5 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-800"
                                                             >
-                                                                <Link href={`/inventory/${item.id}/edit`}>
+                                                                <Link
+                                                                    href={`/inventory/${item.id}/edit`}
+                                                                >
                                                                     Edit
                                                                 </Link>
                                                             </Button>
@@ -643,8 +923,12 @@ export default function InventoryIndex({ items, filters }: Props) {
                                                                 type="button"
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                className="size-8 text-white/40 hover:bg-red-400/10 hover:text-red-400"
-                                                                onClick={() => handleDelete(item.id)}
+                                                                className="size-8 text-slate-400 hover:bg-red-400/10 hover:text-red-400"
+                                                                onClick={() =>
+                                                                    handleDelete(
+                                                                        item.id,
+                                                                    )
+                                                                }
                                                             >
                                                                 <Trash2 className="size-3.5" />
                                                             </Button>
@@ -658,12 +942,14 @@ export default function InventoryIndex({ items, filters }: Props) {
                             </div>
 
                             {/* Table footer */}
-                            <div className="flex items-center justify-between border-t border-white/[0.06] bg-[#0a0f1c]/60 px-5 py-3">
-                                <p className="text-[11px] text-white/40">
-                                    Showing {totalCount} {totalCount === 1 ? 'record' : 'records'}
+                            <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-5 py-3">
+                                <p className="text-[11px] text-slate-400">
+                                    Showing {totalCount}{' '}
+                                    {totalCount === 1 ? 'record' : 'records'} of{' '}
+                                    {stats.total}
                                 </p>
 
-                                <div className="flex items-center gap-2 text-[10px] text-white/40">
+                                <div className="flex items-center gap-2 text-[10px] text-slate-400">
                                     <span className="size-1 rounded-full bg-ustp-gold" />
                                     Inventory Management
                                 </div>

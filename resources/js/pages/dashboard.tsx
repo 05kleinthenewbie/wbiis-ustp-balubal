@@ -105,12 +105,12 @@ function StatCard({
 }) {
     const accentStyles = {
         navy: {
-            card: 'border-[#1a2035] bg-ustp-navy/50 hover:border-ustp-gold/40 hover:bg-ustp-navy/70',
+            card: 'border-slate-200 bg-white hover:border-ustp-gold/40 hover:bg-slate-50',
             iconBg: 'bg-ustp-gold/15',
             iconText: 'text-ustp-gold',
         },
         gold: {
-            card: 'border-[#1a2035] bg-ustp-navy/50 hover:border-ustp-gold/40 hover:bg-ustp-navy/70',
+            card: 'border-slate-200 bg-white hover:border-ustp-gold/40 hover:bg-slate-50',
             iconBg: 'bg-ustp-gold/15',
             iconText: 'text-ustp-gold',
         },
@@ -143,15 +143,15 @@ function StatCard({
                             {trend.value}
                         </span>
                     )}
-                    <ChevronRight className="size-4 text-white/25 transition-all group-hover:translate-x-0.5 group-hover:text-white/50" />
+                    <ChevronRight className="size-4 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
                 </div>
             </div>
 
             <div className="mt-4">
-                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-white/45">
+                <p className="text-[10px] font-medium tracking-[0.14em] text-slate-400 uppercase">
                     {label}
                 </p>
-                <p className="mt-1.5 text-3xl font-semibold tracking-tight text-white">
+                <p className="mt-1.5 text-3xl font-semibold tracking-tight text-slate-800">
                     {value}
                 </p>
             </div>
@@ -178,19 +178,19 @@ function HorizontalBarChart({
                 return (
                     <div key={key}>
                         <div className="mb-1.5 flex items-center justify-between">
-                            <span className="text-xs font-medium capitalize text-white/70">
+                            <span className="text-xs font-medium text-slate-600 capitalize">
                                 {key.replace('_', ' ')}
                             </span>
-                            <span className="text-xs font-semibold text-white/90">
+                            <span className="text-xs font-semibold text-slate-800">
                                 {count}
-                                <span className="ml-1 text-white/40">
+                                <span className="ml-1 text-slate-400">
                                     ({Math.round(pct)}%)
                                 </span>
                             </span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                        <div className="h-2 overflow-hidden rounded-full bg-slate-100">
                             <div
-                                className={`h-full rounded-full transition-all duration-700 ${colors[key] ?? 'bg-white/20'}`}
+                                className={`h-full rounded-full transition-all duration-700 ${colors[key] ?? 'bg-slate-300'}`}
                                 style={{ width: `${pct}%` }}
                             />
                         </div>
@@ -198,7 +198,9 @@ function HorizontalBarChart({
                 );
             })}
             {entries.length === 0 && (
-                <p className="py-4 text-center text-xs text-white/30">No data yet</p>
+                <p className="py-4 text-center text-xs text-slate-400">
+                    No data yet
+                </p>
             )}
         </div>
     );
@@ -236,7 +238,7 @@ function RingChart({
             pct,
             dashLength: dashLength - 1,
             dashOffset,
-            color: strokeColors[key] ?? 'rgba(255,255,255,0.2)',
+            color: strokeColors[key] ?? 'rgba(100,116,139,0.4)',
         };
     });
 
@@ -249,7 +251,7 @@ function RingChart({
                         cy={size / 2}
                         r={radius}
                         fill="none"
-                        stroke="rgba(255,255,255,0.06)"
+                        stroke="rgba(15,23,42,0.08)"
                         strokeWidth={strokeWidth}
                     />
                     {segments.map((seg) => (
@@ -269,8 +271,10 @@ function RingChart({
                     ))}
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-bold text-white">{total}</span>
-                    <span className="text-[10px] uppercase tracking-wider text-white/40">
+                    <span className="text-2xl font-bold text-slate-800">
+                        {total}
+                    </span>
+                    <span className="text-[10px] tracking-wider text-slate-400 uppercase">
                         {centerLabel}
                     </span>
                 </div>
@@ -280,12 +284,12 @@ function RingChart({
                 {entries.map(([key, count]) => (
                     <div key={key} className="flex items-center gap-2">
                         <span
-                            className={`size-2.5 rounded-full ${dotClasses[key] ?? 'bg-white/20'}`}
+                            className={`size-2.5 rounded-full ${dotClasses[key] ?? 'bg-slate-300'}`}
                         />
-                        <span className="text-xs capitalize text-white/60">
+                        <span className="text-xs text-slate-500 capitalize">
                             {key.replace('_', ' ')}
                         </span>
-                        <span className="ml-auto text-xs font-semibold text-white/80">
+                        <span className="ml-auto text-xs font-semibold text-slate-600">
                             {count}
                         </span>
                     </div>
@@ -297,37 +301,37 @@ function RingChart({
 
 function RecentRequestsTable({ requests }: { requests: RecentRequest[] }) {
     const statusBadge: Record<string, string> = {
-        pending: 'border-amber-400/30 bg-amber-400/10 text-amber-300',
-        approved: 'border-ustp-light-blue/30 bg-ustp-light-blue/10 text-ustp-light-blue',
-        rejected: 'border-red-400/30 bg-red-400/10 text-red-300',
-        completed: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
+        pending: 'border-amber-200 bg-amber-50 text-amber-700',
+        approved: 'border-sky-200 bg-sky-50 text-sky-700',
+        rejected: 'border-red-200 bg-red-50 text-red-600',
+        completed: 'border-emerald-200 bg-emerald-50 text-emerald-700',
     };
 
     const priorityBadge: Record<string, string> = {
-        low: 'border-slate-400/30 bg-slate-400/10 text-slate-300',
-        medium: 'border-blue-400/30 bg-blue-400/10 text-blue-300',
-        high: 'border-orange-400/30 bg-orange-400/10 text-orange-300',
-        urgent: 'border-red-400/30 bg-red-400/10 text-red-300',
+        low: 'border-slate-200 bg-slate-50 text-slate-600',
+        medium: 'border-blue-200 bg-blue-50 text-blue-600',
+        high: 'border-orange-200 bg-orange-50 text-orange-600',
+        urgent: 'border-red-200 bg-red-50 text-red-600',
     };
 
     return (
         <div className="overflow-x-auto">
             <table className="w-full">
                 <thead>
-                    <tr className="border-b border-white/[0.06] bg-[#0a0f1c]/80">
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                    <tr className="border-b border-slate-200 bg-slate-50">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                             Requester
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                             Description
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                             Priority
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                             Status
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                             When
                         </th>
                     </tr>
@@ -336,29 +340,29 @@ function RecentRequestsTable({ requests }: { requests: RecentRequest[] }) {
                     {requests.map((r) => (
                         <tr
                             key={r.id}
-                            className="border-b border-[#151c2c] transition-colors hover:bg-[#111827]/70"
+                            className="border-b border-slate-200 transition-colors hover:bg-slate-50"
                         >
-                            <td className="px-4 py-3 text-sm font-medium text-white/90">
+                            <td className="px-4 py-3 text-sm font-medium text-slate-800">
                                 {r.user_name}
                             </td>
-                            <td className="max-w-[200px] truncate px-4 py-3 text-sm text-white/50">
+                            <td className="max-w-[200px] truncate px-4 py-3 text-sm text-slate-500">
                                 {r.description || '—'}
                             </td>
                             <td className="px-4 py-3">
                                 <span
-                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${priorityBadge[r.priority] ?? 'border-white/20 bg-white/5 text-white/60'}`}
+                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${priorityBadge[r.priority] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
                                 >
                                     {r.priority}
                                 </span>
                             </td>
                             <td className="px-4 py-3">
                                 <span
-                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusBadge[r.status] ?? 'border-white/20 bg-white/5 text-white/60'}`}
+                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusBadge[r.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
                                 >
                                     {r.status}
                                 </span>
                             </td>
-                            <td className="px-4 py-3 text-xs text-white/40">
+                            <td className="px-4 py-3 text-xs text-slate-400">
                                 {r.date ? formatRelativeTime(r.date) : '—'}
                             </td>
                         </tr>
@@ -367,7 +371,7 @@ function RecentRequestsTable({ requests }: { requests: RecentRequest[] }) {
                         <tr>
                             <td
                                 colSpan={5}
-                                className="px-4 py-8 text-center text-sm text-white/30"
+                                className="px-4 py-8 text-center text-sm text-slate-400"
                             >
                                 No service requests yet
                             </td>
@@ -478,7 +482,7 @@ function ActivityFeed({
                     <Link
                         key={item.id}
                         href={item.href}
-                        className="group flex gap-3 py-3 transition-colors hover:bg-white/[0.02] rounded-lg px-2 -mx-2"
+                        className="group -mx-2 flex gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-slate-50"
                     >
                         <div className="relative flex flex-col items-center">
                             <div
@@ -487,25 +491,25 @@ function ActivityFeed({
                                 <Icon className={`size-4 ${item.iconText}`} />
                             </div>
                             {idx < visible.length - 1 && (
-                                <div className="mt-1 w-px flex-1 bg-white/[0.06]" />
+                                <div className="mt-1 w-px flex-1 bg-slate-200" />
                             )}
                         </div>
                         <div className="min-w-0 flex-1 pb-1">
-                            <p className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+                            <p className="text-sm font-medium text-slate-600 transition-colors group-hover:text-slate-800">
                                 {item.title}
                             </p>
-                            <p className="mt-0.5 text-xs capitalize text-white/40">
+                            <p className="mt-0.5 text-xs text-slate-400 capitalize">
                                 {item.subtitle}
                             </p>
                         </div>
-                        <span className="shrink-0 text-[11px] text-white/30 pt-0.5">
+                        <span className="shrink-0 pt-0.5 text-[11px] text-slate-400">
                             {item.date ? formatRelativeTime(item.date) : ''}
                         </span>
                     </Link>
                 );
             })}
             {visible.length === 0 && (
-                <p className="py-8 text-center text-sm text-white/30">
+                <p className="py-8 text-center text-sm text-slate-400">
                     No recent activity
                 </p>
             )}
@@ -581,47 +585,36 @@ export default function Dashboard({
                 open={pendingInvitations.length > 0 && showInvitations}
                 onOpenChange={setShowInvitations}
             />
-
-            <div className="relative min-h-full flex-1 overflow-hidden bg-[#070b18] px-4 py-6 text-white sm:px-6 lg:px-8">
-                {/* Ambient glow */}
-                <div className="pointer-events-none absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-ustp-navy/[0.04] blur-3xl" />
-                <div className="pointer-events-none absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-ustp-gold/[0.015] blur-3xl" />
-
-                {/* Subtle dot pattern */}
-                <div
-                    className="pointer-events-none absolute inset-0 opacity-[0.02]"
-                    style={{
-                        backgroundImage:
-                            'radial-gradient(circle, #fcb315 1px, transparent 1px)',
-                        backgroundSize: '28px 28px',
-                    }}
-                />
-
+            <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-7xl space-y-6">
                     {/* ── Welcome header ── */}
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <div className="mb-3 flex items-center gap-2">
                                 <span className="size-2 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
-                                <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/50">
-                                    {isAdmin ? 'ICT Admin Overview' : 'Dashboard'}
+                                <span className="text-[11px] font-medium tracking-[0.2em] text-slate-500 uppercase">
+                                    {isAdmin
+                                        ? 'ICT Admin Overview'
+                                        : 'Dashboard'}
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl font-semibold tracking-tight text-white">
+                            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
                                 {greeting}, {userName}
                             </h1>
 
-                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/50">
+                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">
                                 {isAdmin
                                     ? 'Here\u2019s what needs your attention today.'
                                     : 'A quick look at your requests and bookings.'}
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5">
-                            <Clock className="size-4 text-white/40" />
-                            <span className="text-sm text-white/60">{today}</span>
+                        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5">
+                            <Clock className="size-4 text-slate-400" />
+                            <span className="text-sm text-slate-600">
+                                {today}
+                            </span>
                         </div>
                     </div>
 
@@ -631,7 +624,9 @@ export default function Dashboard({
                             <>
                                 <StatCard
                                     label="Pending Requests"
-                                    value={(stats as AdminStats).pendingRequests}
+                                    value={
+                                        (stats as AdminStats).pendingRequests
+                                    }
                                     icon={FileText}
                                     href="/requests"
                                     accent="navy"
@@ -645,7 +640,9 @@ export default function Dashboard({
                                 />
                                 <StatCard
                                     label="Pending Bookings"
-                                    value={(stats as AdminStats).pendingBookings}
+                                    value={
+                                        (stats as AdminStats).pendingBookings
+                                    }
                                     icon={Calendar}
                                     href="/bookings"
                                     accent="gold"
@@ -669,14 +666,18 @@ export default function Dashboard({
                                 />
                                 <StatCard
                                     label="Pending Requests"
-                                    value={(stats as StudentStats).pendingRequests}
+                                    value={
+                                        (stats as StudentStats).pendingRequests
+                                    }
                                     icon={ClipboardList}
                                     href="/requests"
                                     accent="gold"
                                 />
                                 <StatCard
                                     label="Approved Requests"
-                                    value={(stats as StudentStats).approvedRequests}
+                                    value={
+                                        (stats as StudentStats).approvedRequests
+                                    }
                                     icon={CalendarCheck}
                                     href="/requests"
                                     accent="navy"
@@ -707,7 +708,9 @@ export default function Dashboard({
                                 />
                                 <StatCard
                                     label="Upcoming Bookings"
-                                    value={(stats as UserStats).upcomingBookings}
+                                    value={
+                                        (stats as UserStats).upcomingBookings
+                                    }
                                     icon={CalendarCheck}
                                     href="/bookings"
                                     accent="gold"
@@ -721,16 +724,16 @@ export default function Dashboard({
                         {/* LEFT: wider column */}
                         <div className="space-y-6 lg:col-span-2">
                             {/* Requests by Status */}
-                            <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                 <div className="mb-5 flex items-center gap-3">
                                     <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                         <Layers className="size-4 text-ustp-gold" />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-semibold text-white">
+                                        <h3 className="text-sm font-semibold text-slate-800">
                                             Requests by Status
                                         </h3>
-                                        <p className="text-[11px] text-white/40">
+                                        <p className="text-[11px] text-slate-400">
                                             {reqTotal} total requests
                                         </p>
                                     </div>
@@ -748,16 +751,16 @@ export default function Dashboard({
                             </div>
 
                             {/* Requests by Priority */}
-                            <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                 <div className="mb-5 flex items-center gap-3">
                                     <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                         <Zap className="size-4 text-ustp-gold" />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-semibold text-white">
+                                        <h3 className="text-sm font-semibold text-slate-800">
                                             Requests by Priority
                                         </h3>
-                                        <p className="text-[11px] text-white/40">
+                                        <p className="text-[11px] text-slate-400">
                                             Distribution across priority levels
                                         </p>
                                     </div>
@@ -775,17 +778,17 @@ export default function Dashboard({
                             </div>
 
                             {/* Recent Service Requests table */}
-                            <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-xl shadow-black/10">
-                                <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                                     <div className="flex items-center gap-3">
                                         <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
                                             <TrendingUp className="size-4 text-ustp-light-blue" />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-semibold text-white">
+                                            <h3 className="text-sm font-semibold text-slate-800">
                                                 Recent Requests
                                             </h3>
-                                            <p className="text-[11px] text-white/40">
+                                            <p className="text-[11px] text-slate-400">
                                                 Latest service requests
                                             </p>
                                         </div>
@@ -795,10 +798,12 @@ export default function Dashboard({
                                         className="group flex items-center gap-1 text-xs font-medium text-ustp-light-blue/70 transition-colors hover:text-ustp-light-blue"
                                     >
                                         View all
-                                        <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                                        <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                                     </Link>
                                 </div>
-                                <RecentRequestsTable requests={recentRequests} />
+                                <RecentRequestsTable
+                                    requests={recentRequests}
+                                />
                             </div>
                         </div>
 
@@ -806,16 +811,16 @@ export default function Dashboard({
                         <div className="space-y-6">
                             {/* Job Orders ring chart — admin only */}
                             {isAdmin && (
-                                <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
+                                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                     <div className="mb-5 flex items-center gap-3">
                                         <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                             <Wrench className="size-4 text-ustp-gold" />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-semibold text-white">
+                                            <h3 className="text-sm font-semibold text-slate-800">
                                                 Job Orders
                                             </h3>
-                                            <p className="text-[11px] text-white/40">
+                                            <p className="text-[11px] text-slate-400">
                                                 Status overview
                                             </p>
                                         </div>
@@ -842,16 +847,16 @@ export default function Dashboard({
 
                             {/* Inventory Health — admin only */}
                             {isAdmin && (
-                                <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
+                                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                     <div className="mb-5 flex items-center gap-3">
                                         <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                             <Package className="size-4 text-ustp-gold" />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-semibold text-white">
+                                            <h3 className="text-sm font-semibold text-slate-800">
                                                 Inventory Health
                                             </h3>
-                                            <p className="text-[11px] text-white/40">
+                                            <p className="text-[11px] text-slate-400">
                                                 Equipment condition breakdown
                                             </p>
                                         </div>
@@ -863,7 +868,8 @@ export default function Dashboard({
                                         strokeColors={{
                                             working: 'rgba(52,211,153,0.9)',
                                             defective: 'rgba(248,113,113,0.9)',
-                                            under_repair: 'rgba(251,191,36,0.9)',
+                                            under_repair:
+                                                'rgba(251,191,36,0.9)',
                                         }}
                                         dotClasses={{
                                             working: 'bg-emerald-400',
@@ -875,16 +881,16 @@ export default function Dashboard({
                             )}
 
                             {/* Recent Activity Feed */}
-                            <div className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10">
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                 <div className="mb-4 flex items-center gap-3">
-                                    <div className="flex size-9 items-center justify-center rounded-lg bg-white/5">
-                                        <Clock className="size-4 text-white/50" />
+                                    <div className="flex size-9 items-center justify-center rounded-lg bg-slate-100">
+                                        <Clock className="size-4 text-slate-500" />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-semibold text-white">
+                                        <h3 className="text-sm font-semibold text-slate-800">
                                             Recent Activity
                                         </h3>
-                                        <p className="text-[11px] text-white/40">
+                                        <p className="text-[11px] text-slate-400">
                                             Across all modules
                                         </p>
                                     </div>
@@ -900,132 +906,138 @@ export default function Dashboard({
                     </div>
 
                     {/* ── Quick actions ── */}
-                    <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03]">
-                        <div className="border-b border-white/[0.08] px-6 py-5">
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                        <div className="border-b border-slate-200 px-6 py-5">
                             <div className="flex items-center gap-3">
                                 <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-blue-accent/30">
                                     <LayoutGrid className="size-4 text-ustp-light-blue" />
                                 </div>
 
                                 <div>
-                                    <h2 className="text-sm font-semibold text-white">
+                                    <h2 className="text-sm font-semibold text-slate-800">
                                         Quick actions
                                     </h2>
-                                    <p className="mt-0.5 text-xs text-white/40">
+                                    <p className="mt-0.5 text-xs text-slate-400">
                                         Common tasks and shortcuts
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="grid divide-y divide-white/[0.08] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+                        <div className="grid divide-y divide-slate-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
                             {!isAdmin && !isStudent && (
                                 <Link
                                     href="/requests/create"
-                                    className="group flex items-center gap-4 p-5 transition-colors hover:bg-white/[0.04]"
+                                    className="group flex items-center gap-4 p-5 transition-colors hover:bg-slate-50"
                                 >
                                     <div className="flex size-10 items-center justify-center rounded-xl bg-ustp-light-blue/10">
                                         <Plus className="size-5 text-ustp-light-blue" />
                                     </div>
 
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium text-white">
+                                        <p className="text-sm font-medium text-slate-800">
                                             Submit a request
                                         </p>
-                                        <p className="mt-0.5 text-xs text-white/40">
+                                        <p className="mt-0.5 text-xs text-slate-400">
                                             Request ICT services
                                         </p>
                                     </div>
 
-                                    <ChevronRight className="size-4 shrink-0 text-white/25 transition-all group-hover:translate-x-0.5 group-hover:text-white/50" />
+                                    <ChevronRight className="size-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
                                 </Link>
                             )}
 
                             {isAdmin && (
                                 <Link
                                     href="/requests"
-                                    className="group flex items-center gap-4 p-5 transition-colors hover:bg-white/[0.04]"
+                                    className="group flex items-center gap-4 p-5 transition-colors hover:bg-slate-50"
                                 >
                                     <div className="flex size-10 items-center justify-center rounded-xl bg-ustp-light-blue/10">
                                         <FileText className="size-5 text-ustp-light-blue" />
                                     </div>
 
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium text-white">
+                                        <p className="text-sm font-medium text-slate-800">
                                             Manage requests
                                         </p>
-                                        <p className="mt-0.5 text-xs text-white/40">
+                                        <p className="mt-0.5 text-xs text-slate-400">
                                             Review pending submissions
                                         </p>
                                     </div>
 
-                                    <ChevronRight className="size-4 shrink-0 text-white/25 transition-all group-hover:translate-x-0.5 group-hover:text-white/50" />
+                                    <ChevronRight className="size-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
                                 </Link>
                             )}
 
                             <Link
-                                href={isAdmin ? '/bookings' : '/bookings/create'}
-                                className="group flex items-center gap-4 p-5 transition-colors hover:bg-white/[0.04]"
+                                href={
+                                    isAdmin ? '/bookings' : '/bookings/create'
+                                }
+                                className="group flex items-center gap-4 p-5 transition-colors hover:bg-slate-50"
                             >
                                 <div className="flex size-10 items-center justify-center rounded-xl bg-ustp-gold/10">
                                     <Calendar className="size-5 text-ustp-gold" />
                                 </div>
 
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-white">
-                                        {isAdmin ? 'Review bookings' : 'Book a facility'}
+                                    <p className="text-sm font-medium text-slate-800">
+                                        {isAdmin
+                                            ? 'Review bookings'
+                                            : 'Book a facility'}
                                     </p>
-                                    <p className="mt-0.5 text-xs text-white/40">
+                                    <p className="mt-0.5 text-xs text-slate-400">
                                         {isAdmin
                                             ? 'Approve or reject reservations'
                                             : 'Reserve a computer lab or AV room'}
                                     </p>
                                 </div>
 
-                                <ChevronRight className="size-4 shrink-0 text-white/25 transition-all group-hover:translate-x-0.5 group-hover:text-ustp-gold/60" />
+                                <ChevronRight className="size-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-ustp-gold/60" />
                             </Link>
 
                             <Link
                                 href="/incidents"
-                                className="group flex items-center gap-4 p-5 transition-colors hover:bg-white/[0.04]"
+                                className="group flex items-center gap-4 p-5 transition-colors hover:bg-slate-50"
                             >
                                 <div className="flex size-10 items-center justify-center rounded-xl bg-red-400/10">
                                     <AlertTriangle className="size-5 text-red-400" />
                                 </div>
 
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-white">
-                                        {isAdmin ? 'Review incidents' : 'Report an incident'}
+                                    <p className="text-sm font-medium text-slate-800">
+                                        {isAdmin
+                                            ? 'Review incidents'
+                                            : 'Report an incident'}
                                     </p>
-                                    <p className="mt-0.5 text-xs text-white/40">
+                                    <p className="mt-0.5 text-xs text-slate-400">
                                         {isAdmin
                                             ? 'Manage open incident reports'
                                             : 'Report equipment issues'}
                                     </p>
                                 </div>
 
-                                <ChevronRight className="size-4 shrink-0 text-white/25 transition-all group-hover:translate-x-0.5 group-hover:text-white/50" />
+                                <ChevronRight className="size-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
                             </Link>
 
                             {isAdmin && (
                                 <Link
                                     href="/inventory"
-                                    className="group flex items-center gap-4 p-5 transition-colors hover:bg-white/[0.04]"
+                                    className="group flex items-center gap-4 p-5 transition-colors hover:bg-slate-50"
                                 >
                                     <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-400/10">
                                         <Package className="size-5 text-emerald-400" />
                                     </div>
 
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium text-white">
+                                        <p className="text-sm font-medium text-slate-800">
                                             Inventory
                                         </p>
-                                        <p className="mt-0.5 text-xs text-white/40">
+                                        <p className="mt-0.5 text-xs text-slate-400">
                                             Manage equipment records
                                         </p>
                                     </div>
 
-                                    <ChevronRight className="size-4 shrink-0 text-white/25 transition-all group-hover:translate-x-0.5 group-hover:text-white/50" />
+                                    <ChevronRight className="size-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
                                 </Link>
                             )}
                         </div>

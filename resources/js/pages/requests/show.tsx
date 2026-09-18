@@ -54,42 +54,54 @@ type Props = {
     isAdmin: boolean;
 };
 
-const statusConfig: Record<string, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
+const statusConfig: Record<
+    string,
+    {
+        label: string;
+        color: string;
+        bg: string;
+        border: string;
+        icon: React.ReactNode;
+    }
+> = {
     pending: {
         label: 'Pending',
-        color: 'text-amber-400',
-        bg: 'bg-amber-400/10',
-        border: 'border-amber-400/20',
+        color: 'text-amber-700',
+        bg: 'bg-amber-50',
+        border: 'border-amber-200',
         icon: <Clock3 className="size-5" />,
     },
     approved: {
         label: 'Approved',
-        color: 'text-emerald-400',
-        bg: 'bg-emerald-400/10',
-        border: 'border-emerald-400/20',
+        color: 'text-emerald-700',
+        bg: 'bg-emerald-50',
+        border: 'border-emerald-200',
         icon: <CheckCircle2 className="size-5" />,
     },
     rejected: {
         label: 'Rejected',
-        color: 'text-red-400',
-        bg: 'bg-red-400/10',
-        border: 'border-red-400/20',
+        color: 'text-red-600',
+        bg: 'bg-red-50',
+        border: 'border-red-200',
         icon: <X className="size-5" />,
     },
     completed: {
         label: 'Completed',
-        color: 'text-ustp-light-blue',
-        bg: 'bg-ustp-light-blue/10',
-        border: 'border-ustp-light-blue/20',
+        color: 'text-sky-700',
+        bg: 'bg-sky-50',
+        border: 'border-sky-200',
         icon: <CheckCircle2 className="size-5" />,
     },
 };
 
-const priorityConfig: Record<string, { label: string; color: string; bg: string }> = {
-    low: { label: 'Low', color: 'text-slate-400', bg: 'bg-slate-400/10' },
-    medium: { label: 'Medium', color: 'text-blue-400', bg: 'bg-blue-400/10' },
-    high: { label: 'High', color: 'text-orange-400', bg: 'bg-orange-400/10' },
-    urgent: { label: 'Urgent', color: 'text-red-400', bg: 'bg-red-400/10' },
+const priorityConfig: Record<
+    string,
+    { label: string; color: string; bg: string }
+> = {
+    low: { label: 'Low', color: 'text-slate-600', bg: 'bg-slate-100' },
+    medium: { label: 'Medium', color: 'text-blue-700', bg: 'bg-blue-50' },
+    high: { label: 'High', color: 'text-orange-600', bg: 'bg-orange-50' },
+    urgent: { label: 'Urgent', color: 'text-red-600', bg: 'bg-red-50' },
 };
 
 const statusSteps = ['pending', 'approved', 'completed'];
@@ -112,59 +124,57 @@ export default function RequestsShow({ request, isAdmin }: Props) {
         );
     }
 
-    const statusConfig_ = statusConfig[request.request_status] || statusConfig.pending;
-    const priorityConfig_ = request.priority_level ? priorityConfig[request.priority_level] : null;
+    const statusConfig_ =
+        statusConfig[request.request_status] || statusConfig.pending;
+    const priorityConfig_ = request.priority_level
+        ? priorityConfig[request.priority_level]
+        : null;
     const currentStepIndex = statusSteps.indexOf(request.request_status);
 
     return (
         <>
             <Head title={`Request #${request.id}`} />
 
-            <div className="relative min-h-full flex-1 overflow-hidden bg-[#070b18] px-4 py-6 text-white sm:px-6 lg:px-8">
-                {/* Ambient glow */}
-                <div className="pointer-events-none absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-ustp-navy/[0.04] blur-3xl" />
-                <div className="pointer-events-none absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-ustp-gold/[0.015] blur-3xl" />
-
-                {/* Subtle dot pattern */}
-                <div
-                    className="pointer-events-none absolute inset-0 opacity-[0.02]"
-                    style={{
-                        backgroundImage:
-                            'radial-gradient(circle, #fcb315 1px, transparent 1px)',
-                        backgroundSize: '28px 28px',
-                    }}
-                />
-
+            <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-4xl space-y-6">
                     <BackButton href="/requests" />
 
                     {/* Header */}
-                    <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10 md:p-6">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
                         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                             <div className="flex gap-4">
-                                <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${statusConfig_.bg} ${statusConfig_.color}`}>
+                                <div
+                                    className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${statusConfig_.bg} ${statusConfig_.color}`}
+                                >
                                     {statusConfig_.icon}
                                 </div>
 
                                 <div>
                                     <div className="mb-1 flex items-center gap-2">
-                                        <span className="font-mono text-[10px] text-white/40">
-                                            {request.form_number || `REQUEST #${request.id}`}
+                                        <span className="font-mono text-[10px] text-slate-400">
+                                            {request.form_number ||
+                                                `REQUEST #${request.id}`}
                                         </span>
-                                        <span className="size-1 rounded-full bg-white/20" />
-                                        <span className="text-[10px] uppercase tracking-wider text-white/40">
+                                        <span className="size-1 rounded-full bg-slate-300" />
+                                        <span className="text-[10px] tracking-wider text-slate-400 uppercase">
                                             ICT Service
                                         </span>
                                     </div>
 
-                                    <h1 className="text-xl font-semibold tracking-tight text-white md:text-2xl">
+                                    <h1 className="text-xl font-semibold tracking-tight text-slate-800 md:text-2xl">
                                         {request.request_services
-                                            .map((s) => s.service_type.service_name)
+                                            .map(
+                                                (s) =>
+                                                    s.service_type.service_name,
+                                            )
                                             .join(', ') || 'Service request'}
                                     </h1>
 
-                                    <p className="mt-1.5 text-xs text-white/40">
-                                        Submitted {new Date(request.date_requested).toLocaleString()}
+                                    <p className="mt-1.5 text-xs text-slate-400">
+                                        Submitted{' '}
+                                        {new Date(
+                                            request.date_requested,
+                                        ).toLocaleString()}
                                     </p>
                                 </div>
                             </div>
@@ -179,8 +189,8 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                     </div>
 
                     {/* Timeline Progress */}
-                    <div className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10 md:p-6">
-                        <p className="mb-4 text-sm font-semibold text-white">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                        <p className="mb-4 text-sm font-semibold text-slate-800">
                             Request Progress
                         </p>
 
@@ -191,14 +201,17 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                                 const isCurrent = index === currentStepIndex;
 
                                 return (
-                                    <div key={step} className="flex flex-1 items-center">
+                                    <div
+                                        key={step}
+                                        className="flex flex-1 items-center"
+                                    >
                                         <div className="flex flex-col items-center">
                                             <div
                                                 className={`flex size-10 items-center justify-center rounded-full border-2 transition-all ${
                                                     isCompleted
                                                         ? `${stepConfig.border} ${stepConfig.bg} ${stepConfig.color}`
-                                                        : 'border-white/15 bg-[#0a0f1c] text-white/30'
-                                                } ${isCurrent ? 'ring-2 ring-offset-2 ring-offset-[#0f1723] ' + stepConfig.border : ''}`}
+                                                        : 'border-slate-200 bg-slate-50 text-slate-400'
+                                                } ${isCurrent ? 'ring-2 ring-offset-2 ring-offset-white ' + stepConfig.border : ''}`}
                                             >
                                                 {isCompleted ? (
                                                     <CheckCircle2 className="size-5" />
@@ -207,13 +220,17 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                                                 )}
                                             </div>
 
-                                            <span className={`mt-2 text-[10px] font-medium ${isCompleted ? stepConfig.color : 'text-white/30'}`}>
+                                            <span
+                                                className={`mt-2 text-[10px] font-medium ${isCompleted ? stepConfig.color : 'text-slate-400'}`}
+                                            >
                                                 {stepConfig.label}
                                             </span>
                                         </div>
 
                                         {index < statusSteps.length - 1 && (
-                                            <div className={`mx-2 h-0.5 flex-1 ${index < currentStepIndex ? 'bg-ustp-gold' : 'bg-white/10'}`} />
+                                            <div
+                                                className={`mx-2 h-0.5 flex-1 ${index < currentStepIndex ? 'bg-ustp-gold' : 'bg-slate-200'}`}
+                                            />
                                         )}
                                     </div>
                                 );
@@ -223,50 +240,58 @@ export default function RequestsShow({ request, isAdmin }: Props) {
 
                     {/* Request metadata */}
                     <div className="grid gap-4 md:grid-cols-3">
-                        <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-4">
+                        <div className="rounded-xl border border-slate-200 bg-white p-4">
                             <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                 <UserRound className="size-4" />
                             </div>
-                            <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+                            <p className="text-[10px] font-medium tracking-wider text-slate-400 uppercase">
                                 Requested by
                             </p>
-                            <p className="mt-1 text-sm font-medium text-white">
+                            <p className="mt-1 text-sm font-medium text-slate-800">
                                 {request.user.name}
                             </p>
-                            <p className="mt-0.5 text-xs text-white/40">
+                            <p className="mt-0.5 text-xs text-slate-400">
                                 {request.user.department ?? 'No department'}
                             </p>
                         </div>
 
-                        <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-4">
+                        <div className="rounded-xl border border-slate-200 bg-white p-4">
                             <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                 <Clock3 className="size-4" />
                             </div>
-                            <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+                            <p className="text-[10px] font-medium tracking-wider text-slate-400 uppercase">
                                 Date requested
                             </p>
-                            <p className="mt-1 text-sm font-medium text-white">
-                                {new Date(request.date_requested).toLocaleDateString()}
+                            <p className="mt-1 text-sm font-medium text-slate-800">
+                                {new Date(
+                                    request.date_requested,
+                                ).toLocaleDateString()}
                             </p>
-                            <p className="mt-0.5 text-xs text-white/40">
-                                {new Date(request.date_requested).toLocaleTimeString([], {
+                            <p className="mt-0.5 text-xs text-slate-400">
+                                {new Date(
+                                    request.date_requested,
+                                ).toLocaleTimeString([], {
                                     hour: 'numeric',
                                     minute: '2-digit',
                                 })}
                             </p>
                         </div>
 
-                        <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-4">
-                            <div className={`mb-3 flex size-8 items-center justify-center rounded-lg ${priorityConfig_?.bg || 'bg-white/5'} ${priorityConfig_?.color || 'text-white/40'}`}>
+                        <div className="rounded-xl border border-slate-200 bg-white p-4">
+                            <div
+                                className={`mb-3 flex size-8 items-center justify-center rounded-lg ${priorityConfig_?.bg || 'bg-slate-50'} ${priorityConfig_?.color || 'text-slate-400'}`}
+                            >
                                 <AlertTriangle className="size-4" />
                             </div>
-                            <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+                            <p className="text-[10px] font-medium tracking-wider text-slate-400 uppercase">
                                 Priority
                             </p>
-                            <p className={`mt-1 text-sm font-medium capitalize ${priorityConfig_?.color || 'text-white/40'}`}>
+                            <p
+                                className={`mt-1 text-sm font-medium capitalize ${priorityConfig_?.color || 'text-slate-400'}`}
+                            >
                                 {request.priority_level ?? 'Not set yet'}
                             </p>
-                            <p className="mt-0.5 text-xs text-white/40">
+                            <p className="mt-0.5 text-xs text-slate-400">
                                 Assigned by ICT Admin
                             </p>
                         </div>
@@ -275,51 +300,59 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                     {/* SLA Status, Location, and Contact */}
                     <div className="grid gap-4 md:grid-cols-3">
                         {request.sla_deadline && (
-                            <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-4">
+                            <div className="rounded-xl border border-slate-200 bg-white p-4">
                                 <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                     <Clock3 className="size-4" />
                                 </div>
-                                <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+                                <p className="text-[10px] font-medium tracking-wider text-slate-400 uppercase">
                                     SLA Deadline
                                 </p>
-                                <p className="mt-1 text-sm font-medium text-white">
-                                    {new Date(request.sla_deadline).toLocaleString()}
+                                <p className="mt-1 text-sm font-medium text-slate-800">
+                                    {new Date(
+                                        request.sla_deadline,
+                                    ).toLocaleString()}
                                 </p>
-                                <p className={`mt-0.5 text-xs capitalize ${
-                                    request.sla_status === 'breached' ? 'text-red-400' :
-                                    request.sla_status === 'at_risk' ? 'text-amber-400' :
-                                    'text-emerald-400'
-                                }`}>
-                                    {request.sla_status === 'breached' ? 'SLA Breached' :
-                                     request.sla_status === 'at_risk' ? 'At Risk' :
-                                     'On Track'}
+                                <p
+                                    className={`mt-0.5 text-xs capitalize ${
+                                        request.sla_status === 'breached'
+                                            ? 'text-red-600'
+                                            : request.sla_status === 'at_risk'
+                                              ? 'text-amber-700'
+                                              : 'text-emerald-700'
+                                    }`}
+                                >
+                                    {request.sla_status === 'breached'
+                                        ? 'SLA Breached'
+                                        : request.sla_status === 'at_risk'
+                                          ? 'At Risk'
+                                          : 'On Track'}
                                 </p>
                             </div>
                         )}
 
                         {request.location && (
-                            <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-4">
+                            <div className="rounded-xl border border-slate-200 bg-white p-4">
                                 <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                     <FileText className="size-4" />
                                 </div>
-                                <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+                                <p className="text-[10px] font-medium tracking-wider text-slate-400 uppercase">
                                     Location
                                 </p>
-                                <p className="mt-1 text-sm font-medium text-white">
+                                <p className="mt-1 text-sm font-medium text-slate-800">
                                     {request.location}
                                 </p>
                             </div>
                         )}
 
                         {request.contact_details && (
-                            <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-4">
+                            <div className="rounded-xl border border-slate-200 bg-white p-4">
                                 <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                     <FileText className="size-4" />
                                 </div>
-                                <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+                                <p className="text-[10px] font-medium tracking-wider text-slate-400 uppercase">
                                     Contact Details
                                 </p>
-                                <p className="mt-1 text-sm font-medium text-white">
+                                <p className="mt-1 text-sm font-medium text-slate-800">
                                     {request.contact_details}
                                 </p>
                             </div>
@@ -327,23 +360,24 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                     </div>
 
                     {/* Services */}
-                    <section className="overflow-hidden rounded-2xl border border-[#1a2035] bg-[#0f1723] shadow-xl shadow-black/10">
-                        <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4 md:px-6">
+                    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                        <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-4 md:px-6">
                             <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                 <FileText className="size-4 text-ustp-gold" />
                             </div>
 
                             <div>
-                                <p className="text-sm font-semibold text-white">
+                                <p className="text-sm font-semibold text-slate-800">
                                     Services requested
                                 </p>
-                                <p className="mt-0.5 text-[11px] text-white/40">
-                                    Services and specifications included in this request.
+                                <p className="mt-0.5 text-[11px] text-slate-400">
+                                    Services and specifications included in this
+                                    request.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="divide-y divide-[#151c2c]">
+                        <div className="divide-y divide-slate-200">
                             {request.request_services.map((service) => (
                                 <div
                                     key={service.id}
@@ -355,23 +389,29 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                                         </div>
 
                                         <div>
-                                            <p className="text-sm font-medium text-white">
-                                                {service.service_type.service_name}
+                                            <p className="text-sm font-medium text-slate-800">
+                                                {
+                                                    service.service_type
+                                                        .service_name
+                                                }
                                             </p>
-                                            <p className="mt-0.5 text-[10px] uppercase tracking-wider text-white/40">
-                                                {service.service_type.category.category_name}
+                                            <p className="mt-0.5 text-[10px] tracking-wider text-slate-400 uppercase">
+                                                {
+                                                    service.service_type
+                                                        .category.category_name
+                                                }
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="flex flex-wrap gap-2 text-xs">
                                         {service.specification && (
-                                            <span className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-white/50">
+                                            <span className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500">
                                                 {service.specification}
                                             </span>
                                         )}
 
-                                        <span className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-white/50">
+                                        <span className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500">
                                             Qty: {service.quantity}
                                         </span>
 
@@ -387,75 +427,88 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                     </section>
 
                     {/* Problem */}
-                    <section className="rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-xl shadow-black/10 md:p-6">
+                    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
                         <div className="flex items-center gap-3">
                             <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                 <AlertTriangle className="size-4 text-ustp-gold" />
                             </div>
 
-                            <p className="text-sm font-semibold text-white">
+                            <p className="text-sm font-semibold text-slate-800">
                                 Problem description
                             </p>
                         </div>
 
-                        <div className="mt-4 rounded-xl border border-white/[0.08] bg-[#0c1222] p-4">
-                            <p className="whitespace-pre-wrap text-sm leading-6 text-white/70">
+                        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <p className="text-sm leading-6 whitespace-pre-wrap text-slate-600">
                                 {request.problem_description}
                             </p>
                         </div>
                     </section>
 
                     {/* Rejection reason */}
-                    {request.request_status === 'rejected' && request.rejection_reason && (
-                        <section className="rounded-2xl border border-red-400/20 bg-red-400/5 p-5 md:p-6">
-                            <div className="flex items-center gap-2">
-                                <X className="size-4 text-red-400" />
-                                <p className="text-sm font-medium text-red-300">
-                                    Rejection Reason
-                                </p>
-                            </div>
+                    {request.request_status === 'rejected' &&
+                        request.rejection_reason && (
+                            <section className="rounded-2xl border border-red-200 bg-red-50 p-5 md:p-6">
+                                <div className="flex items-center gap-2">
+                                    <X className="size-4 text-red-600" />
+                                    <p className="text-sm font-medium text-red-600">
+                                        Rejection Reason
+                                    </p>
+                                </div>
 
-                            <div className="mt-4 rounded-xl border border-red-400/10 bg-red-400/5 p-4">
-                                <p className="whitespace-pre-wrap text-sm leading-6 text-red-200">
-                                    {request.rejection_reason}
-                                </p>
-                            </div>
-                        </section>
-                    )}
+                                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
+                                    <p className="text-sm leading-6 whitespace-pre-wrap text-red-700">
+                                        {request.rejection_reason}
+                                    </p>
+                                </div>
+                            </section>
+                        )}
 
                     {/* Admin review */}
                     {isAdmin && request.request_status === 'pending' && (
-                        <section className="overflow-hidden rounded-2xl border border-ustp-gold/30 bg-[#0f1723] shadow-xl shadow-black/10">
-                            <div className="flex items-center gap-3 border-b border-white/[0.06] bg-ustp-gold/[0.04] px-5 py-4 md:px-6">
+                        <section className="overflow-hidden rounded-2xl border border-ustp-gold/30 bg-white shadow-sm">
+                            <div className="flex items-center gap-3 border-b border-slate-200 bg-ustp-gold/[0.04] px-5 py-4 md:px-6">
                                 <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                     <Check className="size-4 text-ustp-gold" />
                                 </div>
 
                                 <div>
-                                    <p className="text-sm font-semibold text-white">
+                                    <p className="text-sm font-semibold text-slate-800">
                                         Review request
                                     </p>
-                                    <p className="mt-0.5 text-[11px] text-white/40">
-                                        Set the request priority before approving or rejecting it.
+                                    <p className="mt-0.5 text-[11px] text-slate-400">
+                                        Set the request priority before
+                                        approving or rejecting it.
                                     </p>
                                 </div>
                             </div>
 
                             <div className="p-5 md:p-6">
                                 <div className="max-w-sm">
-                                    <label className="mb-2 block text-xs font-medium text-white/70">
+                                    <label className="mb-2 block text-xs font-medium text-slate-600">
                                         Priority
                                     </label>
 
-                                    <Select value={priority} onValueChange={setPriority}>
-                                        <SelectTrigger className="h-10 w-full border-[#1a2035] bg-[#0c1222] text-white/80 focus:ring-1 focus:ring-ustp-gold/30">
+                                    <Select
+                                        value={priority}
+                                        onValueChange={setPriority}
+                                    >
+                                        <SelectTrigger className="h-10 w-full border-slate-300 bg-white text-slate-800 focus:ring-1 focus:ring-ustp-gold/30">
                                             <SelectValue placeholder="Select priority" />
                                         </SelectTrigger>
-                                        <SelectContent className="border-[#1a2035] bg-[#0f1723] text-white">
-                                            <SelectItem value="low">Low</SelectItem>
-                                            <SelectItem value="medium">Medium</SelectItem>
-                                            <SelectItem value="high">High</SelectItem>
-                                            <SelectItem value="urgent">Urgent</SelectItem>
+                                        <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                            <SelectItem value="low">
+                                                Low
+                                            </SelectItem>
+                                            <SelectItem value="medium">
+                                                Medium
+                                            </SelectItem>
+                                            <SelectItem value="high">
+                                                High
+                                            </SelectItem>
+                                            <SelectItem value="urgent">
+                                                Urgent
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -465,7 +518,7 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                                         variant="outline"
                                         disabled={processing}
                                         onClick={() => updateStatus('rejected')}
-                                        className="border-red-400/25 bg-transparent text-red-300 hover:bg-red-400/10 hover:text-red-200"
+                                        className="border-red-200 bg-transparent text-red-600 hover:bg-red-50 hover:text-red-700"
                                     >
                                         <X className="size-4" />
                                         Reject

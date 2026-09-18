@@ -1,10 +1,17 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import {
+    BookOpen,
+    ChevronsUpDown,
+    Folder,
+    LayoutGrid,
+    Menu,
+    Search,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { NotificationBell } from '@/components/notification-bell';
 import { TeamSwitcher } from '@/components/team-switcher';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -15,7 +22,6 @@ import {
     NavigationMenu,
     NavigationMenuItem,
     NavigationMenuList,
-    navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import {
     Sheet,
@@ -30,9 +36,9 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { UserInfo } from '@/components/user-info';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
-import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
@@ -54,13 +60,11 @@ const rightNavItems: NavItem[] = [
     },
 ];
 
-const activeItemStyles =
-    'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
+const activeItemStyles = 'bg-ustp-navy-light text-ustp-gold';
 
 export function AppHeader({ breadcrumbs = [] }: Props) {
     const page = usePage();
-    const { auth, currentTeam } = page.props;
-    const getInitials = useInitials();
+    const { auth } = page.props;
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
     const dashboardUrl = dashboard();
 
@@ -74,8 +78,8 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
 
     return (
         <>
-            <div className="border-b border-sidebar-border/80">
-                <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
+            <div className="border-b border-ustp-gold/20 bg-ustp-navy">
+                <div className="mx-auto flex h-16 items-center px-4 text-white md:max-w-7xl">
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
                         <Sheet>
@@ -83,7 +87,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="mr-2 h-[34px] w-[34px]"
+                                    className="mr-2 h-[34px] w-[34px] text-white hover:bg-ustp-navy-light hover:text-ustp-gold"
                                 >
                                     <Menu className="h-5 w-5" />
                                 </Button>
@@ -157,12 +161,11 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                         <Link
                                             href={item.href}
                                             className={cn(
-                                                navigationMenuTriggerStyle(),
+                                                'inline-flex h-9 w-max cursor-pointer items-center justify-center gap-1 rounded-md bg-transparent px-3 text-sm font-medium text-white/90 ring-ring/10 transition-[color,box-shadow] hover:bg-ustp-navy-light hover:text-ustp-gold focus-visible:ring-4 focus-visible:outline-1 dark:ring-ring/20 dark:outline-ring/40',
                                                 whenCurrentUrl(
                                                     item.href,
                                                     activeItemStyles,
                                                 ),
-                                                'h-9 cursor-pointer px-3',
                                             )}
                                         >
                                             {item.icon && (
@@ -171,7 +174,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                             {item.title}
                                         </Link>
                                         {isCurrentUrl(item.href) && (
-                                            <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
+                                            <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-ustp-gold"></div>
                                         )}
                                     </NavigationMenuItem>
                                 ))}
@@ -180,11 +183,11 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     </div>
 
                     <div className="ml-auto flex items-center space-x-2">
-                        <div className="relative flex items-center space-x-1">
+                        <div className="relative hidden items-center space-x-1 md:flex">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="group h-9 w-9 cursor-pointer"
+                                className="group h-9 w-9 cursor-pointer text-white hover:bg-ustp-navy-light hover:text-ustp-gold"
                             >
                                 <Search className="size-5! opacity-80 group-hover:opacity-100" />
                             </Button>
@@ -200,7 +203,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                                     href={toUrl(item.href)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="group inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                                                    className="group inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-white/90 ring-offset-background transition-colors hover:bg-ustp-navy-light hover:text-ustp-gold focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
                                                 >
                                                     <span className="sr-only">
                                                         {item.title}
@@ -218,29 +221,31 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 ))}
                             </div>
                         </div>
+
+                        <NotificationBell />
+
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className="size-10 rounded-full p-1"
+                                    className="group h-10 cursor-pointer gap-2 rounded-full border border-ustp-gold/15 bg-ustp-navy-light/40 pr-3 pl-2 text-white hover:border-ustp-gold/40 hover:bg-ustp-navy-light data-[state=open]:border-ustp-gold/40 data-[state=open]:bg-ustp-navy-light"
                                 >
-                                    <Avatar className="size-8 overflow-hidden rounded-full">
-                                        <AvatarImage
-                                            src={auth.user.avatar}
-                                            alt={auth.user.name}
-                                        />
-                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user.name)}
-                                        </AvatarFallback>
-                                    </Avatar>
+                                    <UserInfo user={auth.user} showRole />
+                                    <ChevronsUpDown className="size-4 shrink-0 text-ustp-gold transition-transform group-data-[state=open]:rotate-180" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end">
+                            <DropdownMenuContent
+                                className="min-w-56 rounded-lg"
+                                align="end"
+                            >
                                 <UserMenuContent user={auth.user} />
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        <TeamSwitcher inHeader />
+                        <TeamSwitcher
+                            inHeader
+                            triggerClassName="text-white hover:bg-ustp-navy-light hover:text-ustp-gold"
+                        />
                     </div>
                 </div>
             </div>

@@ -108,11 +108,11 @@ export default function TeamEdit({
                                 className="space-y-6"
                             >
                                 {({ errors, processing }) => (
-                                    <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-6">
+                                    <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
                                         <div className="grid gap-2">
                                             <Label
                                                 htmlFor="name"
-                                                className="text-sm text-white/60"
+                                                className="text-slate-700"
                                             >
                                                 Team name
                                             </Label>
@@ -121,7 +121,7 @@ export default function TeamEdit({
                                                 name="name"
                                                 data-test="team-name-input"
                                                 defaultValue={team.name}
-                                                className="border-[#1a2035] bg-[#070b18] text-white placeholder:text-white/30 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                                className="mt-1 block w-full"
                                                 required
                                             />
                                             <InputError message={errors.name} />

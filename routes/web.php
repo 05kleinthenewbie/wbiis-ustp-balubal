@@ -25,6 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('bookings', BookingController::class)->except(['edit', 'destroy']);
     Route::resource('incidents', IncidentReportController::class)->except(['edit', 'destroy']);
     Route::resource('inventory', InventoryItemController::class);
+    Route::get('inventory/{id}/qr', [InventoryItemController::class, 'qr'])->name('inventory.qr');
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');

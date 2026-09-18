@@ -36,28 +36,28 @@ export default function Profile({
             <h1 className="sr-only">Profile settings</h1>
 
             <div className="space-y-6">
-                <div className="flex items-center gap-4 rounded-2xl border border-[#1a2035] bg-[#0f1723] p-5 shadow-2xl shadow-black/20 md:p-6">
-                    <Avatar className="size-16 shrink-0 rounded-2xl ring-2 ring-ustp-gold/50 shadow-lg shadow-black/30">
+                <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                    <Avatar className="size-16 shrink-0 rounded-2xl ring-2 ring-ustp-gold/50">
                         {auth.user.avatar ? (
                             <AvatarImage
                                 src={auth.user.avatar}
                                 alt={auth.user.name}
                             />
                         ) : null}
-                        <AvatarFallback className="rounded-2xl bg-ustp-navy-light text-xl font-bold text-ustp-gold">
+                        <AvatarFallback className="rounded-2xl bg-ustp-navy text-xl font-bold text-ustp-gold">
                             {getInitials(auth.user.name)}
                         </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                        <p className="truncate text-lg font-semibold text-white">
+                        <p className="truncate text-lg font-semibold text-slate-900">
                             {auth.user.name}
                         </p>
-                        <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-white/40">
+                        <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-slate-500">
                             <Mail className="size-3.5 shrink-0" />
                             {auth.user.email}
                         </p>
                         {role && (
-                            <span className="mt-2 inline-flex rounded-lg bg-ustp-gold/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-ustp-gold">
+                            <span className="mt-2 inline-flex rounded-lg bg-ustp-gold/10 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-ustp-gold-dark uppercase">
                                 {role.replace(/_/g, ' ')}
                             </span>
                         )}
@@ -78,19 +78,16 @@ export default function Profile({
                     className="space-y-6"
                 >
                     {({ processing, errors }) => (
-                        <div className="rounded-xl border border-[#1a2035] bg-[#0f1723] p-6">
+                        <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
                             <div className="space-y-5">
                                 <div className="grid gap-2">
-                                    <Label
-                                        htmlFor="name"
-                                        className="text-sm text-white/60"
-                                    >
+                                    <Label htmlFor="name" className="text-slate-700">
                                         Name
                                     </Label>
 
                                     <Input
                                         id="name"
-                                        className="mt-1 block w-full border-[#1a2035] bg-[#070b18] text-white placeholder:text-white/30 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                        className="mt-1 block w-full"
                                         defaultValue={auth.user.name}
                                         name="name"
                                         required
@@ -105,17 +102,14 @@ export default function Profile({
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label
-                                        htmlFor="email"
-                                        className="text-sm text-white/60"
-                                    >
+                                    <Label htmlFor="email" className="text-slate-700">
                                         Email address
                                     </Label>
 
                                     <Input
                                         id="email"
                                         type="email"
-                                        className="mt-1 block w-full border-[#1a2035] bg-[#070b18] text-white placeholder:text-white/30 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                        className="mt-1 block w-full"
                                         defaultValue={auth.user.email}
                                         name="email"
                                         required
@@ -132,7 +126,7 @@ export default function Profile({
                                 {mustVerifyEmail &&
                                     auth.user.email_verified_at === null && (
                                         <div>
-                                            <p className="-mt-4 text-sm text-white/40">
+                                            <p className="-mt-4 text-sm text-slate-500">
                                                 Your email address is unverified.{' '}
                                                 <Link
                                                     href={send()}
@@ -146,7 +140,7 @@ export default function Profile({
 
                                             {status ===
                                                 'verification-link-sent' && (
-                                                <div className="mt-2 text-sm font-medium text-emerald-400">
+                                                <div className="mt-2 text-sm font-medium text-emerald-600">
                                                     A new verification link has been
                                                     sent to your email address.
                                                 </div>
@@ -155,7 +149,7 @@ export default function Profile({
                                     )}
                             </div>
 
-                            <div className="mt-6 flex items-center gap-4 border-t border-[#1a2035] pt-5">
+                            <div className="mt-6 flex items-center gap-4 border-t border-slate-100 pt-5">
                                 <Button
                                     disabled={processing}
                                     data-test="update-profile-button"
