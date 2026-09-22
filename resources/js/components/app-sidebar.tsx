@@ -7,7 +7,6 @@ import {
     Calendar,
     AlertTriangle,
     History,
-    Mail,
     BarChart3,
     Users,
 } from 'lucide-react';
@@ -22,6 +21,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarSeparator,
 } from '@/components/ui/sidebar';
 import type { NavItem } from '@/types';
 
@@ -32,10 +32,10 @@ export function AppSidebar() {
 
     const adminNavItems: NavItem[] = [
         { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
-        { title: 'Requests', href: '/requests', icon: FileText },
+        { title: 'Service Requests', href: '/requests', icon: FileText },
         { title: 'Job Orders', href: '/job-orders', icon: ClipboardList },
         { title: 'Inventory', href: '/inventory', icon: Box },
-        { title: 'Bookings', href: '/bookings', icon: Calendar },
+        { title: 'Facility Booking', href: '/bookings', icon: Calendar },
         { title: 'Incidents', href: '/incidents', icon: AlertTriangle },
         { title: 'Audit Log', href: '/audit-log', icon: History },
         { title: 'Reports', href: '/reports', icon: BarChart3 },
@@ -44,22 +44,15 @@ export function AppSidebar() {
 
     const facultyStaffNavItems: NavItem[] = [
         { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
-        { title: 'My Requests', href: '/requests', icon: FileText },
-        { title: 'Bookings', href: '/bookings', icon: Calendar },
+        { title: 'My Service Requests', href: '/requests', icon: FileText },
+        { title: 'Facility Booking', href: '/bookings', icon: Calendar },
         { title: 'Incidents', href: '/incidents', icon: AlertTriangle },
-    ];
-
-    const studentNavItems: NavItem[] = [
-        { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
-        { title: 'Request Email/O365', href: '/requests', icon: Mail },
     ];
 
     let mainNavItems: NavItem[] = facultyStaffNavItems;
 
     if (roleName === 'ict_admin') {
         mainNavItems = adminNavItems;
-    } else if (roleName === 'student') {
-        mainNavItems = studentNavItems;
     }
 
     const footerNavItems: NavItem[] = [];
@@ -78,9 +71,13 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
+            <SidebarSeparator className="mx-3 my-1" />
+
             <SidebarContent>
                 <NavMain items={mainNavItems} />
             </SidebarContent>
+
+            <SidebarSeparator className="mx-3 my-1" />
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
