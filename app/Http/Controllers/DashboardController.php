@@ -38,14 +38,8 @@ class DashboardController extends Controller
             ]);
 
         $isAdmin = $user->role->role_name === 'ict_admin';
-        $isStudent = $user->role->role_name === 'student';
 
-        $hour = (int) now()->format('H');
-        $greeting = match (true) {
-            $hour < 12 => 'Good morning',
-            $hour < 17 => 'Good afternoon',
-            default => 'Good evening',
-        };
+        $greeting = 'Welcome';
 
         if ($isAdmin) {
             $stats = [
@@ -129,47 +123,6 @@ class DashboardController extends Controller
                     'status' => $b->booking_status,
                     'date' => $b->booking_date,
                 ]);
-        } elseif ($isStudent) {
-            $stats = [
-                'myRequests' => ServiceRequest::where('user_id', $user->id)->count(),
-                'pendingRequests' => ServiceRequest::where('user_id', $user->id)
-                    ->where('request_status', 'pending')->count(),
-                'approvedRequests' => ServiceRequest::where('user_id', $user->id)
-                    ->where('request_status', 'approved')->count(),
-            ];
-
-            $requestsByStatus = [
-                'pending' => ServiceRequest::where('user_id', $user->id)->where('request_status', 'pending')->count(),
-                'approved' => ServiceRequest::where('user_id', $user->id)->where('request_status', 'approved')->count(),
-                'rejected' => ServiceRequest::where('user_id', $user->id)->where('request_status', 'rejected')->count(),
-                'completed' => ServiceRequest::where('user_id', $user->id)->where('request_status', 'completed')->count(),
-            ];
-
-            $requestsByPriority = [
-                'low' => ServiceRequest::where('user_id', $user->id)->where('priority_level', 'low')->count(),
-                'medium' => ServiceRequest::where('user_id', $user->id)->where('priority_level', 'medium')->count(),
-                'high' => ServiceRequest::where('user_id', $user->id)->where('priority_level', 'high')->count(),
-                'urgent' => ServiceRequest::where('user_id', $user->id)->where('priority_level', 'urgent')->count(),
-            ];
-
-            $recentRequests = ServiceRequest::where('user_id', $user->id)
-                ->latest()
-                ->take(5)
-                ->get()
-                ->map(fn (ServiceRequest $r) => [
-                    'id' => $r->id,
-                    'user_name' => $user->name,
-                    'priority' => $r->priority_level,
-                    'status' => $r->request_status,
-                    'description' => mb_substr($r->problem_description, 0, 80),
-                    'date' => $r->date_requested?->toIso8601String(),
-                ]);
-
-            $jobOrdersByStatus = [];
-            $inventorySummary = [];
-            $recentJobOrders = [];
-            $recentIncidents = [];
-            $recentBookings = [];
         } else {
             $stats = [
                 'myRequests' => ServiceRequest::where('user_id', $user->id)->count(),
@@ -232,7 +185,6 @@ class DashboardController extends Controller
             'pendingInvitations' => $pendingInvitations,
             'stats' => $stats,
             'isAdmin' => $isAdmin,
-            'isStudent' => $isStudent,
             'greeting' => $greeting,
             'requestsByStatus' => $requestsByStatus,
             'requestsByPriority' => $requestsByPriority,
