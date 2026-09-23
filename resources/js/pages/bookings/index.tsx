@@ -2,9 +2,12 @@ import { Head, Link } from '@inertiajs/react';
 import {
     ArrowUpRight,
     Calendar,
-    ChevronRight,
+    CheckCircle2,
+    Clock3,
     Plus,
     Search,
+    XCircle,
+    Filter,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -16,13 +19,20 @@ type BookingItem = {
     start_time: string;
     end_time: string;
     booking_status: string;
+    purpose: string | null;
     user: { name: string };
-    facility: { facility_name: string };
+    facility: { facility_name: string; facility_type: string; location: string | null };
 };
 
 type Props = {
     bookings: BookingItem[];
     isAdmin: boolean;
+    stats: {
+        total: number;
+        pending: number;
+        approved: number;
+        rejected: number;
+    };
 };
 
 const statusBadge: Record<string, string> = {
@@ -32,41 +42,56 @@ const statusBadge: Record<string, string> = {
     cancelled: 'border-slate-200 bg-slate-50 text-slate-600',
 };
 
-export default function BookingsIndex({ bookings, isAdmin }: Props) {
+const facilityTypeLabel: Record<string, string> = {
+    computer_lab: 'Computer Lab',
+    av_room: 'AV Room',
+};
+
+export default function BookingsIndex({ bookings, isAdmin, stats }: Props) {
     const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string>('all');
 
     const filtered = bookings.filter((booking) => {
         const q = search.toLowerCase();
-
-        return (
+        const matchesSearch =
             booking.facility.facility_name.toLowerCase().includes(q) ||
             booking.user.name.toLowerCase().includes(q) ||
-            String(booking.id).includes(q)
-        );
+            String(booking.id).includes(q);
+        const matchesStatus =
+            statusFilter === 'all' || booking.booking_status === statusFilter;
+        return matchesSearch && matchesStatus;
     });
+
+    const statusTabs = [
+        { key: 'all', label: 'All', count: stats.total },
+        { key: 'pending', label: 'Pending', count: stats.pending, icon: Clock3, color: 'text-amber-600' },
+        { key: 'approved', label: 'Approved', count: stats.approved, icon: CheckCircle2, color: 'text-emerald-600' },
+        { key: 'rejected', label: 'Rejected', count: stats.rejected, icon: XCircle, color: 'text-rose-600' },
+    ];
 
     return (
         <>
-            <Head title="Facility Bookings" />
+            <Head title="Facility Booking" />
 
-            <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
-                <div className="relative mx-auto max-w-7xl space-y-6">
+            <div className="min-h-full flex-1 bg-slate-50 text-slate-800">
+                <div className="relative flex flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
                     {/* Header */}
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div>
-                            <div className="mb-3 flex items-center gap-2">
-                                <span className="size-2 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
-                                <span className="text-[11px] font-medium tracking-[0.2em] text-slate-500 uppercase">
+                            <div className="mb-2 flex items-center gap-2">
+                                <span className="size-1.5 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
+                                <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
                                     Facility Management
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
-                                Facility Bookings
+                            <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
+                                Facility Booking
                             </h1>
 
-                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">
-                                Reserve computer labs and AV rooms.
+                            <p className="mt-1.5 max-w-xl text-sm text-slate-500">
+                                Reserve computer labs and AV rooms for your
+                                activities.
                             </p>
                         </div>
 
@@ -83,45 +108,121 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                         )}
                     </div>
 
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                        {[
+                            { label: 'Total Bookings', value: stats.total, icon: Calendar, color: 'text-ustp-navy', bg: 'bg-ustp-navy/5' },
+                            { label: 'Pending', value: stats.pending, icon: Clock3, color: 'text-amber-600', bg: 'bg-amber-50' },
+                            { label: 'Approved', value: stats.approved, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                            { label: 'Rejected', value: stats.rejected, icon: XCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
+                        ].map((card) => (
+                            <div
+                                key={card.label}
+                                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}>
+                                        <card.icon className={`size-5 ${card.color}`} />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-semibold text-slate-800">
+                                            {card.value}
+                                        </p>
+                                        <p className="text-[11px] text-slate-400">
+                                            {card.label}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Status Tabs */}
+                    <div className="flex flex-wrap items-center gap-2">
+                        {statusTabs.map((tab) => (
+                            <button
+                                key={tab.key}
+                                onClick={() => setStatusFilter(tab.key)}
+                                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                                    statusFilter === tab.key
+                                        ? 'bg-ustp-navy text-white shadow-sm'
+                                        : 'bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                                }`}
+                            >
+                                {tab.icon && (
+                                    <tab.icon className={`size-3.5 ${statusFilter === tab.key ? 'text-white' : tab.color}`} />
+                                )}
+                                {tab.label}
+                                <span className={`ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] ${
+                                    statusFilter === tab.key
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-slate-100 text-slate-500'
+                                }`}>
+                                    {tab.count}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+
                     {/* Toolbar */}
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="relative w-full sm:max-w-sm">
+                        <div className="relative w-full max-w-sm">
                             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
 
                             <Input
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search bookings..."
+                                placeholder="Search by facility, requester, or ID..."
                                 className="h-10 border-slate-300 bg-white pl-9 text-sm text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
                             />
+
+                            {search && (
+                                <button
+                                    onClick={() => setSearch('')}
+                                    className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                >
+                                    <XCircle className="size-3.5" />
+                                </button>
+                            )}
                         </div>
 
-                        <div className="text-xs text-slate-400">
-                            {filtered.length} booking
-                            {filtered.length !== 1 ? 's' : ''}
+                        <div className="flex items-center gap-3">
+                            {(statusFilter !== 'all' || search) && (
+                                <button
+                                    onClick={() => { setStatusFilter('all'); setSearch(''); }}
+                                    className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
+                                >
+                                    <XCircle className="size-3" />
+                                    Clear filters
+                                </button>
+                            )}
+
+                            <div className="text-[11px] text-slate-400">
+                                {filtered.length} booking{filtered.length !== 1 ? 's' : ''}
+                            </div>
                         </div>
                     </div>
 
                     {/* Empty */}
                     {filtered.length === 0 ? (
-                        <div className="flex min-h-90 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white px-6 text-center">
+                        <div className="relative flex min-h-90 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white px-6 text-center">
                             <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-ustp-gold/10 text-ustp-gold">
                                 <Calendar className="size-6" />
                             </div>
 
                             <h2 className="text-sm font-medium text-slate-800">
-                                {search
+                                {search || statusFilter !== 'all'
                                     ? 'No matching bookings'
                                     : 'No bookings yet'}
                             </h2>
 
                             <p className="mt-1.5 max-w-sm text-xs leading-5 text-slate-400">
-                                {search
-                                    ? 'Try a different facility name, requester, or booking ID.'
+                                {search || statusFilter !== 'all'
+                                    ? 'Try adjusting your search or filter criteria.'
                                     : 'Facility booking requests will appear here.'}
                             </p>
 
-                            {!search && !isAdmin && (
+                            {!search && statusFilter === 'all' && !isAdmin && (
                                 <Button
                                     asChild
                                     variant="outline"
@@ -135,43 +236,25 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                             )}
                         </div>
                     ) : (
-                        /* Table */
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                            {/* Table heading */}
-                            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-5 sm:px-6">
-                                <div>
-                                    <h2 className="text-sm font-semibold text-slate-800">
-                                        Booking requests
-                                    </h2>
-                                    <p className="mt-1 text-xs text-slate-400">
-                                        {bookings.length}{' '}
-                                        {bookings.length === 1
-                                            ? 'booking'
-                                            : 'bookings'}
-                                    </p>
-                                </div>
-
-                                <Calendar className="size-4 text-slate-400" />
-                            </div>
-
-                            {/* Desktop table */}
-                            <div className="hidden overflow-x-auto md:block">
+                        <>
+                            {/* Desktop Table */}
+                            <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:block">
                                 <table className="w-full text-sm">
                                     <thead className="border-b border-slate-200 bg-slate-50">
-                                        <tr className="text-left">
-                                            <th className="px-6 py-4 text-[11px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                        <tr>
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Facility
                                             </th>
-                                            <th className="px-6 py-4 text-[11px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Requested by
                                             </th>
-                                            <th className="px-6 py-4 text-[11px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Date & Time
                                             </th>
-                                            <th className="px-6 py-4 text-[11px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Status
                                             </th>
-                                            <th className="w-16 px-6 py-4" />
+                                            <th className="w-16 px-5 py-3.5" />
                                         </tr>
                                     </thead>
 
@@ -179,9 +262,9 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                                         {filtered.map((booking) => (
                                             <tr
                                                 key={booking.id}
-                                                className="group border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
+                                                className="border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
                                             >
-                                                <td className="px-6 py-5">
+                                                <td className="px-5 py-4">
                                                     <div className="flex items-center gap-3">
                                                         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
                                                             <Calendar className="size-4" />
@@ -189,47 +272,43 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
 
                                                         <div>
                                                             <p className="font-medium text-slate-800">
-                                                                {
-                                                                    booking
-                                                                        .facility
-                                                                        .facility_name
-                                                                }
+                                                                {booking.facility.facility_name}
                                                             </p>
-                                                            <p className="mt-1 text-xs text-slate-400">
-                                                                Booking #
-                                                                {booking.id}
-                                                            </p>
+                                                            <div className="mt-0.5 flex items-center gap-2">
+                                                                <span className="text-[10px] text-slate-400">
+                                                                    #{booking.id}
+                                                                </span>
+                                                                <span className="text-[10px] text-slate-300">·</span>
+                                                                <span className="text-[10px] text-slate-400 capitalize">
+                                                                    {facilityTypeLabel[booking.facility.facility_type] ?? booking.facility.facility_type}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
 
-                                                <td className="px-6 py-5">
+                                                <td className="px-5 py-4">
                                                     <span className="text-sm text-slate-600">
                                                         {booking.user.name}
                                                     </span>
                                                 </td>
 
-                                                <td className="px-6 py-5">
-                                                    <p className="text-slate-800">
-                                                        {new Date(
-                                                            booking.booking_date,
-                                                        ).toLocaleDateString()}
+                                                <td className="px-5 py-4">
+                                                    <p className="text-sm text-slate-800">
+                                                        {new Date(booking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                     </p>
-                                                    <p className="mt-1 text-xs text-slate-400">
-                                                        {booking.start_time} –{' '}
-                                                        {booking.end_time}
+                                                    <p className="mt-0.5 text-xs text-slate-400">
+                                                        {booking.start_time} – {booking.end_time}
                                                     </p>
                                                 </td>
 
-                                                <td className="px-6 py-5">
-                                                    <span
-                                                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusBadge[booking.booking_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
-                                                    >
+                                                <td className="px-5 py-4">
+                                                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusBadge[booking.booking_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}>
                                                         {booking.booking_status}
                                                     </span>
                                                 </td>
 
-                                                <td className="px-6 py-5 text-right">
+                                                <td className="px-5 py-4 text-right">
                                                     <Link
                                                         href={`/bookings/${booking.id}`}
                                                         className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-ustp-gold"
@@ -244,74 +323,50 @@ export default function BookingsIndex({ bookings, isAdmin }: Props) {
                                 </table>
                             </div>
 
-                            {/* Mobile cards */}
-                            <div className="divide-y divide-slate-200 md:hidden">
+                            {/* Mobile Cards */}
+                            <div className="space-y-3 md:hidden">
                                 {filtered.map((booking) => (
                                     <Link
                                         key={booking.id}
                                         href={`/bookings/${booking.id}`}
-                                        className="block p-5 transition-colors hover:bg-slate-50"
+                                        className="block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
                                     >
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex min-w-0 gap-3">
-                                                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
-                                                    <Calendar className="size-4" />
+                                        <div className="p-4">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex min-w-0 gap-3">
+                                                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
+                                                        <Calendar className="size-4" />
+                                                    </div>
+
+                                                    <div className="min-w-0">
+                                                        <p className="truncate font-medium text-slate-800">
+                                                            {booking.facility.facility_name}
+                                                        </p>
+                                                        <p className="mt-0.5 text-xs text-slate-400">
+                                                            #{booking.id} · {booking.user.name}
+                                                        </p>
+                                                    </div>
                                                 </div>
 
-                                                <div className="min-w-0">
-                                                    <p className="truncate font-medium text-slate-800">
-                                                        {
-                                                            booking.facility
-                                                                .facility_name
-                                                        }
-                                                    </p>
-                                                    <p className="mt-1 text-xs text-slate-400">
-                                                        Booking #{booking.id}
-                                                    </p>
-                                                </div>
+                                                <span className={`shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${statusBadge[booking.booking_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}>
+                                                    {booking.booking_status}
+                                                </span>
                                             </div>
 
-                                            <ChevronRight className="mt-1 size-4 shrink-0 text-slate-400" />
-                                        </div>
-
-                                        <div className="mt-4 grid grid-cols-2 gap-4">
-                                            <div>
-                                                <p className="text-[10px] tracking-wider text-slate-400 uppercase">
-                                                    Requested by
-                                                </p>
-                                                <p className="mt-1 text-sm text-slate-600">
-                                                    {booking.user.name}
-                                                </p>
+                                            <div className="mt-3 flex items-center gap-4 text-xs text-slate-500">
+                                                <span>
+                                                    {new Date(booking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                </span>
+                                                <span className="text-slate-300">·</span>
+                                                <span>
+                                                    {booking.start_time} – {booking.end_time}
+                                                </span>
                                             </div>
-
-                                            <div>
-                                                <p className="text-[10px] tracking-wider text-slate-400 uppercase">
-                                                    Date
-                                                </p>
-                                                <p className="mt-1 text-sm text-slate-600">
-                                                    {new Date(
-                                                        booking.booking_date,
-                                                    ).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-4 flex items-center justify-between">
-                                            <span className="text-xs text-slate-400">
-                                                {booking.start_time} –{' '}
-                                                {booking.end_time}
-                                            </span>
-
-                                            <span
-                                                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusBadge[booking.booking_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
-                                            >
-                                                {booking.booking_status}
-                                            </span>
                                         </div>
                                     </Link>
                                 ))}
                             </div>
-                        </div>
+                        </>
                     )}
                 </div>
             </div>

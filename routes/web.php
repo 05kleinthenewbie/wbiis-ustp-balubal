@@ -13,12 +13,15 @@ use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/health', fn () => response()->json(['ok' => true]))->name('health');
+
 Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::resource('requests', ServiceRequestController::class)->except(['edit', 'destroy']);
     Route::resource('job-orders', JobOrderController::class)->only(['index', 'show', 'update']);
+    Route::get('job-orders/{jobOrder}/print', [JobOrderController::class, 'print'])->name('job-orders.print');
     Route::post('job-orders/{jobOrder}/responses', [JobOrderController::class, 'addResponse'])->name('job-orders.responses.store');
     Route::post('job-orders/{jobOrder}/rate', [JobOrderController::class, 'rate'])->name('job-orders.rate');
     Route::post('job-orders/{jobOrder}/verify', [JobOrderController::class, 'verify'])->name('job-orders.verify');

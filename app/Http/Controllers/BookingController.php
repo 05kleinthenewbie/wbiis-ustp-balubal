@@ -24,9 +24,24 @@ class BookingController extends Controller
             $query->where('user_id', $user->id);
         }
 
+        $bookings = $query->get();
+
+        $statsQuery = Booking::query();
+        if ($user->role->role_name !== 'ict_admin') {
+            $statsQuery->where('user_id', $user->id);
+        }
+
+        $stats = [
+            'total' => $statsQuery->count(),
+            'pending' => (clone $statsQuery)->where('booking_status', 'pending')->count(),
+            'approved' => (clone $statsQuery)->where('booking_status', 'approved')->count(),
+            'rejected' => (clone $statsQuery)->where('booking_status', 'rejected')->count(),
+        ];
+
         return Inertia::render('bookings/index', [
-            'bookings' => $query->get(),
+            'bookings' => $bookings,
             'isAdmin' => $user->role->role_name === 'ict_admin',
+            'stats' => $stats,
         ]);
     }
 
@@ -37,7 +52,7 @@ class BookingController extends Controller
     {
         $user = Auth::user();
 
-        if (in_array($user->role->role_name, ['ict_admin', 'student'])) {
+        if ($user->role->role_name === 'ict_admin') {
             abort(403, 'Only Faculty/Staff can book facilities.');
         }
 
@@ -53,7 +68,7 @@ class BookingController extends Controller
     {
         $user = Auth::user();
 
-        if (in_array($user->role->role_name, ['ict_admin', 'student'])) {
+        if ($user->role->role_name === 'ict_admin') {
             abort(403, 'Only Faculty/Staff can book facilities.');
         }
 

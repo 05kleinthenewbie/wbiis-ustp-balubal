@@ -34,10 +34,23 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-        @fonts
-
-        @viteReactRefresh
-        @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        @if(app()->environment('production'))
+            @php
+                $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
+                $css = $manifest['resources/css/app.css']['file'] ?? null;
+                $appJs = $manifest['resources/js/app.tsx']['file'] ?? null;
+                $pageFile = $manifest["resources/js/pages/{$page['component']}.tsx"]['file'] ?? null;
+                $fontsCss = $manifest['_fonts-HDTwTRsm.css']['file'] ?? null;
+            @endphp
+            @if($css)<link rel="stylesheet" href="{{ asset("build/{$css}") }}">@endif
+            @if($fontsCss)<link rel="stylesheet" href="{{ asset("build/{$fontsCss}") }}">@endif
+            @if($appJs)<script type="module" src="{{ asset("build/{$appJs}") }}"></script>@endif
+            @if($pageFile)<script type="module" src="{{ asset("build/{$pageFile}") }}"></script>@endif
+        @else
+            @fonts
+            @viteReactRefresh
+            @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        @endif
         <x-inertia::head>
             <title>{{ config('app.name', 'Laravel') }}</title>
         </x-inertia::head>

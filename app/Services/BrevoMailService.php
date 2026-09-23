@@ -1,0 +1,114 @@
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\Http;
+use RuntimeException;
+
+class BrevoMailService
+{
+    private string $endpoint = 'https://api.brevo.com/v3/smtp/email';
+
+    /**
+     * Send a transactional email through the Brevo HTTP API.
+     *
+     * @param  array<int, array{email: string, name?: string}>  $to
+     */
+    public function send(array $to, string $subject, string $html, ?string $text = null): array
+    {
+        $key = (string) config('services.brevo.key');
+        $senderEmail = (string) (config('services.brevo.sender_email') ?? config('mail.from.address'));
+        $senderName = (string) (config('services.brevo.sender_name') ?? config('mail.from.name'));
+
+        if ($key === '') {
+            throw new RuntimeException('BREVO_API_KEY is not configured.');
+        }
+
+        if ($senderEmail === '') {
+            throw new RuntimeException('BREVO_SENDER_EMAIL is not configured.');
+        }
+
+        $payload = [
+            'sender' => ['email' => $senderEmail, 'name' => $senderName],
+            'to' => $to,
+            'subject' => $subject,
+            'htmlContent' => $html,
+        ];
+
+        if ($text !== null) {
+            $payload['textContent'] = $text;
+        }
+
+        $response = Http::withHeaders([
+            'api-key' => $key,
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ])->post($this->endpoint, $payload);
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Brevo API error: '.$response->body());
+        }
+
+        return (array) $response->json();
+    }
+
+    /**
+     * Send the post-registration welcome email to a newly registered user.
+     *
+     * The status is checked at send time (not registration time) because the
+     * email is queued — an admin may approve the account before the worker
+     * picks the job up. Approved users get the approved wording instead of
+     * the pending-approval wording.
+     */
+    public function sendWelcomeEmail(string $email, string $name, bool $isApproved = false): array
+    {
+        $appName = (string) config('app.name');
+        $loginUrl = (string) config('app.url').'/login';
+
+        $subject = $isApproved
+            ? "Welcome to {$appName} — your account is ready"
+            : "Welcome to {$appName} — registration received";
+
+        $html = view('emails.auth.welcome', [
+            'name' => $name,
+            'appName' => $appName,
+            'loginUrl' => $loginUrl,
+            'isApproved' => $isApproved,
+        ])->render();
+
+        $text = $isApproved
+            ? "Hi {$name}, thank you for registering at {$appName}. Your account is approved and ready — log in here: {$loginUrl}"
+            : "Hi {$name}, thank you for registering at {$appName}. Your account is pending approval. Log in here: {$loginUrl}";
+
+        return $this->send(
+            [['email' => $email, 'name' => $name]],
+            $subject,
+            $html,
+            $text,
+        );
+    }
+
+    /**
+     * Send the account-approved email to a newly approved user.
+     */
+    public function sendAccountApprovedEmail(string $email, string $name): array
+    {
+        $appName = (string) config('app.name');
+        $loginUrl = (string) config('app.url').'/login';
+
+        $subject = "Your {$appName} account has been approved";
+
+        $html = view('emails.auth.account-approved', [
+            'name' => $name,
+            'appName' => $appName,
+            'loginUrl' => $loginUrl,
+        ])->render();
+
+        return $this->send(
+            [['email' => $email, 'name' => $name]],
+            $subject,
+            $html,
+            "Hi {$name}, your account at {$appName} has been approved. You can now log in here: {$loginUrl}",
+        );
+    }
+}

@@ -21,7 +21,6 @@ class DashboardController extends ApiController
         }
 
         $isAdmin = $this->isAdmin();
-        $isStudent = $this->roleName() === 'student';
 
         if ($isAdmin) {
             $payload = [
@@ -39,16 +38,6 @@ class DashboardController extends ApiController
                 'recentJobOrders' => JobOrder::with(['technician', 'serviceRequest'])->latest()->take(5)->get(),
                 'recentIncidents' => IncidentReport::with('reporter')->latest()->take(5)->get(),
                 'recentBookings' => Booking::with(['user', 'facility'])->latest()->take(5)->get(),
-            ];
-        } elseif ($isStudent) {
-            $payload = [
-                'stats' => [
-                    'myRequests' => ServiceRequest::where('user_id', $user->id)->count(),
-                    'pendingRequests' => ServiceRequest::where('user_id', $user->id)->where('request_status', 'pending')->count(),
-                    'approvedRequests' => ServiceRequest::where('user_id', $user->id)->where('request_status', 'approved')->count(),
-                ],
-                'requestsByStatus' => $this->requestStatusCounts($user->id),
-                'recentRequests' => ServiceRequest::with('user')->where('user_id', $user->id)->latest()->take(5)->get(),
             ];
         } else {
             $payload = [
@@ -69,7 +58,6 @@ class DashboardController extends ApiController
 
         return response()->json([
             'isAdmin' => $isAdmin,
-            'isStudent' => $isStudent,
             'greeting' => $this->greeting(),
             ...$payload,
         ]);

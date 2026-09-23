@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\UserApproved;
 use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\User;
@@ -94,6 +95,10 @@ class UserController extends Controller
                 'notification_type' => 'account_approval',
                 'notification_status' => 'unread',
             ]);
+
+            if ($user->wasChanged('status')) {
+                UserApproved::dispatch($user);
+            }
         } elseif ($validated['status'] === 'inactive') {
             Notification::create([
                 'user_id' => $user->id,

@@ -1,19 +1,11 @@
 import { Form, Head } from '@inertiajs/react';
-import { Building, Lock, Mail, User } from 'lucide-react';
-import { useState } from 'react';
+import { Lock, Mail, User } from 'lucide-react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
@@ -23,8 +15,6 @@ type Props = {
 };
 
 export default function Register({ passwordRules }: Props) {
-    const [role, setRole] = useState<string>('');
-
     return (
         <>
             <Head title="Register" />
@@ -88,69 +78,12 @@ export default function Register({ passwordRules }: Props) {
                                 </p>
                             </div>
 
-                            <div
-                                className={
-                                    role !== 'faculty_staff'
-                                        ? 'grid grid-cols-2 gap-3'
-                                        : ''
-                                }
-                            >
-                                <div className="grid gap-2">
-                                    <Label
-                                        htmlFor="role"
-                                        className="text-sm font-medium text-foreground"
-                                    >
-                                        Role
-                                    </Label>
-                                    <Select
-                                        name="role"
-                                        required
-                                        onValueChange={setRole}
-                                    >
-                                        <SelectTrigger
-                                            id="role"
-                                            className="h-11 rounded-lg border-border text-sm transition-colors focus:border-ustp-navy focus:ring-ustp-navy/20"
-                                        >
-                                            <SelectValue placeholder="Select role" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="faculty_staff">
-                                                Faculty/Staff
-                                            </SelectItem>
-                                            <SelectItem value="student">
-                                                Student
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <InputError message={errors.role} />
-                                </div>
-
-                                {role !== 'faculty_staff' && (
-                                    <div className="grid gap-2">
-                                        <Label
-                                            htmlFor="department"
-                                            className="text-sm font-medium text-foreground"
-                                        >
-                                            Department
-                                        </Label>
-                                        <div className="relative">
-                                            <Building className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                                            <Input
-                                                id="department"
-                                                type="text"
-                                                required
-                                                tabIndex={3}
-                                                name="department"
-                                                placeholder="e.g. CITC"
-                                                className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
-                                            />
-                                        </div>
-                                        <InputError
-                                            message={errors.department}
-                                        />
-                                    </div>
-                                )}
-                            </div>
+                            <input
+                                type="hidden"
+                                name="role"
+                                value="faculty_staff"
+                            />
+                            <InputError message={errors.role} />
 
                             <div className="grid gap-2">
                                 <Label

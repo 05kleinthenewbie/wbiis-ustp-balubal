@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { CalendarDays, Clock3, MapPin } from 'lucide-react';
+import { CalendarDays, Clock3, MapPin, Users, Building2 } from 'lucide-react';
 import { BackButton } from '@/components/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,14 +14,22 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 
-type Facility = { id: number; facility_name: string; facility_type: string };
+type Facility = {
+    id: number;
+    facility_name: string;
+    facility_type: string;
+    capacity: number | null;
+    location: string | null;
+};
 
 type Props = {
     facilities: Facility[];
 };
 
-const fieldClass =
-    'h-11 border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20';
+const facilityTypeLabel: Record<string, string> = {
+    computer_lab: 'Computer Lab',
+    av_room: 'AV Room',
+};
 
 export default function BookingsCreate({ facilities }: Props) {
     const { data, setData, post, processing, errors } = useForm({
@@ -32,6 +40,10 @@ export default function BookingsCreate({ facilities }: Props) {
         purpose: '',
     });
 
+    const selectedFacility = facilities.find(
+        (f) => String(f.id) === data.facility_id,
+    );
+
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         post('/bookings');
@@ -39,266 +51,296 @@ export default function BookingsCreate({ facilities }: Props) {
 
     return (
         <>
-            <Head title="New Booking" />
+            <Head title="Book a Facility" />
 
-            <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
-                <div className="relative mx-auto max-w-3xl space-y-6">
-                    <BackButton href="/bookings" />
+            <div className="min-h-full flex-1 bg-slate-50 text-slate-800">
+                <div className="relative flex flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
+                    <div className="mx-auto w-full max-w-3xl space-y-6">
+                        <BackButton href="/bookings" />
 
-                    {/* Heading */}
-                    <div className="flex items-start gap-4">
-                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-ustp-gold/10 text-ustp-gold">
-                            <CalendarDays className="size-5" />
-                        </div>
-
+                        {/* Heading */}
                         <div>
-                            <div className="mb-2.5 flex items-center gap-2">
-                                <span className="size-2 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
-                                <span className="text-[11px] font-medium tracking-[0.2em] text-slate-500 uppercase">
+                            <div className="mb-2 flex items-center gap-2">
+                                <span className="size-1.5 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
+                                <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
                                     Facility Management
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
+                            <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                                 Book a Facility
                             </h1>
 
-                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">
-                                Choose a facility, schedule, and purpose for
-                                your booking request.
+                            <p className="mt-1.5 max-w-lg text-sm text-slate-500">
+                                Choose a facility, schedule, and purpose for your
+                                booking request.
                             </p>
                         </div>
-                    </div>
 
-                    <form onSubmit={handleSubmit}>
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                            {/* Form header */}
-                            <div className="border-b border-slate-200 bg-slate-50 px-6 py-5">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
-                                        <CalendarDays className="size-4 text-ustp-gold" />
-                                    </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                {/* Form header */}
+                                <div className="border-b border-slate-200 bg-slate-50 px-6 py-5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                            <CalendarDays className="size-4 text-ustp-gold" />
+                                        </div>
 
-                                    <div>
-                                        <h2 className="text-sm font-semibold text-slate-800">
-                                            Booking details
-                                        </h2>
-                                        <p className="mt-0.5 text-xs text-slate-400">
-                                            All fields marked by validation are
-                                            required.
-                                        </p>
+                                        <div>
+                                            <h2 className="text-sm font-semibold text-slate-800">
+                                                Booking details
+                                            </h2>
+                                            <p className="mt-0.5 text-xs text-slate-400">
+                                                All fields are required unless
+                                                noted.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="space-y-7 p-6">
-                                {/* Facility */}
-                                <div className="grid gap-2">
-                                    <Label
-                                        htmlFor="facility_id"
-                                        className="text-xs font-medium text-slate-600"
-                                    >
-                                        Facility
-                                    </Label>
-
-                                    <Select
-                                        value={data.facility_id}
-                                        onValueChange={(value) =>
-                                            setData('facility_id', value)
-                                        }
-                                    >
-                                        <SelectTrigger
-                                            id="facility_id"
-                                            className="h-11 w-full border-slate-300 bg-white text-slate-800 shadow-none hover:border-ustp-gold/40 focus:ring-1 focus:ring-ustp-gold/20"
+                                <div className="space-y-7 p-6">
+                                    {/* Facility */}
+                                    <div className="grid gap-2">
+                                        <Label
+                                            htmlFor="facility_id"
+                                            className="text-xs font-medium text-slate-600"
                                         >
-                                            <SelectValue placeholder="Select a facility" />
-                                        </SelectTrigger>
+                                            Facility
+                                        </Label>
 
-                                        <SelectContent className="border-slate-200 bg-white text-slate-800">
-                                            {facilities.map((facility) => (
-                                                <SelectItem
-                                                    key={facility.id}
-                                                    value={String(facility.id)}
-                                                >
-                                                    {facility.facility_name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-
-                                    {errors.facility_id && (
-                                        <p className="text-xs text-red-600">
-                                            {errors.facility_id}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Date */}
-                                <div className="grid gap-2">
-                                    <Label
-                                        htmlFor="booking_date"
-                                        className="text-xs font-medium text-slate-600"
-                                    >
-                                        Date
-                                    </Label>
-
-                                    <div className="relative">
-                                        <CalendarDays className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
-
-                                        <Input
-                                            id="booking_date"
-                                            type="date"
-                                            value={data.booking_date}
-                                            onChange={(
-                                                e: React.ChangeEvent<HTMLInputElement>,
-                                            ) =>
-                                                setData(
-                                                    'booking_date',
-                                                    e.target.value,
-                                                )
+                                        <Select
+                                            value={data.facility_id}
+                                            onValueChange={(value) =>
+                                                setData('facility_id', value)
                                             }
-                                            className={`${fieldClass} pl-10 scheme-light`}
+                                        >
+                                            <SelectTrigger
+                                                id="facility_id"
+                                                className="h-11 w-full border-slate-300 bg-white text-slate-800 shadow-none hover:border-ustp-gold/40 focus:ring-1 focus:ring-ustp-gold/20"
+                                            >
+                                                <SelectValue placeholder="Select a facility" />
+                                            </SelectTrigger>
+
+                                            <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                                {facilities.map((facility) => (
+                                                    <SelectItem
+                                                        key={facility.id}
+                                                        value={String(facility.id)}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <span>{facility.facility_name}</span>
+                                                            <span className="text-[10px] text-slate-400">
+                                                                ({facilityTypeLabel[facility.facility_type] ?? facility.facility_type})
+                                                            </span>
+                                                        </div>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+
+                                        {errors.facility_id && (
+                                            <p className="text-xs text-red-600">
+                                                {errors.facility_id}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Facility info card */}
+                                    {selectedFacility && (
+                                        <div className="rounded-xl border border-ustp-gold/20 bg-ustp-gold/[0.04] p-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                                    <Building2 className="size-4 text-ustp-gold" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-slate-800">
+                                                        {selectedFacility.facility_name}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500">
+                                                        {facilityTypeLabel[selectedFacility.facility_type] ?? selectedFacility.facility_type}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-3 grid grid-cols-2 gap-3">
+                                                {selectedFacility.location && (
+                                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                        <MapPin className="size-3.5 text-ustp-gold" />
+                                                        {selectedFacility.location}
+                                                    </div>
+                                                )}
+                                                {selectedFacility.capacity && (
+                                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                        <Users className="size-3.5 text-ustp-gold" />
+                                                        Capacity: {selectedFacility.capacity}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Date */}
+                                    <div className="grid gap-2">
+                                        <Label
+                                            htmlFor="booking_date"
+                                            className="text-xs font-medium text-slate-600"
+                                        >
+                                            Date
+                                        </Label>
+
+                                        <div className="relative">
+                                            <CalendarDays className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+
+                                            <Input
+                                                id="booking_date"
+                                                type="date"
+                                                value={data.booking_date}
+                                                onChange={(
+                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                ) =>
+                                                    setData(
+                                                        'booking_date',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="h-11 border-slate-300 bg-white pl-10 text-slate-800 placeholder:text-slate-400 scheme-light focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
+                                            />
+                                        </div>
+
+                                        {errors.booking_date && (
+                                            <p className="text-xs text-red-600">
+                                                {errors.booking_date}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Time */}
+                                    <div>
+                                        <div className="mb-3 flex items-center gap-2">
+                                            <Clock3 className="size-3.5 text-ustp-gold" />
+                                            <span className="text-xs font-medium text-slate-600">
+                                                Schedule
+                                            </span>
+                                        </div>
+
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <div className="grid gap-2">
+                                                <Label
+                                                    htmlFor="start_time"
+                                                    className="text-xs text-slate-400"
+                                                >
+                                                    Start time
+                                                </Label>
+
+                                                <Input
+                                                    id="start_time"
+                                                    type="time"
+                                                    value={data.start_time}
+                                                    onChange={(
+                                                        e: React.ChangeEvent<HTMLInputElement>,
+                                                    ) =>
+                                                        setData(
+                                                            'start_time',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className="h-11 border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 scheme-light focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
+                                                />
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label
+                                                    htmlFor="end_time"
+                                                    className="text-xs text-slate-400"
+                                                >
+                                                    End time
+                                                </Label>
+
+                                                <Input
+                                                    id="end_time"
+                                                    type="time"
+                                                    value={data.end_time}
+                                                    onChange={(
+                                                        e: React.ChangeEvent<HTMLInputElement>,
+                                                    ) =>
+                                                        setData(
+                                                            'end_time',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className="h-11 border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 scheme-light focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {errors.start_time && (
+                                            <p className="mt-2 text-xs text-red-600">
+                                                {errors.start_time}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Purpose */}
+                                    <div className="grid gap-2">
+                                        <Label
+                                            htmlFor="purpose"
+                                            className="text-xs font-medium text-slate-600"
+                                        >
+                                            Purpose
+                                        </Label>
+
+                                        <Textarea
+                                            id="purpose"
+                                            rows={4}
+                                            placeholder="Describe why you need this facility (e.g., class, meeting, event)..."
+                                            value={data.purpose}
+                                            onChange={(
+                                                e: React.ChangeEvent<HTMLTextAreaElement>,
+                                            ) => setData('purpose', e.target.value)}
+                                            className="resize-none border-slate-300 bg-white text-slate-800 shadow-none placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
                                         />
                                     </div>
 
-                                    {errors.booking_date && (
-                                        <p className="text-xs text-red-600">
-                                            {errors.booking_date}
-                                        </p>
-                                    )}
-                                </div>
+                                    {/* Notice */}
+                                    <div className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+                                        <Clock3 className="mt-0.5 size-4 shrink-0 text-amber-600" />
 
-                                {/* Time */}
-                                <div>
-                                    <div className="mb-3 flex items-center gap-2">
-                                        <Clock3 className="size-3.5 text-ustp-gold" />
-                                        <span className="text-xs font-medium text-slate-600">
-                                            Schedule
-                                        </span>
-                                    </div>
-
-                                    <div className="grid gap-4 sm:grid-cols-2">
-                                        <div className="grid gap-2">
-                                            <Label
-                                                htmlFor="start_time"
-                                                className="text-xs text-slate-400"
-                                            >
-                                                Start time
-                                            </Label>
-
-                                            <Input
-                                                id="start_time"
-                                                type="time"
-                                                value={data.start_time}
-                                                onChange={(
-                                                    e: React.ChangeEvent<HTMLInputElement>,
-                                                ) =>
-                                                    setData(
-                                                        'start_time',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                className={`${fieldClass} scheme-light`}
-                                            />
-                                        </div>
-
-                                        <div className="grid gap-2">
-                                            <Label
-                                                htmlFor="end_time"
-                                                className="text-xs text-slate-400"
-                                            >
-                                                End time
-                                            </Label>
-
-                                            <Input
-                                                id="end_time"
-                                                type="time"
-                                                value={data.end_time}
-                                                onChange={(
-                                                    e: React.ChangeEvent<HTMLInputElement>,
-                                                ) =>
-                                                    setData(
-                                                        'end_time',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                className={`${fieldClass} scheme-light`}
-                                            />
+                                        <div>
+                                            <p className="text-xs font-medium text-slate-800">
+                                                Approval required
+                                            </p>
+                                            <p className="mt-1 text-xs leading-5 text-slate-500">
+                                                Your booking will remain pending
+                                                until it is reviewed by an ICT
+                                                administrator.
+                                            </p>
                                         </div>
                                     </div>
-
-                                    {errors.start_time && (
-                                        <p className="mt-2 text-xs text-red-600">
-                                            {errors.start_time}
-                                        </p>
-                                    )}
                                 </div>
 
-                                {/* Purpose */}
-                                <div className="grid gap-2">
-                                    <Label
-                                        htmlFor="purpose"
-                                        className="text-xs font-medium text-slate-600"
+                                {/* Actions */}
+                                <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={() => window.history.back()}
+                                        className="text-slate-500 hover:bg-slate-100 hover:text-slate-800"
                                     >
-                                        Purpose
-                                    </Label>
+                                        Cancel
+                                    </Button>
 
-                                    <Textarea
-                                        id="purpose"
-                                        rows={5}
-                                        placeholder="Describe why you need this facility..."
-                                        value={data.purpose}
-                                        onChange={(
-                                            e: React.ChangeEvent<HTMLTextAreaElement>,
-                                        ) => setData('purpose', e.target.value)}
-                                        className="resize-none border-slate-300 bg-white text-slate-800 shadow-none placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
-                                    />
-
-                                    <p className="text-xs text-slate-400">
-                                        Include relevant information such as the
-                                        activity, class, meeting, or event.
-                                    </p>
-                                </div>
-
-                                {/* Notice */}
-                                <div className="flex gap-3 rounded-xl border border-ustp-gold/20 bg-ustp-gold/[0.06] p-4">
-                                    <MapPin className="mt-0.5 size-4 shrink-0 text-ustp-gold" />
-
-                                    <div>
-                                        <p className="text-xs font-medium text-slate-800">
-                                            Approval required
-                                        </p>
-                                        <p className="mt-1 text-xs leading-5 text-slate-400">
-                                            Your booking will remain pending
-                                            until it is reviewed by an ICT
-                                            administrator.
-                                        </p>
-                                    </div>
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="bg-ustp-gold px-5 font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
+                                    >
+                                        {processing && <Spinner />}
+                                        Request booking
+                                    </Button>
                                 </div>
                             </div>
-
-                            {/* Actions */}
-                            <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={() => window.history.back()}
-                                    className="text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-                                >
-                                    Cancel
-                                </Button>
-
-                                <Button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="bg-ustp-gold px-5 font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
-                                >
-                                    {processing && <Spinner />}
-                                    Request booking
-                                </Button>
-                            </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </>

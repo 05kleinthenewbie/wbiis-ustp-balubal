@@ -11,6 +11,7 @@ import {
     Send,
     UserCog,
     FileText,
+    Printer,
 } from 'lucide-react';
 import { useState } from 'react';
 import { BackButton } from '@/components/back-button';
@@ -239,7 +240,18 @@ export default function JobOrdersShow({
 
             <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-4xl space-y-6">
-                    <BackButton href="/job-orders" />
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <BackButton href="/job-orders" />
+                        <a
+                            href={`/job-orders/${jobOrder.id}/print`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 rounded-lg bg-ustp-light-blue px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-ustp-navy"
+                        >
+                            <Printer className="size-4" />
+                            Print Official Form
+                        </a>
+                    </div>
 
                     {/* Header */}
                     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">

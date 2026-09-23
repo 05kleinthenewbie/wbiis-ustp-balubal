@@ -38,6 +38,28 @@ class DatabaseSeeder extends Seeder
             );
         }
 
+        $facultyRole = Role::where('role_name', 'faculty_staff')->first();
+
+        $faculty = User::firstOrCreate(
+            ['email' => 'faculty@ustp.edu.ph'],
+            [
+                'name' => 'Prof. Maria Santos',
+                'password' => bcrypt('password123'),
+                'role_id' => $facultyRole->id,
+                'department' => 'College of Engineering',
+                'status' => 'active',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        if (! $faculty->current_team_id) {
+            app(CreateTeam::class)->handle(
+                $faculty,
+                $faculty->name."'s Team",
+                isPersonal: true
+            );
+        }
+
         $this->call(ServiceCategorySeeder::class);
         $this->call(ServiceTypeSeeder::class);
         $this->call(FacilitySeeder::class);

@@ -1,5 +1,17 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { History } from 'lucide-react';
+import { useState, useCallback, useEffect, Fragment } from 'react';
+import {
+    History,
+    Search,
+    X,
+    FileText,
+    Users,
+    CalendarDays,
+    Layers,
+    ChevronDown,
+    ChevronRight,
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -29,22 +41,126 @@ type PaginatedLogs = {
     links: PaginationLink[];
     current_page: number;
     last_page: number;
+    total: number;
+    per_page: number;
 };
 
 type Props = {
     logs: PaginatedLogs;
     modules: string[];
-    filters: { module?: string };
+    filters: { module?: string; search?: string };
+    stats: {
+        total: number;
+        today: number;
+        active_admins: number;
+        modules: number;
+    };
 };
 
-export default function AuditLogIndex({ logs, modules, filters }: Props) {
+const moduleColors: Record<string, { bg: string; text: string; border: string }> = {
+    inventory_items: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    service_requests: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+    job_orders: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+    users: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+};
+
+const defaultModuleColor = { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' };
+
+function getActionIndicator(action: string): { color: string; label: string } {
+    const lower = action.toLowerCase();
+    if (lower.includes('create') || lower.includes('add') || lower.includes('register')) {
+        return { color: 'bg-emerald-500', label: 'Created' };
+    }
+    if (lower.includes('update') || lower.includes('edit') || lower.includes('modify') || lower.includes('change')) {
+        return { color: 'bg-amber-500', label: 'Updated' };
+    }
+    if (lower.includes('delete') || lower.includes('remove')) {
+        return { color: 'bg-red-500', label: 'Deleted' };
+    }
+    return { color: 'bg-blue-500', label: 'Action' };
+}
+
+function relativeTime(dateStr: string): string {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHr / 24);
+
+    if (diffSec < 60) return 'just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHr < 24) return `${diffHr}h ago`;
+    if (diffDay < 7) return `${diffDay}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+}
+
+export default function AuditLogIndex({ logs, modules, filters, stats }: Props) {
+    const [search, setSearch] = useState(filters.search ?? '');
+    const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+    let searchTimeout: ReturnType<typeof setTimeout>;
+
+    const handleSearch = useCallback(
+        (value: string) => {
+            setSearch(value);
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                router.get(
+                    '/audit-log',
+                    {
+                        module: filters.module ?? undefined,
+                        search: value || undefined,
+                    },
+                    { preserveState: true, replace: true },
+                );
+            }, 350);
+        },
+        [filters.module],
+    );
+
+    useEffect(() => {
+        return () => clearTimeout(searchTimeout);
+    }, []);
+
     function applyFilter(module: string) {
         router.get(
             '/audit-log',
-            { module: module !== 'all' ? module : undefined },
+            {
+                module: module !== 'all' ? module : undefined,
+                search: search || undefined,
+            },
             { preserveState: true, replace: true },
         );
     }
+
+    function clearFilters() {
+        setSearch('');
+        router.get('/audit-log', {}, { preserveState: true, replace: true });
+    }
+
+    function toggleRow(id: number) {
+        setExpandedRows((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    }
+
+    const hasActiveFilter = !!filters.module || !!filters.search;
+    const from = logs.total > 0 ? (logs.current_page - 1) * logs.per_page + 1 : 0;
+    const to = Math.min(logs.current_page * logs.per_page, logs.total);
+
+    const statCards = [
+        { label: 'Total Logs', value: stats.total, icon: FileText, color: 'text-ustp-navy', bg: 'bg-ustp-navy/5' },
+        { label: "Today's Actions", value: stats.today, icon: CalendarDays, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { label: 'Active Admins', value: stats.active_admins, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { label: 'Modules Tracked', value: stats.modules, icon: Layers, color: 'text-purple-600', bg: 'bg-purple-50' },
+    ];
 
     return (
         <>
@@ -72,24 +188,127 @@ export default function AuditLogIndex({ logs, modules, filters }: Props) {
                                 system.
                             </p>
                         </div>
-
-                        <Select
-                            defaultValue={filters.module ?? 'all'}
-                            onValueChange={applyFilter}
-                        >
-                            <SelectTrigger className="h-10 w-48 border-slate-300 bg-white text-slate-600 focus:ring-1 focus:ring-ustp-navy/30">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="border-slate-200 bg-white text-slate-800">
-                                <SelectItem value="all">All modules</SelectItem>
-                                {modules.map((module) => (
-                                    <SelectItem key={module} value={module}>
-                                        {module.replace('_', ' ')}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
                     </div>
+
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                        {statCards.map((card) => (
+                            <div
+                                key={card.label}
+                                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}>
+                                        <card.icon className={`size-5 ${card.color}`} />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-semibold text-slate-800">
+                                            {card.value.toLocaleString()}
+                                        </p>
+                                        <p className="text-[11px] text-slate-400">
+                                            {card.label}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Toolbar: Search + Filter */}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="relative w-full max-w-sm">
+                            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+
+                            <Input
+                                value={search}
+                                onChange={(e) => handleSearch(e.target.value)}
+                                placeholder="Search actions or details..."
+                                className="h-10 border-slate-300 bg-white pl-9 text-sm text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                            />
+
+                            {search && (
+                                <button
+                                    onClick={() => handleSearch('')}
+                                    className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                >
+                                    <X className="size-3.5" />
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Select
+                                defaultValue={filters.module ?? 'all'}
+                                onValueChange={applyFilter}
+                            >
+                                <SelectTrigger className="h-10 w-48 border-slate-300 bg-white text-slate-600 focus:ring-1 focus:ring-ustp-navy/30">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                    <SelectItem value="all">All modules</SelectItem>
+                                    {modules.map((module) => (
+                                        <SelectItem key={module} value={module}>
+                                            {module.replace('_', ' ')}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
+                            {hasActiveFilter && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
+                                >
+                                    <X className="size-3" />
+                                    Clear
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Active filter chips */}
+                    {hasActiveFilter && (
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-[11px] text-slate-400">Filters:</span>
+
+                            {filters.module && (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-ustp-navy/20 bg-ustp-navy/5 px-2.5 py-1 text-[11px] font-medium text-ustp-navy">
+                                    {filters.module.replace('_', ' ')}
+                                    <button
+                                        onClick={() =>
+                                            router.get(
+                                                '/audit-log',
+                                                { search: search || undefined },
+                                                { preserveState: true, replace: true },
+                                            )
+                                        }
+                                        className="ml-0.5 rounded-full p-0.5 hover:bg-ustp-navy/10"
+                                    >
+                                        <X className="size-2.5" />
+                                    </button>
+                                </span>
+                            )}
+
+                            {filters.search && (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700">
+                                    Search: "{filters.search}"
+                                    <button
+                                        onClick={() => {
+                                            setSearch('');
+                                            router.get(
+                                                '/audit-log',
+                                                { module: filters.module ?? undefined },
+                                                { preserveState: true, replace: true },
+                                            );
+                                        }}
+                                        className="ml-0.5 rounded-full p-0.5 hover:bg-amber-100"
+                                    >
+                                        <X className="size-2.5" />
+                                    </button>
+                                </span>
+                            )}
+                        </div>
+                    )}
 
                     {/* Empty */}
                     {logs.data.length === 0 ? (
@@ -99,100 +318,187 @@ export default function AuditLogIndex({ logs, modules, filters }: Props) {
                             </div>
 
                             <h2 className="text-sm font-medium text-slate-800">
-                                No audit log entries yet
+                                {hasActiveFilter
+                                    ? 'No matching audit log entries'
+                                    : 'No audit log entries yet'}
                             </h2>
 
                             <p className="mt-1.5 max-w-sm text-xs leading-5 text-slate-500">
-                                Administrative actions will appear here as they
-                                are performed.
+                                {hasActiveFilter
+                                    ? 'Try adjusting your search or filter criteria.'
+                                    : 'Administrative actions will appear here as they are performed.'}
                             </p>
+
+                            {hasActiveFilter && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                                >
+                                    Clear all filters
+                                </button>
+                            )}
                         </div>
                     ) : (
                         <>
                             {/* Table */}
-                            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                                 <div className="overflow-x-auto">
-                                    <table className="w-full min-w-180 text-sm">
+                                    <table className="w-full text-sm">
                                         <thead>
                                             <tr className="border-b border-slate-200 bg-slate-50">
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                <th className="w-10 px-4 py-3.5" />
+                                                <th className="px-4 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Action
                                                 </th>
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                <th className="hidden px-4 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase sm:table-cell">
                                                     Module
                                                 </th>
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                <th className="hidden px-4 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase md:table-cell">
                                                     Admin
                                                 </th>
-                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                <th className="hidden px-4 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase lg:table-cell">
                                                     Date
                                                 </th>
                                             </tr>
                                         </thead>
 
                                         <tbody>
-                                            {logs.data.map((log) => (
-                                                <tr
-                                                    key={log.id}
-                                                    className="border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
-                                                >
-                                                    <td className="px-5 py-4">
-                                                        <p className="font-medium text-slate-800">
-                                                            {log.action_taken}
-                                                        </p>
-                                                        {log.record_id && (
-                                                            <p className="mt-0.5 font-mono text-[10px] text-slate-500">
-                                                                Record #
-                                                                {log.record_id}
-                                                            </p>
+                                            {logs.data.map((log) => {
+                                                const indicator = getActionIndicator(log.action_taken);
+                                                const colors = moduleColors[log.module_name] ?? defaultModuleColor;
+                                                const isExpanded = expandedRows.has(log.id);
+                                                const hasDetails = !!log.details;
+
+                                                return (
+                                                    <Fragment key={log.id}>
+                                                        <tr
+                                                            className={`border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50 ${isExpanded ? 'bg-slate-50' : ''}`}
+                                                        >
+                                                            <td className="px-4 py-4">
+                                                                {hasDetails && (
+                                                                    <button
+                                                                        onClick={() => toggleRow(log.id)}
+                                                                        className="flex size-6 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                                                                        title={isExpanded ? 'Collapse details' : 'Expand details'}
+                                                                    >
+                                                                        {isExpanded ? (
+                                                                            <ChevronDown className="size-4" />
+                                                                        ) : (
+                                                                            <ChevronRight className="size-4" />
+                                                                        )}
+                                                                    </button>
+                                                                )}
+                                                            </td>
+
+                                                            <td className="px-4 py-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className={`size-2 shrink-0 rounded-full ${indicator.color}`} />
+
+                                                                    <div>
+                                                                        <p className="font-medium text-slate-800">
+                                                                            {log.action_taken}
+                                                                        </p>
+
+                                                                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                                                                            {log.record_id && (
+                                                                                <span className="font-mono text-[10px] text-slate-400">
+                                                                                    #{log.record_id}
+                                                                                </span>
+                                                                            )}
+
+                                                                            <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${colors.bg} ${colors.text} ${colors.border}`}>
+                                                                                {log.module_name.replace('_', ' ')}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+
+                                                            <td className="hidden px-4 py-4 sm:table-cell">
+                                                                <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${colors.bg} ${colors.text} ${colors.border}`}>
+                                                                    {log.module_name.replace('_', ' ')}
+                                                                </span>
+                                                            </td>
+
+                                                            <td className="hidden px-4 py-4 md:table-cell">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="flex size-7 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-500">
+                                                                        {log.admin_user?.name?.charAt(0)?.toUpperCase() ?? '—'}
+                                                                    </span>
+                                                                    <span className="text-xs text-slate-600">
+                                                                        {log.admin_user?.name ?? '—'}
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+
+                                                            <td className="hidden px-4 py-4 lg:table-cell">
+                                                                <span
+                                                                    className="text-xs text-slate-500"
+                                                                    title={new Date(log.action_date).toLocaleString()}
+                                                                >
+                                                                    {relativeTime(log.action_date)}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+
+                                                        {isExpanded && log.details && (
+                                                            <tr className="border-b border-slate-200 bg-slate-50/80 last:border-0">
+                                                                <td colSpan={5} className="px-4 py-4 pl-14">
+                                                                    <div className="rounded-lg border border-slate-200 bg-white p-3">
+                                                                        <p className="mb-1 text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                                                            Details
+                                                                        </p>
+                                                                        <p className="text-xs leading-5 text-slate-600">
+                                                                            {log.details}
+                                                                        </p>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
                                                         )}
-                                                    </td>
-                                                    <td className="px-5 py-4">
-                                                        <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-500 capitalize">
-                                                            {log.module_name.replace(
-                                                                '_',
-                                                                ' ',
-                                                            )}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-5 py-4 text-xs text-slate-500">
-                                                        {log.admin_user?.name ??
-                                                            '—'}
-                                                    </td>
-                                                    <td className="px-5 py-4 text-xs text-slate-500">
-                                                        {new Date(
-                                                            log.action_date,
-                                                        ).toLocaleString()}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                                    </Fragment>
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
 
-                            {/* Pagination */}
-                            {logs.last_page > 1 && (
-                                <div className="flex items-center justify-center gap-1">
-                                    {logs.links.map((link, index) => (
-                                        <Link
-                                            key={index}
-                                            href={link.url ?? '#'}
-                                            preserveState
-                                            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                                                link.active
-                                                    ? 'bg-ustp-navy text-white shadow-lg shadow-ustp-navy/10'
-                                                    : link.url
-                                                      ? 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
-                                                      : 'pointer-events-none text-slate-400'
-                                            }`}
-                                            dangerouslySetInnerHTML={{
-                                                __html: link.label,
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            )}
+                            {/* Results info + Pagination */}
+                            <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+                                <p className="text-[11px] text-slate-400">
+                                    Showing{' '}
+                                    <span className="font-medium text-slate-600">
+                                        {from}–{to}
+                                    </span>{' '}
+                                    of{' '}
+                                    <span className="font-medium text-slate-600">
+                                        {logs.total.toLocaleString()}
+                                    </span>{' '}
+                                    entries
+                                </p>
+
+                                {logs.last_page > 1 && (
+                                    <div className="flex items-center gap-1">
+                                        {logs.links.map((link, index) => (
+                                            <Link
+                                                key={index}
+                                                href={link.url ?? '#'}
+                                                preserveState
+                                                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                                                    link.active
+                                                        ? 'bg-ustp-navy text-white shadow-lg shadow-ustp-navy/10'
+                                                        : link.url
+                                                          ? 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                                                          : 'pointer-events-none text-slate-400'
+                                                }`}
+                                                dangerouslySetInnerHTML={{
+                                                    __html: link.label,
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </>
                     )}
                 </div>

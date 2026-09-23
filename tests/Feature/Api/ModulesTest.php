@@ -25,7 +25,6 @@ function roleFor(string $name): Role
 beforeEach(function () {
     $this->facultyRole = roleFor('faculty_staff');
     $this->adminRole = roleFor('ict_admin');
-    $this->studentRole = roleFor('student');
 });
 
 it('shows role-scoped dashboard stats', function () {
@@ -139,15 +138,15 @@ it('only allows faculty and staff to book facilities', function () {
     $faculty = apiUser($this->facultyRole);
     $facultyToken = auth('api')->login($faculty);
 
-    $student = apiUser($this->studentRole);
-    $studentToken = auth('api')->login($student);
+    $admin = apiUser($this->adminRole);
+    $adminToken = auth('api')->login($admin);
 
     $this->withHeader('Authorization', "Bearer {$facultyToken}")
         ->getJson('/api/v1/facilities')
         ->assertOk()
         ->assertJsonStructure(['data']);
 
-    $this->withHeader('Authorization', "Bearer {$studentToken}")
+    $this->withHeader('Authorization', "Bearer {$adminToken}")
         ->postJson('/api/v1/bookings', [
             'facility_id' => 1,
             'booking_date' => '2099-01-15',

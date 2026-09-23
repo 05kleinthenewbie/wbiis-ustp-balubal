@@ -29,21 +29,50 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
         Validator::make($input, [
-            ...$this->profileRules(),
-            'role' => ['required', Rule::in(['faculty_staff', 'student'])],
-            'department' => ['required_if:role,student', 'nullable', 'string', 'max:100'],
+            'name' => $this->nameRules(),
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                // Rejected (inactive) accounts may register again, so only
+                // pending/active emails block a new registration.
+                Rule::unique(User::class)->where(fn ($query) => $query->whereIn('status', ['pending', 'active'])),
+            ],
+            'role' => ['required', Rule::in(['faculty_staff'])],
             'password' => $this->passwordRules(),
         ])->validate();
 
         return DB::transaction(function () use ($input) {
             $role = Role::where('role_name', $input['role'])->firstOrFail();
 
+            $rejected = User::where('email', $input['email'])
+                ->where('status', 'inactive')
+                ->first();
+
+            if ($rejected !== null) {
+                $rejected->update([
+                    'name' => $input['name'],
+                    'password' => $input['password'],
+                    'role_id' => $role->id,
+                    'department' => null,
+                    'status' => 'pending',
+                    'email_verified_at' => null,
+                ]);
+
+                if (! $rejected->ownedTeams()->exists()) {
+                    $this->createTeam->handle($rejected, $rejected->name."'s Team", isPersonal: true);
+                }
+
+                return $rejected->refresh();
+            }
+
             $user = User::create([
                 'name' => $input['name'],
                 'email' => $input['email'],
                 'password' => $input['password'],
                 'role_id' => $role->id,
-                'department' => $input['department'] ?? null,
+                'department' => null,
                 'status' => 'pending',
             ]);
 

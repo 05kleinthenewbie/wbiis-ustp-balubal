@@ -68,13 +68,6 @@ class ServiceRequestController extends Controller
 
         $categories = ServiceCategory::with('serviceTypes')->get();
 
-        // Students can only request Information System services (email/O365).
-        if ($user->role->role_name === 'student') {
-            $categories = $categories->filter(
-                fn ($category) => $category->category_name === 'Information System Services'
-            )->values();
-        }
-
         return Inertia::render('requests/create', [
             'categories' => $categories,
         ]);

@@ -102,6 +102,24 @@ class JobOrderController extends Controller
     }
 
     /**
+     * Display a printable copy of the official ICT Job Request Form (FM-USTP-ICT-001).
+     */
+    public function print(string $id)
+    {
+        $jobOrder = JobOrder::with([
+            'serviceRequest.user',
+            'serviceRequest.attachments',
+            'serviceRequest.requestServices.serviceType.category',
+            'technician',
+        ])->findOrFail($id);
+
+        return Inertia::render('job-orders/print', [
+            'jobOrder' => $jobOrder,
+            'hasAttachment' => (bool) ($jobOrder->service_request?->attachments?->isNotEmpty() ?? false),
+        ]);
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)

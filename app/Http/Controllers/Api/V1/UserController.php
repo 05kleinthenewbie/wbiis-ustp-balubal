@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Events\UserApproved;
 use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\User;
@@ -51,6 +52,10 @@ class UserController extends ApiController
                 'notification_type' => 'account_approval',
                 'notification_status' => 'unread',
             ]);
+
+            if ($user->wasChanged('status')) {
+                UserApproved::dispatch($user);
+            }
         } elseif ($validated['status'] === 'inactive') {
             Notification::create([
                 'user_id' => $user->id,

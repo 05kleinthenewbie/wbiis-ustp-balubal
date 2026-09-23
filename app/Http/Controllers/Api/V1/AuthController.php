@@ -53,7 +53,6 @@ class AuthController extends ApiController
             'password',
             'password_confirmation',
             'role',
-            'department',
         ]));
 
         return response()->json([

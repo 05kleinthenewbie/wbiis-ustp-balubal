@@ -9,13 +9,14 @@ import {
     ClipboardList,
     FileText,
     Layers,
-    LayoutGrid,
     Package,
     Plus,
     TrendingUp,
     Wrench,
     Zap,
 } from 'lucide-react';
+
+
 import { useState } from 'react';
 import PendingInvitationsModal from '@/components/pending-invitations-modal';
 import type { DashboardInvitation } from '@/types';
@@ -32,12 +33,6 @@ type UserStats = {
     pendingRequests: number;
     myBookings: number;
     upcomingBookings: number;
-};
-
-type StudentStats = {
-    myRequests: number;
-    pendingRequests: number;
-    approvedRequests: number;
 };
 
 type RecentRequest = {
@@ -74,9 +69,8 @@ type RecentBooking = {
 
 type Props = {
     pendingInvitations?: DashboardInvitation[];
-    stats: AdminStats | UserStats | StudentStats;
+    stats: AdminStats | UserStats;
     isAdmin: boolean;
-    isStudent: boolean;
     greeting: string;
     requestsByStatus: Record<string, number>;
     requestsByPriority: Record<string, number>;
@@ -87,77 +81,6 @@ type Props = {
     recentIncidents: RecentIncident[];
     recentBookings: RecentBooking[];
 };
-
-function StatCard({
-    label,
-    value,
-    icon: Icon,
-    href,
-    accent = 'navy',
-    trend,
-}: {
-    label: string;
-    value: number;
-    icon: React.ElementType;
-    href: string;
-    accent?: 'navy' | 'gold';
-    trend?: { value: string; direction: 'up' | 'down' };
-}) {
-    const accentStyles = {
-        navy: {
-            card: 'border-slate-200 bg-white hover:border-ustp-gold/40 hover:bg-slate-50',
-            iconBg: 'bg-ustp-gold/15',
-            iconText: 'text-ustp-gold',
-        },
-        gold: {
-            card: 'border-slate-200 bg-white hover:border-ustp-gold/40 hover:bg-slate-50',
-            iconBg: 'bg-ustp-gold/15',
-            iconText: 'text-ustp-gold',
-        },
-    };
-
-    const styles = accentStyles[accent];
-
-    return (
-        <Link
-            href={href}
-            className={`group overflow-hidden rounded-2xl border p-5 transition-all ${styles.card}`}
-        >
-            <div className="flex items-start justify-between">
-                <div
-                    className={`flex size-10 items-center justify-center rounded-xl ${styles.iconBg}`}
-                >
-                    <Icon className={`size-5 ${styles.iconText}`} />
-                </div>
-
-                <div className="flex items-center gap-2">
-                    {trend && (
-                        <span
-                            className={`text-[11px] font-medium ${
-                                trend.direction === 'up'
-                                    ? 'text-emerald-400'
-                                    : 'text-red-400'
-                            }`}
-                        >
-                            {trend.direction === 'up' ? '+' : ''}
-                            {trend.value}
-                        </span>
-                    )}
-                    <ChevronRight className="size-4 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
-                </div>
-            </div>
-
-            <div className="mt-4">
-                <p className="text-[10px] font-medium tracking-[0.14em] text-slate-400 uppercase">
-                    {label}
-                </p>
-                <p className="mt-1.5 text-3xl font-semibold tracking-tight text-slate-800">
-                    {value}
-                </p>
-            </div>
-        </Link>
-    );
-}
 
 function HorizontalBarChart({
     data,
@@ -295,90 +218,6 @@ function RingChart({
                     </div>
                 ))}
             </div>
-        </div>
-    );
-}
-
-function RecentRequestsTable({ requests }: { requests: RecentRequest[] }) {
-    const statusBadge: Record<string, string> = {
-        pending: 'border-amber-200 bg-amber-50 text-amber-700',
-        approved: 'border-sky-200 bg-sky-50 text-sky-700',
-        rejected: 'border-red-200 bg-red-50 text-red-600',
-        completed: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    };
-
-    const priorityBadge: Record<string, string> = {
-        low: 'border-slate-200 bg-slate-50 text-slate-600',
-        medium: 'border-blue-200 bg-blue-50 text-blue-600',
-        high: 'border-orange-200 bg-orange-50 text-orange-600',
-        urgent: 'border-red-200 bg-red-50 text-red-600',
-    };
-
-    return (
-        <div className="overflow-x-auto">
-            <table className="w-full">
-                <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50">
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                            Requester
-                        </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                            Description
-                        </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                            Priority
-                        </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                            Status
-                        </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                            When
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {requests.map((r) => (
-                        <tr
-                            key={r.id}
-                            className="border-b border-slate-200 transition-colors hover:bg-slate-50"
-                        >
-                            <td className="px-4 py-3 text-sm font-medium text-slate-800">
-                                {r.user_name}
-                            </td>
-                            <td className="max-w-[200px] truncate px-4 py-3 text-sm text-slate-500">
-                                {r.description || '—'}
-                            </td>
-                            <td className="px-4 py-3">
-                                <span
-                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${priorityBadge[r.priority] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
-                                >
-                                    {r.priority}
-                                </span>
-                            </td>
-                            <td className="px-4 py-3">
-                                <span
-                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusBadge[r.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
-                                >
-                                    {r.status}
-                                </span>
-                            </td>
-                            <td className="px-4 py-3 text-xs text-slate-400">
-                                {r.date ? formatRelativeTime(r.date) : '—'}
-                            </td>
-                        </tr>
-                    ))}
-                    {requests.length === 0 && (
-                        <tr>
-                            <td
-                                colSpan={5}
-                                className="px-4 py-8 text-center text-sm text-slate-400"
-                            >
-                                No service requests yet
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
         </div>
     );
 }
@@ -549,7 +388,6 @@ export default function Dashboard({
     pendingInvitations = [],
     stats,
     isAdmin,
-    isStudent,
     greeting,
     requestsByStatus,
     requestsByPriority,
@@ -585,147 +423,191 @@ export default function Dashboard({
                 open={pendingInvitations.length > 0 && showInvitations}
                 onOpenChange={setShowInvitations}
             />
-            <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
-                <div className="relative mx-auto max-w-7xl space-y-6">
+            <div className="min-h-full flex-1 bg-slate-50 text-slate-800">
+                <div className="relative flex flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
                     {/* ── Welcome header ── */}
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <div className="mb-3 flex items-center gap-2">
-                                <span className="size-2 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
-                                <span className="text-[11px] font-medium tracking-[0.2em] text-slate-500 uppercase">
+                            <div className="mb-2 flex items-center gap-2">
+                                <span className="size-1.5 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
+                                <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
                                     {isAdmin
                                         ? 'ICT Admin Overview'
                                         : 'Dashboard'}
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
+                            <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                                 {greeting}, {userName}
                             </h1>
 
-                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">
+                            <p className="mt-1.5 max-w-lg text-sm text-slate-500">
                                 {isAdmin
-                                    ? 'Here\u2019s what needs your attention today.'
+                                    ? "Here\u2019s what needs your attention today."
                                     : 'A quick look at your requests and bookings.'}
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5">
-                            <Clock className="size-4 text-slate-400" />
-                            <span className="text-sm text-slate-600">
-                                {today}
-                            </span>
+                        <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <Clock className="size-4" />
+                            {today}
                         </div>
                     </div>
 
-                    {/* ── Stat cards ── */}
-                    <div className="grid auto-rows-min gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        {isAdmin ? (
+                    {/* ── Quick actions ── */}
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                        {!isAdmin && (
+                            <Link
+                                href="/requests/create"
+                                className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-ustp-light-blue/40 hover:shadow-md"
+                            >
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
+                                    <Plus className="size-4 text-ustp-light-blue" />
+                                </div>
+                                <span className="text-xs font-medium text-slate-700 group-hover:text-ustp-light-blue">
+                                    New Request
+                                </span>
+                            </Link>
+                        )}
+
+                        {isAdmin && (
+                            <Link
+                                href="/requests"
+                                className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-ustp-light-blue/40 hover:shadow-md"
+                            >
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
+                                    <FileText className="size-4 text-ustp-light-blue" />
+                                </div>
+                                    <span className="text-xs font-medium text-slate-700 group-hover:text-ustp-light-blue">
+                                    Service Requests
+                                </span>
+                            </Link>
+                        )}
+
+                        <Link
+                            href={isAdmin ? '/bookings' : '/bookings/create'}
+                            className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-ustp-gold/40 hover:shadow-md"
+                        >
+                            <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                <Calendar className="size-4 text-ustp-gold" />
+                            </div>
+                            <span className="text-xs font-medium text-slate-700 group-hover:text-ustp-gold">
+                                {isAdmin ? 'Facility Bookings' : 'Book Facility'}
+                            </span>
+                        </Link>
+
+                        <Link
+                            href="/incidents"
+                            className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-red-400/40 hover:shadow-md"
+                        >
+                            <div className="flex size-9 items-center justify-center rounded-lg bg-red-400/10">
+                                <AlertTriangle className="size-4 text-red-400" />
+                            </div>
+                            <span className="text-xs font-medium text-slate-700 group-hover:text-red-400">
+                                Incidents
+                            </span>
+                        </Link>
+
+                        {isAdmin && (
                             <>
-                                <StatCard
-                                    label="Pending Requests"
-                                    value={
-                                        (stats as AdminStats).pendingRequests
-                                    }
-                                    icon={FileText}
-                                    href="/requests"
-                                    accent="navy"
-                                />
-                                <StatCard
-                                    label="Open Job Orders"
-                                    value={(stats as AdminStats).openJobOrders}
-                                    icon={ClipboardList}
+                                <Link
                                     href="/job-orders"
-                                    accent="navy"
-                                />
-                                <StatCard
-                                    label="Pending Bookings"
-                                    value={
-                                        (stats as AdminStats).pendingBookings
-                                    }
-                                    icon={Calendar}
-                                    href="/bookings"
-                                    accent="gold"
-                                />
-                                <StatCard
-                                    label="Open Incidents"
-                                    value={(stats as AdminStats).openIncidents}
-                                    icon={AlertTriangle}
-                                    href="/incidents"
-                                    accent="gold"
-                                />
-                            </>
-                        ) : isStudent ? (
-                            <>
-                                <StatCard
-                                    label="My Requests"
-                                    value={(stats as StudentStats).myRequests}
-                                    icon={FileText}
-                                    href="/requests"
-                                    accent="navy"
-                                />
-                                <StatCard
-                                    label="Pending Requests"
-                                    value={
-                                        (stats as StudentStats).pendingRequests
-                                    }
-                                    icon={ClipboardList}
-                                    href="/requests"
-                                    accent="gold"
-                                />
-                                <StatCard
-                                    label="Approved Requests"
-                                    value={
-                                        (stats as StudentStats).approvedRequests
-                                    }
-                                    icon={CalendarCheck}
-                                    href="/requests"
-                                    accent="navy"
-                                />
-                            </>
-                        ) : (
-                            <>
-                                <StatCard
-                                    label="My Requests"
-                                    value={(stats as UserStats).myRequests}
-                                    icon={FileText}
-                                    href="/requests"
-                                    accent="navy"
-                                />
-                                <StatCard
-                                    label="Pending Requests"
-                                    value={(stats as UserStats).pendingRequests}
-                                    icon={ClipboardList}
-                                    href="/requests"
-                                    accent="gold"
-                                />
-                                <StatCard
-                                    label="My Bookings"
-                                    value={(stats as UserStats).myBookings}
-                                    icon={Calendar}
-                                    href="/bookings"
-                                    accent="navy"
-                                />
-                                <StatCard
-                                    label="Upcoming Bookings"
-                                    value={
-                                        (stats as UserStats).upcomingBookings
-                                    }
-                                    icon={CalendarCheck}
-                                    href="/bookings"
-                                    accent="gold"
-                                />
+                                    className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-amber-400/40 hover:shadow-md"
+                                >
+                                    <div className="flex size-9 items-center justify-center rounded-lg bg-amber-400/10">
+                                        <Wrench className="size-4 text-amber-400" />
+                                    </div>
+                                    <span className="text-xs font-medium text-slate-700 group-hover:text-amber-400">
+                                        Job Orders
+                                    </span>
+                                </Link>
+
+                                <Link
+                                    href="/inventory"
+                                    className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-emerald-400/40 hover:shadow-md"
+                                >
+                                    <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-400/10">
+                                        <Package className="size-4 text-emerald-400" />
+                                    </div>
+                                    <span className="text-xs font-medium text-slate-700 group-hover:text-emerald-400">
+                                        Inventory
+                                    </span>
+                                </Link>
                             </>
                         )}
                     </div>
 
-                    {/* ── Main content: two-column ── */}
-                    <div className="grid gap-6 lg:grid-cols-3">
-                        {/* LEFT: wider column */}
-                        <div className="space-y-6 lg:col-span-2">
-                            {/* Requests by Status */}
-                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                <div className="mb-5 flex items-center gap-3">
+                    {/* ── Stat cards ── */}
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                        {isAdmin ? (
+                            <>
+                                {[
+                                    { label: 'Pending Requests', value: (stats as AdminStats).pendingRequests, icon: FileText, href: '/requests', color: 'text-ustp-navy', bg: 'bg-ustp-navy/5' },
+                                    { label: 'Open Job Orders', value: (stats as AdminStats).openJobOrders, icon: ClipboardList, href: '/job-orders', color: 'text-amber-600', bg: 'bg-amber-50' },
+                                    { label: 'Pending Facility Bookings', value: (stats as AdminStats).pendingBookings, icon: Calendar, href: '/bookings', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                                    { label: 'Open Incidents', value: (stats as AdminStats).openIncidents, icon: AlertTriangle, href: '/incidents', color: 'text-rose-600', bg: 'bg-rose-50' },
+                                ].map((card) => (
+                                    <Link
+                                        key={card.label}
+                                        href={card.href}
+                                        className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+                                    >
+                                        <div className="flex items-start justify-between">
+                                            <div className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}>
+                                                <card.icon className={`size-5 ${card.color}`} />
+                                            </div>
+                                            <ChevronRight className="size-4 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
+                                        </div>
+                                        <div className="mt-4">
+                                            <p className="text-[10px] font-medium tracking-[0.14em] text-slate-400 uppercase">
+                                                {card.label}
+                                            </p>
+                                            <p className="mt-1.5 text-3xl font-semibold tracking-tight text-slate-800">
+                                                {card.value}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </>
+                        ) : (
+                            <>
+                                {[
+                                    { label: 'My Requests', value: (stats as UserStats).myRequests, icon: FileText, href: '/requests', color: 'text-ustp-navy', bg: 'bg-ustp-navy/5' },
+                                    { label: 'Pending', value: (stats as UserStats).pendingRequests, icon: ClipboardList, href: '/requests', color: 'text-amber-600', bg: 'bg-amber-50' },
+                                    { label: 'My Facility Bookings', value: (stats as UserStats).myBookings, icon: Calendar, href: '/bookings', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                                    { label: 'Upcoming', value: (stats as UserStats).upcomingBookings, icon: CalendarCheck, href: '/bookings', color: 'text-purple-600', bg: 'bg-purple-50' },
+                                ].map((card) => (
+                                    <Link
+                                        key={card.label}
+                                        href={card.href}
+                                        className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+                                    >
+                                        <div className="flex items-start justify-between">
+                                            <div className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}>
+                                                <card.icon className={`size-5 ${card.color}`} />
+                                            </div>
+                                            <ChevronRight className="size-4 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
+                                        </div>
+                                        <div className="mt-4">
+                                            <p className="text-[10px] font-medium tracking-[0.14em] text-slate-400 uppercase">
+                                                {card.label}
+                                            </p>
+                                            <p className="mt-1.5 text-3xl font-semibold tracking-tight text-slate-800">
+                                                {card.value}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </>
+                        )}
+                    </div>
+
+                    {/* ── Analytics row: Status + Priority side by side ── */}
+                    <div className="grid gap-5 lg:grid-cols-2">
+                        {/* Requests by Status */}
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                                <div className="flex items-center gap-3">
                                     <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                         <Layers className="size-4 text-ustp-gold" />
                                     </div>
@@ -738,6 +620,15 @@ export default function Dashboard({
                                         </p>
                                     </div>
                                 </div>
+                                <Link
+                                    href="/requests"
+                                    className="flex items-center gap-1 text-xs font-medium text-ustp-light-blue/70 transition-colors hover:text-ustp-light-blue"
+                                >
+                                    View all
+                                    <ArrowUpRight className="size-3.5" />
+                                </Link>
+                            </div>
+                            <div className="p-5">
                                 <HorizontalBarChart
                                     data={requestsByStatus}
                                     total={reqTotal}
@@ -749,10 +640,12 @@ export default function Dashboard({
                                     }}
                                 />
                             </div>
+                        </div>
 
-                            {/* Requests by Priority */}
-                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                <div className="mb-5 flex items-center gap-3">
+                        {/* Requests by Priority */}
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                                <div className="flex items-center gap-3">
                                     <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                         <Zap className="size-4 text-ustp-gold" />
                                     </div>
@@ -765,6 +658,8 @@ export default function Dashboard({
                                         </p>
                                     </div>
                                 </div>
+                            </div>
+                            <div className="p-5">
                                 <HorizontalBarChart
                                     data={requestsByPriority}
                                     total={reqTotal}
@@ -776,43 +671,43 @@ export default function Dashboard({
                                     }}
                                 />
                             </div>
+                        </div>
+                    </div>
 
-                            {/* Recent Service Requests table */}
-                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
-                                            <TrendingUp className="size-4 text-ustp-light-blue" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-slate-800">
-                                                Recent Requests
-                                            </h3>
-                                            <p className="text-[11px] text-slate-400">
-                                                Latest service requests
-                                            </p>
-                                        </div>
+                    {/* ── Main content: Activity + Ring charts ── */}
+                    <div className="grid gap-5 lg:grid-cols-3">
+                        {/* Activity Feed — wider */}
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
+                            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex size-9 items-center justify-center rounded-lg bg-slate-100">
+                                        <Clock className="size-4 text-slate-500" />
                                     </div>
-                                    <Link
-                                        href="/requests"
-                                        className="group flex items-center gap-1 text-xs font-medium text-ustp-light-blue/70 transition-colors hover:text-ustp-light-blue"
-                                    >
-                                        View all
-                                        <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                    </Link>
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-slate-800">
+                                            Recent Activity
+                                        </h3>
+                                        <p className="text-[11px] text-slate-400">
+                                            Across all modules
+                                        </p>
+                                    </div>
                                 </div>
-                                <RecentRequestsTable
-                                    requests={recentRequests}
+                            </div>
+                            <div className="p-5">
+                                <ActivityFeed
+                                    recentRequests={recentRequests}
+                                    recentJobOrders={recentJobOrders}
+                                    recentIncidents={recentIncidents}
+                                    recentBookings={recentBookings}
                                 />
                             </div>
                         </div>
 
-                        {/* RIGHT: narrower column */}
-                        <div className="space-y-6">
-                            {/* Job Orders ring chart — admin only */}
-                            {isAdmin && (
+                        {/* Ring charts — narrower */}
+                        <div className="space-y-5">
+                            {isAdmin && joTotal > 0 && (
                                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                    <div className="mb-5 flex items-center gap-3">
+                                    <div className="mb-4 flex items-center gap-3">
                                         <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                             <Wrench className="size-4 text-ustp-gold" />
                                         </div>
@@ -845,10 +740,9 @@ export default function Dashboard({
                                 </div>
                             )}
 
-                            {/* Inventory Health — admin only */}
-                            {isAdmin && (
+                            {isAdmin && invTotal > 0 && (
                                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                    <div className="mb-5 flex items-center gap-3">
+                                    <div className="mb-4 flex items-center gap-3">
                                         <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                             <Package className="size-4 text-ustp-gold" />
                                         </div>
@@ -857,7 +751,7 @@ export default function Dashboard({
                                                 Inventory Health
                                             </h3>
                                             <p className="text-[11px] text-slate-400">
-                                                Equipment condition breakdown
+                                                Equipment condition
                                             </p>
                                         </div>
                                     </div>
@@ -868,8 +762,7 @@ export default function Dashboard({
                                         strokeColors={{
                                             working: 'rgba(52,211,153,0.9)',
                                             defective: 'rgba(248,113,113,0.9)',
-                                            under_repair:
-                                                'rgba(251,191,36,0.9)',
+                                            under_repair: 'rgba(251,191,36,0.9)',
                                         }}
                                         dotClasses={{
                                             working: 'bg-emerald-400',
@@ -879,167 +772,111 @@ export default function Dashboard({
                                     />
                                 </div>
                             )}
-
-                            {/* Recent Activity Feed */}
-                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                <div className="mb-4 flex items-center gap-3">
-                                    <div className="flex size-9 items-center justify-center rounded-lg bg-slate-100">
-                                        <Clock className="size-4 text-slate-500" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-slate-800">
-                                            Recent Activity
-                                        </h3>
-                                        <p className="text-[11px] text-slate-400">
-                                            Across all modules
-                                        </p>
-                                    </div>
-                                </div>
-                                <ActivityFeed
-                                    recentRequests={recentRequests}
-                                    recentJobOrders={recentJobOrders}
-                                    recentIncidents={recentIncidents}
-                                    recentBookings={recentBookings}
-                                />
-                            </div>
                         </div>
                     </div>
 
-                    {/* ── Quick actions ── */}
-                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                        <div className="border-b border-slate-200 px-6 py-5">
+                    {/* ── Recent Service Requests table ── */}
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                             <div className="flex items-center gap-3">
-                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-blue-accent/30">
-                                    <LayoutGrid className="size-4 text-ustp-light-blue" />
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
+                                    <TrendingUp className="size-4 text-ustp-light-blue" />
                                 </div>
-
                                 <div>
-                                    <h2 className="text-sm font-semibold text-slate-800">
-                                        Quick actions
-                                    </h2>
-                                    <p className="mt-0.5 text-xs text-slate-400">
-                                        Common tasks and shortcuts
+                                    <h3 className="text-sm font-semibold text-slate-800">
+                                        Recent Requests
+                                    </h3>
+                                    <p className="text-[11px] text-slate-400">
+                                        Latest service requests
                                     </p>
                                 </div>
                             </div>
+                            <Link
+                                href="/requests"
+                                className="group flex items-center gap-1 text-xs font-medium text-ustp-light-blue/70 transition-colors hover:text-ustp-light-blue"
+                            >
+                                View all
+                                <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            </Link>
                         </div>
-
-                        <div className="grid divide-y divide-slate-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
-                            {!isAdmin && !isStudent && (
-                                <Link
-                                    href="/requests/create"
-                                    className="group flex items-center gap-4 p-5 transition-colors hover:bg-slate-50"
-                                >
-                                    <div className="flex size-10 items-center justify-center rounded-xl bg-ustp-light-blue/10">
-                                        <Plus className="size-5 text-ustp-light-blue" />
-                                    </div>
-
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium text-slate-800">
-                                            Submit a request
-                                        </p>
-                                        <p className="mt-0.5 text-xs text-slate-400">
-                                            Request ICT services
-                                        </p>
-                                    </div>
-
-                                    <ChevronRight className="size-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
-                                </Link>
-                            )}
-
-                            {isAdmin && (
-                                <Link
-                                    href="/requests"
-                                    className="group flex items-center gap-4 p-5 transition-colors hover:bg-slate-50"
-                                >
-                                    <div className="flex size-10 items-center justify-center rounded-xl bg-ustp-light-blue/10">
-                                        <FileText className="size-5 text-ustp-light-blue" />
-                                    </div>
-
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium text-slate-800">
-                                            Manage requests
-                                        </p>
-                                        <p className="mt-0.5 text-xs text-slate-400">
-                                            Review pending submissions
-                                        </p>
-                                    </div>
-
-                                    <ChevronRight className="size-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
-                                </Link>
-                            )}
-
-                            <Link
-                                href={
-                                    isAdmin ? '/bookings' : '/bookings/create'
-                                }
-                                className="group flex items-center gap-4 p-5 transition-colors hover:bg-slate-50"
-                            >
-                                <div className="flex size-10 items-center justify-center rounded-xl bg-ustp-gold/10">
-                                    <Calendar className="size-5 text-ustp-gold" />
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-slate-800">
-                                        {isAdmin
-                                            ? 'Review bookings'
-                                            : 'Book a facility'}
-                                    </p>
-                                    <p className="mt-0.5 text-xs text-slate-400">
-                                        {isAdmin
-                                            ? 'Approve or reject reservations'
-                                            : 'Reserve a computer lab or AV room'}
-                                    </p>
-                                </div>
-
-                                <ChevronRight className="size-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-ustp-gold/60" />
-                            </Link>
-
-                            <Link
-                                href="/incidents"
-                                className="group flex items-center gap-4 p-5 transition-colors hover:bg-slate-50"
-                            >
-                                <div className="flex size-10 items-center justify-center rounded-xl bg-red-400/10">
-                                    <AlertTriangle className="size-5 text-red-400" />
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-slate-800">
-                                        {isAdmin
-                                            ? 'Review incidents'
-                                            : 'Report an incident'}
-                                    </p>
-                                    <p className="mt-0.5 text-xs text-slate-400">
-                                        {isAdmin
-                                            ? 'Manage open incident reports'
-                                            : 'Report equipment issues'}
-                                    </p>
-                                </div>
-
-                                <ChevronRight className="size-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
-                            </Link>
-
-                            {isAdmin && (
-                                <Link
-                                    href="/inventory"
-                                    className="group flex items-center gap-4 p-5 transition-colors hover:bg-slate-50"
-                                >
-                                    <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-400/10">
-                                        <Package className="size-5 text-emerald-400" />
-                                    </div>
-
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium text-slate-800">
-                                            Inventory
-                                        </p>
-                                        <p className="mt-0.5 text-xs text-slate-400">
-                                            Manage equipment records
-                                        </p>
-                                    </div>
-
-                                    <ChevronRight className="size-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
-                                </Link>
-                            )}
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="border-b border-slate-200 bg-slate-50">
+                                        <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                            Requester
+                                        </th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                            Description
+                                        </th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                            Priority
+                                        </th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                            Status
+                                        </th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                            When
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {recentRequests.map((r) => (
+                                        <tr
+                                            key={r.id}
+                                            className="border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
+                                        >
+                                            <td className="px-5 py-3.5 text-sm font-medium text-slate-800">
+                                                {r.user_name}
+                                            </td>
+                                            <td className="max-w-[200px] truncate px-5 py-3.5 text-sm text-slate-500">
+                                                {r.description || '—'}
+                                            </td>
+                                            <td className="px-5 py-3.5">
+                                                <span
+                                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${
+                                                        {
+                                                            low: 'border-slate-200 bg-slate-50 text-slate-600',
+                                                            medium: 'border-blue-200 bg-blue-50 text-blue-600',
+                                                            high: 'border-orange-200 bg-orange-50 text-orange-600',
+                                                            urgent: 'border-red-200 bg-red-50 text-red-600',
+                                                        }[r.priority] ?? 'border-slate-200 bg-slate-50 text-slate-500'
+                                                    }`}
+                                                >
+                                                    {r.priority}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-3.5">
+                                                <span
+                                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${
+                                                        {
+                                                            pending: 'border-amber-200 bg-amber-50 text-amber-700',
+                                                            approved: 'border-sky-200 bg-sky-50 text-sky-700',
+                                                            rejected: 'border-red-200 bg-red-50 text-red-600',
+                                                            completed: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+                                                        }[r.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'
+                                                    }`}
+                                                >
+                                                    {r.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-3.5 text-xs text-slate-400">
+                                                {r.date ? formatRelativeTime(r.date) : '—'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {recentRequests.length === 0 && (
+                                        <tr>
+                                            <td
+                                                colSpan={5}
+                                                className="px-5 py-10 text-center text-sm text-slate-400"
+                                            >
+                                                No service requests yet
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

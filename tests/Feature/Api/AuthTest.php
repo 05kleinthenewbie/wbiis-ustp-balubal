@@ -4,15 +4,14 @@ use App\Models\Role;
 use App\Models\User;
 
 it('can register and waits for approval', function () {
-    Role::create(['role_name' => 'student']);
+    Role::create(['role_name' => 'faculty_staff']);
 
     $payload = [
-        'name' => 'New Student',
+        'name' => 'New Faculty',
         'email' => 'new@ustp.edu.ph',
         'password' => 'password123',
         'password_confirmation' => 'password123',
-        'role' => 'student',
-        'department' => 'CITC',
+        'role' => 'faculty_staff',
     ];
 
     $response = $this->postJson('/api/v1/auth/register', $payload);
@@ -21,6 +20,23 @@ it('can register and waits for approval', function () {
         ->assertJsonStructure(['message', 'user']);
 
     $this->assertDatabaseHas('users', ['email' => 'new@ustp.edu.ph', 'status' => 'pending']);
+});
+
+it('rejects student role registration', function () {
+    Role::create(['role_name' => 'faculty_staff']);
+
+    $response = $this->postJson('/api/v1/auth/register', [
+        'name' => 'New Student',
+        'email' => 'student@ustp.edu.ph',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+        'role' => 'student',
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['role']);
+
+    $this->assertDatabaseMissing('users', ['email' => 'student@ustp.edu.ph']);
 });
 
 it('cannot login with pending account', function () {

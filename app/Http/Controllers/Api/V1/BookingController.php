@@ -41,7 +41,7 @@ class BookingController extends ApiController
      */
     public function store(Request $request): JsonResponse
     {
-        if (in_array($this->roleName(), ['ict_admin', 'student'], true)) {
+        if ($this->roleName() === 'ict_admin') {
             abort(403, 'Only Faculty/Staff can book facilities.');
         }
 
