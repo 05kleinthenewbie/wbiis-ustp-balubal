@@ -26,32 +26,38 @@ const modules = [
     {
         icon: FileText,
         title: 'Service Requests',
-        description: 'Submit and track ICT service requests for equipment, software, and network support across campus.',
+        description:
+            'Submit and track ICT service requests for equipment, software, and network support across campus.',
     },
     {
         icon: ClipboardList,
         title: 'Job Order Management',
-        description: 'ICT staff can create, assign, and monitor job orders to resolve service requests efficiently.',
+        description:
+            'ICT staff can create, assign, and monitor job orders to resolve service requests efficiently.',
     },
     {
         icon: Inbox,
         title: 'Inventory Management',
-        description: 'Track ICT equipment, property records, and monitor defective items across the campus.',
+        description:
+            'Track ICT equipment, property records, and monitor defective items across the campus.',
     },
     {
         icon: Calendar,
         title: 'Facility Booking',
-        description: 'Reserve computer laboratories and audio-visual rooms for academic and official use.',
+        description:
+            'Reserve computer laboratories and audio-visual rooms for academic and official use.',
     },
     {
         icon: Shield,
         title: 'Incident Recording',
-        description: 'Document ICT-related incidents and monitor user responsibilities and liabilities.',
+        description:
+            'Document ICT-related incidents and monitor user responsibilities and liabilities.',
     },
     {
         icon: Mail,
         title: 'Notifications',
-        description: 'Receive email updates on request statuses, approvals, bookings, and system alerts.',
+        description:
+            'Receive email updates on request statuses, approvals, bookings, and system alerts.',
     },
 ];
 
@@ -59,28 +65,61 @@ const roles = [
     {
         icon: Users,
         role: 'Faculty & Staff',
-        description: 'Submit service requests, book facilities, and track your ICT-related concerns in real time.',
-        features: ['Submit Requests', 'Book Facilities', 'Track Status', 'View Updates'],
+        description:
+            'Submit service requests, book facilities, and track your ICT-related concerns in real time.',
+        features: [
+            'Submit Requests',
+            'Book Facilities',
+            'Track Status',
+            'View Updates',
+        ],
     },
     {
         icon: Shield,
         role: 'ICT Administrators',
-        description: 'Manage requests, process job orders, monitor inventory, and oversee all ICT operations.',
-        features: ['Manage Requests', 'Process Job Orders', 'Monitor Inventory', 'Record Incidents'],
+        description:
+            'Manage requests, process job orders, monitor inventory, and oversee all ICT operations.',
+        features: [
+            'Manage Requests',
+            'Process Job Orders',
+            'Monitor Inventory',
+            'Record Incidents',
+        ],
     },
     {
         icon: Wifi,
         role: 'Students',
-        description: 'Request email accounts and Office 365 access for academic purposes.',
+        description:
+            'Request email accounts and Office 365 access for academic purposes.',
         features: ['Email Requests', 'Office 365 Access', 'Track Requests'],
     },
 ];
 
 const workflowSteps = [
-    { step: '1', title: 'Submit Request', description: 'User submits a service request or facility booking through the portal.' },
-    { step: '2', title: 'Review & Assign', description: 'ICT administrator reviews and creates a job order for the request.' },
-    { step: '3', title: 'Process & Resolve', description: 'Assigned staff processes the request and updates the status.' },
-    { step: '4', title: 'Notify & Close', description: 'User receives notification and confirms resolution. Request is closed.' },
+    {
+        step: '1',
+        title: 'Submit Request',
+        description:
+            'User submits a service request or facility booking through the portal.',
+    },
+    {
+        step: '2',
+        title: 'Review & Assign',
+        description:
+            'ICT administrator reviews and creates a job order for the request.',
+    },
+    {
+        step: '3',
+        title: 'Process & Resolve',
+        description:
+            'Assigned staff processes the request and updates the status.',
+    },
+    {
+        step: '4',
+        title: 'Notify & Close',
+        description:
+            'User receives notification and confirms resolution. Request is closed.',
+    },
 ];
 
 export default function Welcome() {
@@ -88,6 +127,33 @@ export default function Welcome() {
     const dashboardUrl = dashboard();
     const [currentPage, setCurrentPage] = useState(0);
     const [itemsPerView, setItemsPerView] = useState(1);
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [scrollingDown, setScrollingDown] = useState(false);
+
+    useEffect(() => {
+        let previous = window.scrollY;
+
+        const onScroll = () => {
+            const current = window.scrollY;
+
+            setIsScrolled(current > 150);
+
+            if (current > previous && current > 150) {
+                setScrollingDown(true);
+            } else {
+                setScrollingDown(false);
+            }
+
+            previous = current;
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+        };
+    }, []);
 
     useEffect(() => {
         const queries = [
@@ -131,9 +197,15 @@ export default function Welcome() {
         <>
             <Head title="USTP Balubal ICT Portal" />
 
-            <div className="min-h-screen bg-white">
+            <div className="min-h-screen bg-white pt-20">
                 {/* Header */}
-                <header className="border-b border-ustp-gray-medium bg-white">
+                <header
+                    className={`fixed inset-x-0 top-0 z-40 border-b transition-all duration-300 ease-in-out motion-reduce:transition-none ${
+                        isScrolled
+                            ? 'border-black/5 bg-white/90 shadow-lg backdrop-blur-md'
+                            : 'border-ustp-gray-medium bg-white'
+                    } ${scrollingDown ? '-translate-y-1 motion-reduce:translate-y-0' : 'translate-y-0'}`}
+                >
                     <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
                         <div className="flex items-center gap-3">
                             <div className="flex size-12 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
@@ -144,13 +216,13 @@ export default function Welcome() {
                                 />
                             </div>
                             <div>
-                                <p className="font-serif text-lg font-bold leading-tight text-ustp-navy">
+                                <p className="font-serif text-lg leading-tight font-bold text-ustp-navy">
                                     University of Science and Technology
                                 </p>
                                 <p className="font-serif text-sm font-bold text-ustp-navy">
                                     of Southern Philippines
                                 </p>
-                                <p className="text-[11px] uppercase tracking-[0.12em] text-ustp-navy/60">
+                                <p className="text-[11px] tracking-[0.12em] text-ustp-navy/60 uppercase">
                                     Balubal Campus, Cagayan de Oro City
                                 </p>
                             </div>
@@ -193,19 +265,35 @@ export default function Welcome() {
                     <div
                         className="pointer-events-none absolute inset-0 opacity-5"
                         style={{
-                            backgroundImage: 'radial-gradient(circle, #F2A900 1px, transparent 1px)',
+                            backgroundImage:
+                                'radial-gradient(circle, #F2A900 1px, transparent 1px)',
                             backgroundSize: '32px 32px',
                         }}
                     />
                     {/* Real module badges — subtle fill behind stat cards */}
-                    <div className="pointer-events-none absolute -right-6 top-1/2 hidden -translate-y-1/2 grid-cols-3 gap-5 opacity-[0.08] lg:grid">
-                        <AlertTriangle className="size-16 text-white" strokeWidth={1} />
-                        <Shield className="size-16 text-white" strokeWidth={1} />
-                        <ClipboardList className="size-16 text-white" strokeWidth={1} />
+                    <div className="pointer-events-none absolute top-1/2 -right-6 hidden -translate-y-1/2 grid-cols-3 gap-5 opacity-[0.08] lg:grid">
+                        <AlertTriangle
+                            className="size-16 text-white"
+                            strokeWidth={1}
+                        />
+                        <Shield
+                            className="size-16 text-white"
+                            strokeWidth={1}
+                        />
+                        <ClipboardList
+                            className="size-16 text-white"
+                            strokeWidth={1}
+                        />
                         <Box className="size-16 text-white" strokeWidth={1} />
-                        <Calendar className="size-16 text-white" strokeWidth={1} />
+                        <Calendar
+                            className="size-16 text-white"
+                            strokeWidth={1}
+                        />
                         <Wifi className="size-16 text-white" strokeWidth={1} />
-                        <FileText className="size-16 text-white" strokeWidth={1} />
+                        <FileText
+                            className="size-16 text-white"
+                            strokeWidth={1}
+                        />
                         <Mail className="size-16 text-white" strokeWidth={1} />
                         <Inbox className="size-16 text-white" strokeWidth={1} />
                     </div>
@@ -214,19 +302,23 @@ export default function Welcome() {
                             <div>
                                 <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-ustp-gold/30 bg-ustp-gold/10 px-4 py-1.5">
                                     <span className="size-1.5 rounded-full bg-ustp-gold" />
-                                    <span className="text-xs font-medium uppercase tracking-wider text-ustp-gold">
-                                        Web-Based ICT Management and Information System
+                                    <span className="text-xs font-medium tracking-wider text-ustp-gold uppercase">
+                                        Web-Based ICT Management and Information
+                                        System
                                     </span>
                                 </div>
-                                <h1 className="font-serif text-4xl font-bold leading-tight text-white sm:text-5xl">
+                                <h1 className="font-serif text-4xl leading-tight font-bold text-white sm:text-5xl">
                                     USTP Balubal{' '}
-                                    <span className="text-ustp-gold">ICT Portal</span>
+                                    <span className="text-ustp-gold">
+                                        ICT Portal
+                                    </span>
                                 </h1>
                                 <p className="mt-7 max-w-lg text-lg leading-relaxed text-white/70 sm:text-xl sm:leading-relaxed">
-                                    A centralized platform for managing ICT service requests,
-                                    job orders, inventory, defective equipment, incident reporting
-                                    with user liability, facility bookings, and notifications
-                                    across the Balubal Campus.
+                                    A centralized platform for managing ICT
+                                    service requests, job orders, inventory,
+                                    defective equipment, incident reporting with
+                                    user liability, facility bookings, and
+                                    notifications across the Balubal Campus.
                                 </p>
                                 <div className="mt-10 flex flex-wrap gap-4">
                                     {auth.user ? (
@@ -260,10 +352,26 @@ export default function Welcome() {
                             <div className="hidden lg:block">
                                 <div className="grid grid-cols-2 gap-4">
                                     {[
-                                        { icon: FileText, label: 'Service Requests', value: 'Streamlined' },
-                                        { icon: Calendar, label: 'Facility Booking', value: 'Reservable' },
-                                        { icon: Box, label: 'Inventory', value: 'Tracked' },
-                                        { icon: Shield, label: 'Incidents', value: 'Accountable' },
+                                        {
+                                            icon: FileText,
+                                            label: 'Service Requests',
+                                            value: 'Streamlined',
+                                        },
+                                        {
+                                            icon: Calendar,
+                                            label: 'Facility Booking',
+                                            value: 'Reservable',
+                                        },
+                                        {
+                                            icon: Box,
+                                            label: 'Inventory',
+                                            value: 'Tracked',
+                                        },
+                                        {
+                                            icon: Shield,
+                                            label: 'Incidents',
+                                            value: 'Accountable',
+                                        },
                                     ].map((stat) => {
                                         const Icon = stat.icon;
 
@@ -275,7 +383,7 @@ export default function Welcome() {
                                                 <div className="mb-3 flex size-9 items-center justify-center rounded-lg bg-ustp-gold/15 text-ustp-gold transition-colors group-hover/card:bg-ustp-gold/25">
                                                     <Icon className="size-4" />
                                                 </div>
-                                                <p className="text-xs uppercase tracking-wider text-white/40">
+                                                <p className="text-xs tracking-wider text-white/40 uppercase">
                                                     {stat.label}
                                                 </p>
                                                 <p className="mt-1 font-serif text-lg font-bold text-ustp-gold">
@@ -299,8 +407,9 @@ export default function Welcome() {
                             </h2>
                             <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-ustp-gold" />
                             <p className="mx-auto mt-4 max-w-2xl text-sm text-ustp-navy/60">
-                                The system integrates six core modules to centralize and streamline
-                                ICT management operations at USTP Balubal Campus.
+                                The system integrates six core modules to
+                                centralize and streamline ICT management
+                                operations at USTP Balubal Campus.
                             </p>
                         </div>
 
@@ -308,7 +417,9 @@ export default function Welcome() {
                             <div className="mx-auto overflow-hidden py-2">
                                 <div
                                     className="flex transition-transform duration-500 ease-out"
-                                    style={{ transform: `translateX(-${currentPage * (100 / itemsPerView)}%)` }}
+                                    style={{
+                                        transform: `translateX(-${currentPage * (100 / itemsPerView)}%)`,
+                                    }}
                                 >
                                     {modules.map((mod) => {
                                         const Icon = mod.icon;
@@ -317,7 +428,9 @@ export default function Welcome() {
                                             <div
                                                 key={mod.title}
                                                 className="min-w-0 shrink-0 px-3"
-                                                style={{ flexBasis: `${100 / itemsPerView}%` }}
+                                                style={{
+                                                    flexBasis: `${100 / itemsPerView}%`,
+                                                }}
                                             >
                                                 <div className="group flex h-full flex-col rounded-xl border border-ustp-gray-medium bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-ustp-gold/30 hover:shadow-lg">
                                                     <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-ustp-navy/5 text-ustp-navy transition-colors group-hover:bg-ustp-gold/10 group-hover:text-ustp-gold">
@@ -340,37 +453,54 @@ export default function Welcome() {
                                 <>
                                     <button
                                         type="button"
-                                        onClick={() => setCurrentPage((page) => Math.max(page - 1, 0))}
+                                        onClick={() =>
+                                            setCurrentPage((page) =>
+                                                Math.max(page - 1, 0),
+                                            )
+                                        }
                                         disabled={currentPage === 0}
                                         aria-label="Previous slide"
-                                        className="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-ustp-gray-medium bg-white text-ustp-navy shadow-md transition-all hover:border-ustp-gold hover:text-ustp-gold disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="absolute top-1/2 left-0 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-ustp-gray-medium bg-white text-ustp-navy shadow-md transition-all hover:border-ustp-gold hover:text-ustp-gold disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <ChevronLeft className="size-5" />
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages - 1))}
-                                        disabled={currentPage === totalPages - 1}
+                                        onClick={() =>
+                                            setCurrentPage((page) =>
+                                                Math.min(
+                                                    page + 1,
+                                                    totalPages - 1,
+                                                ),
+                                            )
+                                        }
+                                        disabled={
+                                            currentPage === totalPages - 1
+                                        }
                                         aria-label="Next slide"
-                                        className="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-ustp-gray-medium bg-white text-ustp-navy shadow-md transition-all hover:border-ustp-gold hover:text-ustp-gold disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="absolute top-1/2 right-0 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-ustp-gray-medium bg-white text-ustp-navy shadow-md transition-all hover:border-ustp-gold hover:text-ustp-gold disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <ChevronRight className="size-5" />
                                     </button>
 
                                     <div className="mt-8 flex items-center justify-center gap-2">
-                                        {Array.from({ length: totalPages }).map((_, index) => (
-                                            <button
-                                                key={index}
-                                                type="button"
-                                                onClick={() => setCurrentPage(index)}
-                                                aria-label={`Go to slide ${index + 1}`}
-                                                className={`h-2.5 rounded-full transition-all ${
-                                                    index === currentPage
-                                                        ? 'w-8 bg-ustp-gold'
-                                                        : 'w-2.5 bg-ustp-navy/20 hover:bg-ustp-navy/40'
-                                                }`}
-                                            />
-                                        ))}
+                                        {Array.from({ length: totalPages }).map(
+                                            (_, index) => (
+                                                <button
+                                                    key={index}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setCurrentPage(index)
+                                                    }
+                                                    aria-label={`Go to slide ${index + 1}`}
+                                                    className={`h-2.5 rounded-full transition-all ${
+                                                        index === currentPage
+                                                            ? 'w-8 bg-ustp-gold'
+                                                            : 'w-2.5 bg-ustp-navy/20 hover:bg-ustp-navy/40'
+                                                    }`}
+                                                />
+                                            ),
+                                        )}
                                     </div>
                                 </>
                             )}
@@ -387,14 +517,17 @@ export default function Welcome() {
                             </h2>
                             <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-ustp-gold" />
                             <p className="mx-auto mt-4 max-w-2xl text-sm text-ustp-navy/60">
-                                From submission to resolution, the system streamlines the entire
-                                ICT service workflow.
+                                From submission to resolution, the system
+                                streamlines the entire ICT service workflow.
                             </p>
                         </div>
 
                         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
                             {workflowSteps.map((step, index) => (
-                                <div key={step.step} className="relative text-center">
+                                <div
+                                    key={step.step}
+                                    className="relative text-center"
+                                >
                                     <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-ustp-navy text-lg font-bold text-white">
                                         {step.step}
                                     </div>
@@ -405,7 +538,7 @@ export default function Welcome() {
                                         {step.description}
                                     </p>
                                     {index < workflowSteps.length - 1 && (
-                                        <div className="absolute left-[calc(50%+2rem)] top-6 hidden h-px w-[calc(100%-4rem)] bg-ustp-gold/30 lg:block" />
+                                        <div className="absolute top-6 left-[calc(50%+2rem)] hidden h-px w-[calc(100%-4rem)] bg-ustp-gold/30 lg:block" />
                                     )}
                                 </div>
                             ))}
@@ -422,8 +555,8 @@ export default function Welcome() {
                             </h2>
                             <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-ustp-gold" />
                             <p className="mx-auto mt-4 max-w-2xl text-sm text-ustp-navy/60">
-                                The system provides tailored access and features for each user type
-                                within the campus.
+                                The system provides tailored access and features
+                                for each user type within the campus.
                             </p>
                         </div>
 
@@ -447,7 +580,10 @@ export default function Welcome() {
                                         </p>
                                         <ul className="mt-4 space-y-2">
                                             {item.features.map((feature) => (
-                                                <li key={feature} className="flex items-center gap-2 text-sm text-ustp-navy/70">
+                                                <li
+                                                    key={feature}
+                                                    className="flex items-center gap-2 text-sm text-ustp-navy/70"
+                                                >
                                                     <CheckCircle className="size-4 text-ustp-gold" />
                                                     {feature}
                                                 </li>
@@ -468,8 +604,9 @@ export default function Welcome() {
                                 Ready to streamline your ICT services?
                             </h2>
                             <p className="mx-auto mt-4 max-w-lg text-white/60">
-                                Join the USTP Balubal ICT Portal to submit requests, book
-                                facilities, and manage ICT operations all in one place.
+                                Join the USTP Balubal ICT Portal to submit
+                                requests, book facilities, and manage ICT
+                                operations all in one place.
                             </p>
                             <div className="mt-8 flex flex-wrap justify-center gap-4">
                                 {!auth.user && (
@@ -511,39 +648,64 @@ export default function Welcome() {
                                         <p className="font-serif text-sm font-bold text-white">
                                             USTP Balubal
                                         </p>
-                                        <p className="text-[10px] uppercase tracking-wider text-white/50">
+                                        <p className="text-[10px] tracking-wider text-white/50 uppercase">
                                             ICT Portal
                                         </p>
                                     </div>
                                 </div>
                                 <p className="mt-4 text-sm leading-relaxed text-white/50">
-                                    Web-Based ICT Management and Information System for
-                                    USTP Balubal Campus, Cagayan de Oro City.
+                                    Web-Based ICT Management and Information
+                                    System for USTP Balubal Campus, Cagayan de
+                                    Oro City.
                                 </p>
                                 <div className="mt-4 flex gap-3">
-                                    <a href="https://www.facebook.com/USTPBalubal" target="_blank" rel="noopener noreferrer" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
+                                    <a
+                                        href="https://www.facebook.com/USTPBalubal"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold"
+                                    >
                                         <Facebook className="size-4" />
                                     </a>
-                                    <a href="mailto:balubal@ustp.edu.ph" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
+                                    <a
+                                        href="mailto:balubal@ustp.edu.ph"
+                                        className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold"
+                                    >
                                         <Mail className="size-4" />
                                     </a>
-                                    <a href="#" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
+                                    <a
+                                        href="#"
+                                        className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold"
+                                    >
                                         <Phone className="size-4" />
                                     </a>
-                                    <a href="#" className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold">
+                                    <a
+                                        href="#"
+                                        className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold"
+                                    >
                                         <MapPin className="size-4" />
                                     </a>
                                 </div>
                             </div>
 
                             <div>
-                                <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-ustp-gold">
+                                <h4 className="mb-4 text-sm font-bold tracking-wider text-ustp-gold uppercase">
                                     System Modules
                                 </h4>
                                 <ul className="space-y-2.5">
-                                    {['Service Requests', 'Job Orders', 'Inventory', 'Facility Booking', 'Incident Reports', 'Notifications'].map((link) => (
+                                    {[
+                                        'Service Requests',
+                                        'Job Orders',
+                                        'Inventory',
+                                        'Facility Booking',
+                                        'Incident Reports',
+                                        'Notifications',
+                                    ].map((link) => (
                                         <li key={link}>
-                                            <a href="#" className="text-sm text-white/50 transition-colors hover:text-ustp-gold">
+                                            <a
+                                                href="#"
+                                                className="text-sm text-white/50 transition-colors hover:text-ustp-gold"
+                                            >
                                                 {link}
                                             </a>
                                         </li>
@@ -552,13 +714,16 @@ export default function Welcome() {
                             </div>
 
                             <div>
-                                <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-ustp-gold">
+                                <h4 className="mb-4 text-sm font-bold tracking-wider text-ustp-gold uppercase">
                                     Contact
                                 </h4>
                                 <ul className="space-y-2.5 text-sm text-white/50">
                                     <li className="flex items-start gap-2">
                                         <MapPin className="mt-0.5 size-4 shrink-0 text-ustp-gold/60" />
-                                        <span>Balubal, Cagayan de Oro City, Philippines</span>
+                                        <span>
+                                            Balubal, Cagayan de Oro City,
+                                            Philippines
+                                        </span>
                                     </li>
                                     <li className="flex items-center gap-2">
                                         <Phone className="size-4 shrink-0 text-ustp-gold/60" />
@@ -572,13 +737,13 @@ export default function Welcome() {
                                 <div className="mt-6 flex gap-3">
                                     <a
                                         href="#"
-                                        className="rounded-lg border border-ustp-gold/40 px-4 py-2 text-xs font-bold uppercase tracking-wider text-ustp-gold transition-all hover:bg-ustp-gold hover:text-ustp-navy"
+                                        className="rounded-lg border border-ustp-gold/40 px-4 py-2 text-xs font-bold tracking-wider text-ustp-gold uppercase transition-all hover:bg-ustp-gold hover:text-ustp-navy"
                                     >
                                         Feedback
                                     </a>
                                     <a
                                         href="#"
-                                        className="rounded-lg border border-ustp-gold/40 px-4 py-2 text-xs font-bold uppercase tracking-wider text-ustp-gold transition-all hover:bg-ustp-gold hover:text-ustp-navy"
+                                        className="rounded-lg border border-ustp-gold/40 px-4 py-2 text-xs font-bold tracking-wider text-ustp-gold uppercase transition-all hover:bg-ustp-gold hover:text-ustp-navy"
                                     >
                                         Survey
                                     </a>
@@ -590,10 +755,12 @@ export default function Welcome() {
                     <div className="border-t border-white/10">
                         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 py-5 sm:flex-row">
                             <p className="text-xs text-white/30">
-                                &copy; {new Date().getFullYear()} USTP Balubal ICT Portal. All rights reserved.
+                                &copy; {new Date().getFullYear()} USTP Balubal
+                                ICT Portal. All rights reserved.
                             </p>
                             <p className="text-xs text-white/30">
-                                University of Science and Technology of Southern Philippines
+                                University of Science and Technology of Southern
+                                Philippines
                             </p>
                         </div>
                     </div>
