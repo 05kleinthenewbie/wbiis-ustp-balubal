@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\IncidentReport;
 use App\Models\InventoryItem;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -71,9 +72,14 @@ class IncidentReportController extends Controller
             'reporter', 'inventoryItem', 'userLiabilities.user',
         ])->findOrFail($id);
 
+        $isAdmin = Auth::user()->role->role_name === 'ict_admin';
+
         return Inertia::render('incidents/show', [
             'incident' => $incident,
-            'isAdmin' => Auth::user()->role->role_name === 'ict_admin',
+            'isAdmin' => $isAdmin,
+            'users' => $isAdmin
+                ? User::query()->orderBy('name')->get(['id', 'name'])
+                : [],
         ]);
     }
 
@@ -96,7 +102,7 @@ class IncidentReportController extends Controller
             abort(403, 'Only ICT Admins can review incident reports.');
         }
 
-            $validated = $request->validate([
+        $validated = $request->validate([
             'status' => ['required', 'in:open,under_review,resolved'],
             'liability_user_id' => ['nullable', 'exists:users,id'],
             'liability_description' => ['nullable', 'string'],
@@ -113,6 +119,7 @@ class IncidentReportController extends Controller
                 'date_assigned' => now(),
             ]);
         }
+
         return redirect()->back()->with('status', 'Incident updated successfully.');
     }
 

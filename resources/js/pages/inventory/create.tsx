@@ -226,7 +226,9 @@ export default function InventoryCreate({ users }: Props) {
 
             <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-6xl space-y-6">
-                    <BackButton href="/inventory" />
+                    <div className="flex justify-end">
+                        <BackButton href="/inventory" />
+                    </div>
 
                     {/* Heading */}
                     <div className="flex items-start gap-4">

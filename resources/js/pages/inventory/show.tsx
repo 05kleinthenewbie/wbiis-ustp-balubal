@@ -346,7 +346,9 @@ export default function InventoryShow({ item }: Props) {
 
             <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-6xl space-y-6">
-                    <BackButton href="/inventory" />
+                    <div className="flex justify-end">
+                        <BackButton href="/inventory" />
+                    </div>
 
                     {/* Item header */}
                     <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">

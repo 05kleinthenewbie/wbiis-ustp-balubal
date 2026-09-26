@@ -145,7 +145,7 @@ class JobOrderController extends ApiController
             AuditLog::record("Job order status changed from {$oldStatus} to {$validated['status']}", 'job_orders', $jobOrder->id);
         }
 
-        if ($validated['status'] === 'completed') {
+        if ($validated['status'] === 'completed' && $oldStatus !== 'completed') {
             Notification::create([
                 'user_id' => $jobOrder->serviceRequest->user_id,
                 'message' => 'Your job order #'.$jobOrder->job_order_number.' has been completed. Please rate the service.',

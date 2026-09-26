@@ -115,7 +115,9 @@ export default function RequestsCreate({ categories }: Props) {
 
             <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-4xl space-y-6">
-                    <BackButton href="/requests" />
+                    <div className="flex justify-end">
+                        <BackButton href="/requests" />
+                    </div>
 
                     {/* Heading */}
                     <div className="flex items-start gap-4">
@@ -263,7 +265,6 @@ export default function RequestsCreate({ categories }: Props) {
                                                                                     </Label>
                                                                                     <Input
                                                                                         id={`specification-${type.id}`}
-                                                                                        placeholder="e.g. Core i5, Windows 11, Room 204"
                                                                                         value={
                                                                                             selected[
                                                                                                 type

@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
         $admin = User::firstOrCreate(
             ['email' => 'admin@ustp.edu.ph'],
             [
-                'name' => 'ICT Administrator',
+                'name' => 'Anthony Michael Chua',
                 'password' => bcrypt('password123'),
                 'role_id' => $adminRole->id,
                 'department' => 'ICT Office',
@@ -29,6 +29,10 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+
+        if ($admin->name !== 'Anthony Michael Chua') {
+            $admin->update(['name' => 'Anthony Michael Chua']);
+        }
 
         if (! $admin->current_team_id) {
             app(CreateTeam::class)->handle(

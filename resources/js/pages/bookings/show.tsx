@@ -100,7 +100,9 @@ export default function BookingsShow({ booking, isAdmin }: Props) {
             <div className="min-h-full flex-1 bg-slate-50 text-slate-800">
                 <div className="relative flex flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
                     <div className="mx-auto w-full max-w-4xl space-y-6">
-                        <BackButton href="/bookings" />
+                        <div className="flex justify-end">
+                            <BackButton href="/bookings" />
+                        </div>
 
                         {/* Header */}
                         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">

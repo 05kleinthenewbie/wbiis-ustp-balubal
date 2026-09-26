@@ -197,7 +197,7 @@ class JobOrderController extends Controller
             );
         }
 
-        if ($validated['status'] === 'completed') {
+        if ($validated['status'] === 'completed' && $oldStatus !== 'completed') {
             Notification::create([
                 'user_id' => $jobOrder->serviceRequest->user_id,
                 'message' => 'Your job order #'.$jobOrder->job_order_number.' has been completed. Please rate the service.',

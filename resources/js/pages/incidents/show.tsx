@@ -1,18 +1,28 @@
 import { Head, router } from '@inertiajs/react';
 import {
     AlertTriangle,
+    Calendar,
     CheckCircle2,
+    RotateCcw,
+    Save,
     ShieldAlert,
     User,
     UserPlus,
-    XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { BackButton } from '@/components/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 
 type Liability = {
@@ -33,9 +43,15 @@ type IncidentDetail = {
     user_liabilities: Liability[];
 };
 
+type UserOption = {
+    id: number;
+    name: string;
+};
+
 type Props = {
     incident: IncidentDetail;
     isAdmin: boolean;
+    users?: UserOption[];
 };
 
 const statusConfig: Record<
@@ -71,26 +87,143 @@ const statusConfig: Record<
     },
 };
 
-export default function IncidentsShow({ incident, isAdmin }: Props) {
+const statusSteps = [
+    { key: 'open', label: 'Open' },
+    { key: 'under_review', label: 'Under Review' },
+    { key: 'resolved', label: 'Resolved' },
+];
+
+const NONE_VALUE = '__none__';
+
+function formatDate(value: string | null): string {
+    if (!value) {
+        return 'Not specified';
+    }
+
+    return new Date(value).toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+    });
+}
+
+function StatusStepper({ current }: { current: string }) {
+    const activeIndex = Math.max(
+        0,
+        statusSteps.findIndex((s) => s.key === current),
+    );
+
+    return (
+        <ol className="space-y-0">
+            {statusSteps.map((step, index) => {
+                const done = index < activeIndex;
+                const active = index === activeIndex;
+
+                return (
+                    <li key={step.key} className="relative flex gap-3">
+                        {index < statusSteps.length - 1 && (
+                            <span
+                                aria-hidden
+                                className={`absolute top-6 left-[9px] h-[calc(100%-4px)] w-0.5 ${
+                                    done ? 'bg-ustp-gold/60' : 'bg-slate-200'
+                                }`}
+                            />
+                        )}
+
+                        <span
+                            className={`relative z-10 mt-0.5 flex size-[19px] shrink-0 items-center justify-center rounded-full border-2 text-[9px] font-bold ${
+                                active
+                                    ? 'border-ustp-gold bg-ustp-gold text-ustp-navy'
+                                    : done
+                                      ? 'border-ustp-gold/50 bg-ustp-gold/15 text-ustp-gold'
+                                      : 'border-slate-200 bg-white text-slate-300'
+                            }`}
+                        >
+                            {done ? (
+                                <CheckCircle2 className="size-3" />
+                            ) : (
+                                index + 1
+                            )}
+                        </span>
+
+                        <div className="pb-5">
+                            <p
+                                className={`text-xs leading-5 font-medium ${
+                                    active
+                                        ? 'text-slate-800'
+                                        : done
+                                          ? 'text-slate-500'
+                                          : 'text-slate-400'
+                                }`}
+                            >
+                                {step.label}
+                            </p>
+                            {active && (
+                                <p className="text-[11px] text-slate-400">
+                                    Current status
+                                </p>
+                            )}
+                        </div>
+                    </li>
+                );
+            })}
+        </ol>
+    );
+}
+
+export default function IncidentsShow({
+    incident,
+    isAdmin,
+    users = [],
+}: Props) {
     const [status, setStatus] = useState(incident.status);
     const [liabilityUserId, setLiabilityUserId] = useState('');
     const [liabilityDescription, setLiabilityDescription] = useState('');
     const [processing, setProcessing] = useState(false);
 
+    const displayStatus = status;
+    const statusCfg = statusConfig[displayStatus] ?? statusConfig.open;
+    const statusChanged = status !== incident.status;
+    const dirty =
+        statusChanged ||
+        (liabilityUserId !== '' && liabilityUserId !== NONE_VALUE) ||
+        liabilityDescription.trim() !== '';
+
     function handleSave() {
+        if (!dirty) {
+            return;
+        }
+
         setProcessing(true);
         router.put(
             `/incidents/${incident.id}`,
             {
                 status,
-                liability_user_id: liabilityUserId || null,
+                liability_user_id:
+                    liabilityUserId && liabilityUserId !== NONE_VALUE
+                        ? liabilityUserId
+                        : null,
                 liability_description: liabilityDescription || null,
             },
-            { onFinish: () => setProcessing(false) },
+            {
+                onFinish: () => setProcessing(false),
+                onSuccess: () => {
+                    toast.success('Incident updated successfully.');
+                    setLiabilityUserId('');
+                    setLiabilityDescription('');
+                },
+                onError: () => {
+                    toast.error('Could not save changes. Please try again.');
+                },
+            },
         );
     }
 
-    const statusConfig_ = statusConfig[incident.status] || statusConfig.open;
+    function handleReset() {
+        setStatus(incident.status);
+        setLiabilityUserId('');
+        setLiabilityDescription('');
+    }
 
     return (
         <>
@@ -98,20 +231,28 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
 
             <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-4xl space-y-6">
-                    <BackButton href="/incidents" />
+                    <div className="flex items-center justify-between gap-3">
+                        {statusChanged && (
+                            <span className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-medium text-amber-700">
+                                <span className="size-1.5 animate-pulse rounded-full bg-amber-400" />
+                                Unsaved status change
+                            </span>
+                        )}
+                        <BackButton href="/incidents" />
+                    </div>
 
                     {/* Header */}
                     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
                         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                             <div className="flex gap-4">
                                 <div
-                                    className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${statusConfig_.bg} ${statusConfig_.color}`}
+                                    className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${statusCfg.bg} ${statusCfg.color}`}
                                 >
-                                    {statusConfig_.icon}
+                                    {statusCfg.icon}
                                 </div>
 
                                 <div>
-                                    <div className="mb-1 flex items-center gap-2">
+                                    <div className="mb-1 flex flex-wrap items-center gap-2">
                                         <span className="font-mono text-[10px] text-slate-400">
                                             INCIDENT #{incident.id}
                                         </span>
@@ -127,17 +268,24 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
                                         {incident.incident_type}
                                     </h1>
 
-                                    <p className="mt-1.5 text-xs text-slate-400">
-                                        Reported by {incident.reporter.name}
-                                    </p>
+                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
+                                        <span>
+                                            Reported by {incident.reporter.name}
+                                        </span>
+
+                                        <span className="flex items-center gap-1.5">
+                                            <Calendar className="size-3.5" />
+                                            {formatDate(incident.incident_date)}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
                             <Badge
                                 variant="outline"
-                                className={`w-fit rounded-lg px-3 py-1 text-[10px] font-medium capitalize ${statusConfig_.border} ${statusConfig_.bg} ${statusConfig_.color}`}
+                                className={`w-fit rounded-lg px-3 py-1 text-[10px] font-medium capitalize ${statusCfg.border} ${statusCfg.bg} ${statusCfg.color}`}
                             >
-                                {statusConfig_.label}
+                                {statusCfg.label}
                             </Badge>
                         </div>
                     </div>
@@ -162,13 +310,22 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
                                     </div>
                                 </div>
 
-                                <div className="grid divide-y divide-slate-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                                <div className="grid divide-y divide-slate-200 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
                                     <div className="p-6">
                                         <p className="text-[10px] font-medium tracking-[0.12em] text-slate-400 uppercase">
                                             Reported by
                                         </p>
                                         <p className="mt-2 text-sm font-medium text-slate-800">
                                             {incident.reporter.name}
+                                        </p>
+                                    </div>
+
+                                    <div className="p-6">
+                                        <p className="text-[10px] font-medium tracking-[0.12em] text-slate-400 uppercase">
+                                            Incident date
+                                        </p>
+                                        <p className="mt-2 text-sm font-medium text-slate-800">
+                                            {formatDate(incident.incident_date)}
                                         </p>
                                     </div>
 
@@ -205,9 +362,15 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
                                     </p>
                                 </div>
 
-                                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
                                     <p className="text-sm leading-6 whitespace-pre-wrap text-slate-600">
-                                        {incident.incident_description}
+                                        {incident.incident_description.trim() ? (
+                                            incident.incident_description
+                                        ) : (
+                                            <span className="text-slate-400 italic">
+                                                No description provided.
+                                            </span>
+                                        )}
                                     </p>
                                 </div>
                             </div>
@@ -293,53 +456,96 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
                                     </div>
                                 </div>
 
-                                <div className="space-y-4 p-5">
+                                <div className="space-y-5 p-5">
+                                    <div className="grid gap-2">
+                                        <Label className="text-xs font-medium text-slate-600">
+                                            Progress
+                                        </Label>
+                                        <div className="rounded-xl border border-slate-100 bg-slate-50/70 px-4 py-3">
+                                            <StatusStepper current={status} />
+                                        </div>
+                                    </div>
+
                                     <div className="grid gap-2">
                                         <Label className="text-xs font-medium text-slate-600">
                                             Status
                                         </Label>
-                                        <select
+                                        <Select
                                             value={status}
-                                            onChange={(e) =>
-                                                setStatus(e.target.value)
-                                            }
-                                            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 focus:ring-1 focus:ring-ustp-gold/30"
+                                            onValueChange={setStatus}
                                         >
-                                            <option value="open">Open</option>
-                                            <option value="under_review">
-                                                Under Review
-                                            </option>
-                                            <option value="resolved">
-                                                Resolved
-                                            </option>
-                                        </select>
+                                            <SelectTrigger className="h-10 w-full border-slate-300 bg-white text-sm text-slate-800 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                                <SelectItem value="open">
+                                                    Open
+                                                </SelectItem>
+                                                <SelectItem value="under_review">
+                                                    Under Review
+                                                </SelectItem>
+                                                <SelectItem value="resolved">
+                                                    Resolved
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
 
                                     <div className="grid gap-2">
                                         <Label className="text-xs font-medium text-slate-600">
-                                            Assign liability (optional)
+                                            Assign liability{' '}
+                                            <span className="font-normal text-slate-400">
+                                                (optional)
+                                            </span>
                                         </Label>
-                                        <Input
-                                            type="number"
-                                            placeholder="User ID responsible"
-                                            value={liabilityUserId}
-                                            onChange={(
-                                                e: React.ChangeEvent<HTMLInputElement>,
-                                            ) =>
+                                        <Select
+                                            value={
+                                                liabilityUserId || NONE_VALUE
+                                            }
+                                            onValueChange={(value) =>
                                                 setLiabilityUserId(
-                                                    e.target.value,
+                                                    value === NONE_VALUE
+                                                        ? ''
+                                                        : value,
                                                 )
                                             }
-                                            className="h-10 border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
-                                        />
+                                        >
+                                            <SelectTrigger className="h-10 w-full border-slate-300 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20">
+                                                <SelectValue placeholder="Select a user" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-64 border-slate-200 bg-white text-slate-800">
+                                                <SelectItem value={NONE_VALUE}>
+                                                    None
+                                                </SelectItem>
+                                                {users.map((user) => (
+                                                    <SelectItem
+                                                        key={user.id}
+                                                        value={String(user.id)}
+                                                    >
+                                                        {user.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+
+                                        {users.length === 0 && (
+                                            <p className="text-[11px] text-slate-400">
+                                                No users available for
+                                                assignment.
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="grid gap-2">
                                         <Label className="text-xs font-medium text-slate-600">
-                                            Notes
+                                            Notes{' '}
+                                            <span className="font-normal text-slate-400">
+                                                (optional)
+                                            </span>
                                         </Label>
                                         <Textarea
-                                            rows={2}
+                                            rows={3}
+                                            placeholder="Reason for liability or review notes..."
                                             value={liabilityDescription}
                                             onChange={(
                                                 e: React.ChangeEvent<HTMLTextAreaElement>,
@@ -348,7 +554,7 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
                                                     e.target.value,
                                                 )
                                             }
-                                            className="border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
+                                            className="border-slate-300 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
                                         />
                                     </div>
                                 </div>
@@ -356,21 +562,27 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
                                 <div className="border-t border-slate-200 bg-slate-50 px-5 py-4">
                                     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                                         <Button
+                                            type="button"
                                             variant="outline"
-                                            disabled={processing}
-                                            onClick={handleSave}
+                                            disabled={processing || !dirty}
+                                            onClick={handleReset}
                                             className="border-slate-200 bg-transparent text-slate-500 hover:border-ustp-gold/30 hover:bg-ustp-gold/10 hover:text-ustp-gold"
                                         >
-                                            <XCircle className="size-4" />
+                                            <RotateCcw className="size-4" />
                                             Reset
                                         </Button>
 
                                         <Button
-                                            disabled={processing}
+                                            type="button"
+                                            disabled={processing || !dirty}
                                             onClick={handleSave}
-                                            className="bg-ustp-gold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
+                                            className="bg-ustp-gold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                                         >
-                                            <CheckCircle2 className="size-4" />
+                                            {processing ? (
+                                                <Spinner />
+                                            ) : (
+                                                <Save className="size-4" />
+                                            )}
                                             Save changes
                                         </Button>
                                     </div>
@@ -390,16 +602,20 @@ export default function IncidentsShow({ incident, isAdmin }: Props) {
                                     Incident status
                                 </p>
 
+                                <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50/70 px-4 py-3">
+                                    <StatusStepper current={incident.status} />
+                                </div>
+
                                 <div className="mt-4 flex items-center gap-3">
                                     <div
-                                        className={`flex size-9 items-center justify-center rounded-lg ${statusConfig_.bg} ${statusConfig_.color}`}
+                                        className={`flex size-9 items-center justify-center rounded-lg ${statusCfg.bg} ${statusCfg.color}`}
                                     >
-                                        {statusConfig_.icon}
+                                        {statusCfg.icon}
                                     </div>
 
                                     <div>
                                         <p className="text-sm font-medium text-slate-800 capitalize">
-                                            {incident.status.replace('_', ' ')}
+                                            {displayStatus.replace('_', ' ')}
                                         </p>
                                         <p className="mt-0.5 text-xs text-slate-400">
                                             Reported by {incident.reporter.name}

@@ -137,7 +137,9 @@ export default function RequestsShow({ request, isAdmin }: Props) {
 
             <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-4xl space-y-6">
-                    <BackButton href="/requests" />
+                    <div className="flex justify-end">
+                        <BackButton href="/requests" />
+                    </div>
 
                     {/* Header */}
                     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">

@@ -44,7 +44,7 @@ class InventoryItemFactory extends Factory
             'category' => $category,
             'brand' => $brand,
             'model' => $model,
-            'serial_no' => strtoupper(fake()->bothLetters(2)).fake()->numerify('#######'),
+            'serial_no' => strtoupper(fake()->lexify('??')).fake()->numerify('#######'),
             'specification' => implode(', ', [fake()->words(4, true), fake()->words(4, true)]),
             'description' => fake()->optional(0.7)->sentence(8),
             'location' => fake()->randomElement($locations),

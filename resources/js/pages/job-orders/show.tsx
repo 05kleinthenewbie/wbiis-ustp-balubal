@@ -241,7 +241,6 @@ export default function JobOrdersShow({
             <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-4xl space-y-6">
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                        <BackButton href="/job-orders" />
                         <a
                             href={`/job-orders/${jobOrder.id}/print`}
                             target="_blank"
@@ -251,6 +250,7 @@ export default function JobOrdersShow({
                             <Printer className="size-4" />
                             Print Official Form
                         </a>
+                        <BackButton href="/job-orders" />
                     </div>
 
                     {/* Header */}
