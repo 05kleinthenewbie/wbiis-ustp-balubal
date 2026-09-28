@@ -111,6 +111,31 @@ class BrevoMailService
     }
 
     /**
+     * Send the password reset link to a user who requested one.
+     *
+     * The plain-text version ends with the bare URL so tests can extract the
+     * reset link from the recorded Brevo payload.
+     */
+    public function sendPasswordResetEmail(string $email, string $name, string $resetUrl, int $expiresInMinutes): array
+    {
+        $appName = (string) config('app.name');
+
+        $html = view('emails.auth.password-reset', [
+            'name' => $name,
+            'appName' => $appName,
+            'resetUrl' => $resetUrl,
+            'expiresInMinutes' => $expiresInMinutes,
+        ])->render();
+
+        return $this->send(
+            [['email' => $email, 'name' => $name]],
+            "Reset your {$appName} password",
+            $html,
+            "Hi {$name}, reset your {$appName} password by opening this link: {$resetUrl}",
+        );
+    }
+
+    /**
      * Send the account-approved email to a newly approved user.
      */
     public function sendAccountApprovedEmail(string $email, string $name): array

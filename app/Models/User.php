@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Concerns\HasTeams;
+use App\Services\BrevoMailService;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -12,9 +13,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+use RuntimeException;
 
 /**
  * @property int $id
@@ -52,6 +56,41 @@ class User extends Authenticatable implements JWTSubject
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Email the password reset link through Brevo instead of the default
+     * mailer, which is only configured to log messages in this app.
+     *
+     * A failure is reported and surfaced as a field error so the request
+     * form can tell the user the link could not be sent.
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $resetUrl = url(route('password.reset', [
+            'token' => $token,
+            'email' => $this->getEmailForPasswordReset(),
+        ], false));
+
+        $broker = (string) config('auth.defaults.passwords');
+        $expiresInMinutes = (int) config("auth.passwords.{$broker}.expire", 60);
+
+        try {
+            app(BrevoMailService::class)->sendPasswordResetEmail(
+                $this->getEmailForPasswordReset(),
+                (string) $this->name,
+                $resetUrl,
+                $expiresInMinutes,
+            );
+        } catch (RuntimeException|ConnectionException $exception) {
+            report($exception);
+
+            throw ValidationException::withMessages([
+                'email' => 'We could not send a password reset link. Please try again.',
+            ]);
+        }
     }
 
     /**

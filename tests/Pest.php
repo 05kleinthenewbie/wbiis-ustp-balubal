@@ -98,3 +98,35 @@ function registrationOtpCode(): string
 
     return $matches[0] ?? '';
 }
+
+/**
+ * Extract the password reset URL from the most recently recorded Brevo email.
+ */
+function passwordResetUrl(): string
+{
+    $recorded = Http::recorded()->last();
+
+    if ($recorded === null) {
+        return '';
+    }
+
+    $body = $recorded[0]->body();
+    $decoded = json_decode($body, true);
+    $text = is_array($decoded) && isset($decoded['textContent'])
+        ? (string) $decoded['textContent']
+        : $body;
+
+    preg_match('#https?://\S+#', $text, $matches);
+
+    return rtrim($matches[0] ?? '', '.,');
+}
+
+/**
+ * Extract the password reset token from the most recently recorded Brevo email.
+ */
+function passwordResetToken(): string
+{
+    $path = parse_url(passwordResetUrl(), PHP_URL_PATH);
+
+    return is_string($path) ? basename($path) : '';
+}

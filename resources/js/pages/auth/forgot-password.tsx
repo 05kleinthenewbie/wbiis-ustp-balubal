@@ -1,71 +1,77 @@
 // Components
 import { Form, Head } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
 
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
         <>
-            <Head title="Forgot password" />
+            <Head title="Recover password" />
+
+            <Form {...email.form()} className="space-y-4">
+                {({ processing, errors }) => (
+                    <>
+                        <div className="space-y-2">
+                            <Label htmlFor="email" className="text-sm font-medium">
+                                Email
+                            </Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                name="email"
+                                required
+                                autoFocus
+                                autoComplete="email"
+                                placeholder="name@example.com"
+                                className="h-11 rounded-lg border-border text-sm transition-all focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                            />
+                            <InputError message={errors.email} />
+                        </div>
+
+                        <Button
+                            type="submit"
+                            className="h-11 w-full rounded-xl bg-ustp-gold font-semibold text-ustp-navy shadow-sm shadow-ustp-gold/30 transition-all hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-md hover:shadow-ustp-gold/30 active:scale-[0.98]"
+                            disabled={processing}
+                            data-test="email-password-reset-link-button"
+                        >
+                            {processing && <Spinner />}
+                            Send Reset Link
+                        </Button>
+
+                        <p className="text-center text-sm text-muted-foreground">
+                            We'll send you a link to reset your password.
+                        </p>
+                    </>
+                )}
+            </Form>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-center text-sm font-medium text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-400">
                     {status}
                 </div>
             )}
 
-            <div className="space-y-6">
-                <Form {...email.form()}>
-                    {({ processing, errors }) => (
-                        <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    autoComplete="off"
-                                    autoFocus
-                                    placeholder="email@example.com"
-                                />
-
-                                <InputError message={errors.email} />
-                            </div>
-
-                            <div className="my-6 flex items-center justify-start">
-                                <Button
-                                    className="w-full rounded-lg bg-ustp-gold font-semibold text-ustp-navy hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-lg hover:shadow-ustp-gold/30"
-                                    disabled={processing}
-                                    data-test="email-password-reset-link-button"
-                                >
-                                        {processing && (
-                                        <LoaderCircle className="h-4 w-4 animate-spin" />
-                                    )}
-                                    Email password reset link
-                                </Button>
-                            </div>
-                        </>
-                    )}
-                </Form>
-
-                <div className="space-x-1 text-center text-sm text-slate-600">
-                    <span>Or, return to</span>
-                    <TextLink href={login()} className="text-ustp-navy font-medium hover:text-ustp-navy-dark">
-                        log in
-                    </TextLink>
-                </div>
+            <div className="-mx-6 -mb-6 mt-6 border-t border-border bg-muted px-6 py-4 text-center text-sm text-accent-foreground">
+                Remembered your password?{' '}
+                <TextLink
+                    href={login()}
+                    data-test="login-link"
+                    className="font-medium text-ustp-navy underline-offset-4 hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
+                >
+                    Log in
+                </TextLink>
             </div>
         </>
     );
 }
 
 ForgotPassword.layout = {
-    title: 'Forgot password',
-    description: 'Enter your email to receive a password reset link',
+    title: 'Recover Password',
+    description: 'Enter your email to receive a reset link',
 };
