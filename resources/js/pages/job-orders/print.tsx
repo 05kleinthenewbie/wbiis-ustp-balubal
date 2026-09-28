@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { ArrowLeft, Printer } from 'lucide-react';
+import type { ReactNode } from 'react';
 import ustpLogo from '@/assets/ustp-logo.png';
 
 type PrintService = {
@@ -59,10 +60,14 @@ const CAMPUSES = [
     'Villanueva',
 ];
 
+const DOC_CODE = 'FM-USTP-ICT-001';
+const REV_NO = '00';
+const EFFECTIVE_DATE = '03.17.26';
+
 const CATEGORY_CONFIG: { title: string; actions: string[]; rows: string[] }[] =
     [
         {
-            title: 'NETWORK SERVICES',
+            title: 'Network Services',
             actions: ['New Connection', 'Troubleshoot'],
             rows: [
                 'Network Connection',
@@ -73,7 +78,7 @@ const CATEGORY_CONFIG: { title: string; actions: string[]; rows: string[] }[] =
             ],
         },
         {
-            title: 'HARDWARE SERVICES',
+            title: 'Hardware Services',
             actions: ['Installation', 'Troubleshoot', 'Update'],
             rows: [
                 'Computer/Laptop',
@@ -83,7 +88,7 @@ const CATEGORY_CONFIG: { title: string; actions: string[]; rows: string[] }[] =
             ],
         },
         {
-            title: 'SOFTWARE SERVICES',
+            title: 'Software Services',
             actions: ['Installation', 'Troubleshoot', 'Update'],
             rows: [
                 'Operating System',
@@ -94,7 +99,7 @@ const CATEGORY_CONFIG: { title: string; actions: string[]; rows: string[] }[] =
             ],
         },
         {
-            title: 'INFORMATION SYSTEM SERVICES',
+            title: 'Information System Services',
             actions: ['Create New', 'Troubleshoot', 'Update'],
             rows: ['E-mail', 'Office 365', 'Others'],
         },
@@ -135,11 +140,33 @@ function joinValues(values: (string | number | null | undefined)[]): string {
         .join('; ');
 }
 
-function Bracket({ checked }: { checked: boolean }) {
+function Checkbox({ checked }: { checked: boolean }) {
     return (
-        <span className="font-mono text-[11px] font-bold">
-            [{checked ? '✓' : ''}]
+        <span className="inline-flex size-3 shrink-0 items-center justify-center border border-black text-[8px] leading-none font-bold text-black">
+            {checked ? '✓' : ''}
         </span>
+    );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+    return (
+        <section className="border-[1.5px] border-black">
+            <div className="bg-black px-2 py-0.5 text-[9.5px] font-bold tracking-wide text-white uppercase sm:text-[10px]">
+                {title}
+            </div>
+            {children}
+        </section>
+    );
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="p-1">
+            <p className="text-[9.5px] font-semibold">{label}</p>
+            <div className="mt-1 min-h-[14px] border-b border-dotted border-gray-400 px-0.5 text-[10px] text-black">
+                {value || '\u00A0'}
+            </div>
+        </div>
     );
 }
 
@@ -167,88 +194,89 @@ function ServiceCategory({
         );
 
     return (
-        <div className="mb-1">
-            <p className="mb-0.5 text-[10.5px] font-bold text-black">{title}</p>
+        <div>
+            <div className="border-b border-black bg-gray-100 px-2 py-0.5 text-[9.5px] font-bold uppercase">
+                {title}
+            </div>
+
             <table
-                className="w-full border-collapse"
+                className="w-full border-collapse text-[9.5px]"
                 style={{ tableLayout: 'fixed' }}
             >
                 <tbody>
                     {rows.map((name) => {
                         const matched = rowServices(name);
                         const checked = matched.length > 0;
+                        const specification = joinValues(
+                            matched.map((service) => service.specification),
+                        );
+                        const quantity = joinValues(
+                            matched.map((service) => service.quantity),
+                        );
 
                         return (
                             <tr key={name}>
                                 <td
-                                    className="border border-black px-1 py-0.5"
-                                    style={{ width: '3%' }}
+                                    className="border-r border-b border-black px-1.5 py-1 align-middle"
+                                    style={{ width: '25%' }}
                                 >
-                                    <div className="flex justify-center">
-                                        <Bracket checked={checked} />
+                                    <div className="flex items-center gap-1.5">
+                                        <Checkbox checked={checked} />
+                                        <span className="font-semibold">
+                                            {name}
+                                        </span>
                                     </div>
                                 </td>
                                 <td
-                                    className="border border-black px-1 py-0.5 text-[10px] font-semibold text-black"
-                                    style={{ width: '22%' }}
+                                    className="border-r border-b border-black px-1.5 py-1"
+                                    style={{ width: '25%' }}
                                 >
-                                    {name}
+                                    <div className="flex items-center gap-1">
+                                        <span className="shrink-0 text-[8.5px] whitespace-nowrap">
+                                            Specify:
+                                        </span>
+                                        <span className="min-w-0 flex-1 border-b border-dotted border-gray-400 text-[9.5px] break-words">
+                                            {specification || '\u00A0'}
+                                        </span>
+                                    </div>
                                 </td>
                                 <td
-                                    className="border border-black px-1 py-0.5 text-[9px] text-black"
-                                    style={{ width: '7%' }}
+                                    className="border-r border-b border-black px-1.5 py-1"
+                                    style={{ width: '17%' }}
                                 >
-                                    Specify:
+                                    <div className="flex items-center gap-1">
+                                        <span className="shrink-0 text-[8.5px] whitespace-nowrap">
+                                            Qty:
+                                        </span>
+                                        <span className="min-w-0 flex-1 border-b border-dotted border-gray-400 text-center text-[9.5px]">
+                                            {quantity || '\u00A0'}
+                                        </span>
+                                    </div>
                                 </td>
                                 <td
-                                    className="border border-black px-1 py-0.5 text-[10px] text-black"
-                                    style={{ width: '23%' }}
+                                    className="border-b border-black px-1.5 py-1"
+                                    style={{ width: '33%' }}
                                 >
-                                    {joinValues(
-                                        matched.map(
-                                            (service) => service.specification,
-                                        ),
-                                    )}
-                                </td>
-                                <td
-                                    className="border border-black px-1 py-0.5 text-[9px] text-black"
-                                    style={{ width: '5%' }}
-                                >
-                                    Qty:
-                                </td>
-                                <td
-                                    className="border border-black px-1 py-0.5 text-center text-[10px] text-black"
-                                    style={{ width: '5%' }}
-                                >
-                                    {joinValues(
-                                        matched.map(
-                                            (service) => service.quantity,
-                                        ),
-                                    )}
-                                </td>
-                                {actions.map((action) => (
-                                    <td
-                                        key={action}
-                                        className="border border-black px-1 py-0.5 text-center"
-                                        style={{
-                                            width: `${35 / actions.length}%`,
-                                        }}
-                                    >
-                                        <div className="flex items-center justify-center gap-1 text-[9px] text-black">
-                                            <Bracket
-                                                checked={matched.some(
-                                                    (service) =>
-                                                        normalize(
-                                                            service.action_type,
-                                                        ) === normalize(action),
-                                                )}
-                                            />
-                                            <span className="whitespace-nowrap">
+                                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                                        {actions.map((action) => (
+                                            <span
+                                                key={action}
+                                                className="flex items-center gap-1 text-[8.5px] whitespace-nowrap"
+                                            >
+                                                <Checkbox
+                                                    checked={matched.some(
+                                                        (service) =>
+                                                            normalize(
+                                                                service.action_type,
+                                                            ) ===
+                                                            normalize(action),
+                                                    )}
+                                                />
                                                 {action}
                                             </span>
-                                        </div>
-                                    </td>
-                                ))}
+                                        ))}
+                                    </div>
+                                </td>
                             </tr>
                         );
                     })}
@@ -297,19 +325,31 @@ export default function PrintJobRequestForm({
 
                 @media print {
                     body {
-                        background: #ffffff !important;
+                        background-color: #ffffff !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
                     }
 
+                    .no-print {
+                        display: none !important;
+                    }
+
                     .page-container {
-                        padding: 8mm 10mm !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                        padding: 0.2in !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        margin: 0 !important;
                     }
                 }
             `}</style>
 
-            <div className="min-h-screen bg-slate-100 print:bg-white">
-                <div className="mx-auto flex max-w-[210mm] flex-wrap items-center justify-between gap-3 px-4 pt-5 print:hidden">
+            <div className="min-h-screen bg-gray-100 px-2 py-8 antialiased sm:px-4 print:bg-white print:p-0">
+                {/* Action toolbar */}
+                <div className="no-print mx-auto mb-3 flex max-w-[860px] flex-wrap items-center justify-between gap-3 print:hidden">
                     <a
                         href={`/job-orders/${jobOrder.id}`}
                         className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
@@ -327,211 +367,178 @@ export default function PrintJobRequestForm({
                     </button>
                 </div>
 
-                <div className="page-container mx-auto max-w-[210mm]">
-                    <div className="border-[1.5px] border-black bg-white text-black">
-                        {/* Header */}
-                        <table
-                            className="w-full border-collapse"
-                            style={{ tableLayout: 'fixed' }}
-                        >
+                {/* Form sheet */}
+                <main className="page-container mx-auto max-w-[860px] border border-gray-300 bg-white p-6 text-black shadow-md sm:p-8">
+                    {/* Document header */}
+                    <header
+                        className="flex items-start justify-between gap-2 pt-1 pb-4"
+                        data-purpose="header-section"
+                    >
+                        <div className="flex w-[135px] shrink-0 items-start justify-start">
+                            <img
+                                src={ustpLogo}
+                                alt="USTP Logo"
+                                className="h-20 w-auto object-contain"
+                                style={{ height: '92px' }}
+                            />
+                        </div>
+
+                        <div className="flex flex-1 flex-col items-center justify-center px-2 text-center">
+                            <h1 className="text-[14px] leading-tight font-bold tracking-tight text-black uppercase sm:text-[15px]">
+                                University of Science and Technology
+                                <br />
+                                of Southern Philippines
+                            </h1>
+                            <p className="mt-1 text-[10px] font-normal tracking-tight text-black sm:text-[10.5px]">
+                                {CAMPUSES.join(' | ')}
+                            </p>
+                        </div>
+
+                        <div className="w-[195px] shrink-0 self-center">
+                            <table className="w-full border-collapse border border-[#002855] text-center">
+                                <tbody>
+                                    <tr>
+                                        <td
+                                            colSpan={3}
+                                            className="border-b border-[#002855] bg-[#002855] px-1 py-0.5 text-[9.5px] font-semibold tracking-tight text-white"
+                                        >
+                                            Document Code no.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td
+                                            colSpan={3}
+                                            className="border-b border-[#002855] bg-white px-1 py-0.5 text-[12px] font-bold tracking-wider text-black"
+                                        >
+                                            {DOC_CODE}
+                                        </td>
+                                    </tr>
+                                    <tr className="bg-[#002855] text-[8px] leading-tight font-semibold text-white">
+                                        <td
+                                            className="border-r border-[#002855] px-0.5 py-0.5"
+                                            style={{ width: '30%' }}
+                                        >
+                                            Rev. No.
+                                        </td>
+                                        <td
+                                            className="border-r border-l border-white px-0.5 py-0.5"
+                                            style={{ width: '40%' }}
+                                        >
+                                            Effective Date
+                                        </td>
+                                        <td
+                                            className="border-l border-white px-0.5 py-0.5"
+                                            style={{ width: '30%' }}
+                                        >
+                                            Page No.
+                                        </td>
+                                    </tr>
+                                    <tr className="border-t border-[#002855] bg-white text-[9px] leading-tight font-normal text-black">
+                                        <td className="border-r border-[#002855] py-0.5">
+                                            {REV_NO}
+                                        </td>
+                                        <td className="border-r border-[#002855] py-0.5">
+                                            {EFFECTIVE_DATE}
+                                        </td>
+                                        <td className="py-0.5">1 of 1</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </header>
+
+                    {/* Document title */}
+                    <div
+                        className="pt-2 pb-3 text-center"
+                        data-purpose="title-section"
+                    >
+                        <h2 className="text-[14px] leading-tight font-bold tracking-wide text-black uppercase sm:text-[15px]">
+                            Information and Communications Technology Services
+                        </h2>
+                        <h3 className="mt-1 text-[15px] leading-tight font-bold tracking-wide text-black uppercase sm:text-[16px]">
+                            Job Request Form
+                        </h3>
+                    </div>
+
+                    {/* I. Requestor information */}
+                    <Section title="Requestor Information (Complete fields that marked with an asterisk (*))">
+                        <table className="w-full border-collapse text-[9.5px]">
                             <tbody>
                                 <tr>
                                     <td
-                                        className="border-b-[1.5px] border-black p-2 text-center align-middle"
-                                        style={{ width: '15%' }}
+                                        className="border-r border-b border-black align-top"
+                                        style={{ width: '50%' }}
                                     >
-                                        <img
-                                            src={ustpLogo}
-                                            alt="USTP"
-                                            className="mx-auto h-14 w-14 object-contain"
+                                        <Field
+                                            label="*Requested By (Please print your name clearly):"
+                                            value={user?.name ?? ''}
                                         />
                                     </td>
                                     <td
-                                        className="border-r-[1.5px] border-b-[1.5px] border-l-[1.5px] border-black px-2 py-1.5 text-center align-middle"
-                                        style={{ width: '70%' }}
-                                    >
-                                        <p className="text-[14px] leading-tight font-bold text-black">
-                                            University of Science and Technology
-                                            of Southern Philippines
-                                        </p>
-                                        <p className="mt-0.5 text-[8.5px] leading-tight text-black">
-                                            {CAMPUSES.join(' | ')}
-                                        </p>
-                                    </td>
-                                    <td
-                                        className="border-b-[1.5px] border-black bg-[#002b66] text-white"
-                                        style={{ width: '15%' }}
-                                    >
-                                        <table className="w-full border-collapse">
-                                            <tbody>
-                                                <tr>
-                                                    <td className="border-b border-white/70 px-2 py-0.5">
-                                                        <p className="text-[7.5px] font-bold tracking-widest uppercase">
-                                                            Document Code No.
-                                                        </p>
-                                                        <p className="text-[10px] font-bold">
-                                                            FM-USTP-ICT-001
-                                                        </p>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>
-                                                        <table
-                                                            className="w-full border-collapse"
-                                                            style={{
-                                                                tableLayout:
-                                                                    'fixed',
-                                                            }}
-                                                        >
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td className="border-r border-white/70 px-1.5 py-0.5">
-                                                                        <p className="text-[7.5px] font-bold tracking-widest uppercase">
-                                                                            Rev.
-                                                                            No.
-                                                                        </p>
-                                                                        <p className="text-[10px] font-bold">
-                                                                            00
-                                                                        </p>
-                                                                    </td>
-                                                                    <td className="border-r border-white/70 px-1.5 py-0.5">
-                                                                        <p className="text-[7.5px] font-bold tracking-widest uppercase">
-                                                                            Effective
-                                                                            Date
-                                                                        </p>
-                                                                        <p className="text-[10px] font-bold">
-                                                                            03.17.25
-                                                                        </p>
-                                                                    </td>
-                                                                    <td className="px-1.5 py-0.5">
-                                                                        <p className="text-[7.5px] font-bold tracking-widest uppercase">
-                                                                            Page
-                                                                            No.
-                                                                        </p>
-                                                                        <p className="text-[10px] font-bold">
-                                                                            1 of
-                                                                            1
-                                                                        </p>
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        {/* Title */}
-                        <div className="border-b-[1.5px] border-black px-3 py-1 text-center">
-                            <h1 className="text-[15px] leading-tight font-extrabold tracking-tight text-black">
-                                INFORMATION AND COMMUNICATIONS TECHNOLOGY
-                                SERVICES
-                            </h1>
-                            <h2 className="mt-0.5 inline-block border border-black px-3 py-0.5 text-[11px] font-bold tracking-[0.25em] text-black uppercase">
-                                Job Request Form
-                            </h2>
-                        </div>
-
-                        {/* I. Requestor Information */}
-                        <table className="w-full border-collapse">
-                            <tbody>
-                                <tr>
-                                    <td
-                                        className="border border-black bg-black px-2 py-0.5 text-center text-[9.5px] font-bold tracking-widest text-white uppercase"
-                                        colSpan={4}
-                                    >
-                                        REQUESTOR INFORMATION (Complete fields
-                                        that marked with an asterisk (*))
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td
-                                        className="border border-black p-0"
+                                        className="border-b border-black align-top"
                                         style={{ width: '50%' }}
                                     >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            *Requested By (Please print your
-                                            name clearly)
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            {user?.name ?? ''}
-                                        </div>
-                                    </td>
-                                    <td
-                                        className="border border-black p-0"
-                                        style={{ width: '50%' }}
-                                    >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            *Date / Time Requested
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            {formatDateTime(
+                                        <Field
+                                            label="*Date / Time Requested:"
+                                            value={formatDateTime(
                                                 serviceRequest?.date_requested,
                                             )}
-                                        </div>
+                                        />
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td className="border border-black p-0">
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            *Designation
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            {user?.department ?? ''}
-                                        </div>
+                                    <td className="border-r border-b border-black align-top">
+                                        <Field
+                                            label="*Designation:"
+                                            value={user?.department ?? ''}
+                                        />
                                     </td>
-                                    <td className="border border-black p-0">
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            *Contact Details (Local / Email /
-                                            Landline / Mobile)
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            {serviceRequest?.contact_details ||
+                                    <td className="border-b border-black align-top">
+                                        <Field
+                                            label="*Contact Details (Local / Email / Landline / Mobile):"
+                                            value={
+                                                serviceRequest?.contact_details ||
                                                 user?.contact_no ||
-                                                ''}
-                                        </div>
+                                                ''
+                                            }
+                                        />
                                     </td>
                                 </tr>
                                 <tr>
                                     <td
-                                        className="border border-black p-0"
+                                        className="border-b border-black"
                                         colSpan={2}
                                     >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            *Office / Service / Division
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            {serviceRequest?.location ?? ''}
-                                        </div>
+                                        <Field
+                                            label="*Office / Service / Division:"
+                                            value={
+                                                serviceRequest?.location ?? ''
+                                            }
+                                        />
                                     </td>
                                 </tr>
                                 <tr>
                                     <td
-                                        className="border border-black p-0"
+                                        className="border-b border-black"
                                         colSpan={2}
                                     >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            Problem Description (Please provide
-                                            relevant information) *
-                                        </div>
-                                        <div className="min-h-[40px] px-1.5 py-0.5 text-[11px] leading-relaxed text-black">
-                                            {serviceRequest?.problem_description ??
-                                                ''}
+                                        <div className="p-1">
+                                            <p className="text-[9.5px] font-normal">
+                                                Problem Description (Please
+                                                provide relevant information):
+                                            </p>
+                                            <div className="mt-1 min-h-[40px] border-b border-dotted border-gray-400 px-0.5 text-[10px] leading-relaxed break-words text-black">
+                                                {serviceRequest?.problem_description ??
+                                                    '\u00A0'}
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td
-                                        className="border border-black px-1.5 py-0.5"
-                                        colSpan={2}
-                                    >
+                                    <td className="px-2 py-1" colSpan={2}>
                                         <div className="flex items-center gap-1.5">
-                                            <Bracket checked={hasAttachment} />
-                                            <span className="text-[9px] font-semibold tracking-wide text-black">
+                                            <Checkbox checked={hasAttachment} />
+                                            <span className="text-[9px] italic">
                                                 Check if with attachment (e.g.,
                                                 print-outs)
                                             </span>
@@ -540,237 +547,165 @@ export default function PrintJobRequestForm({
                                 </tr>
                             </tbody>
                         </table>
+                    </Section>
 
-                        {/* II. ICT Services */}
-                        <table className="w-full border-collapse">
+                    {/* II. ICT services */}
+                    <Section title="ICT Services (Check the service(s) that has been requested)">
+                        <div className="text-[9.5px]">
+                            {CATEGORY_CONFIG.map((config) => (
+                                <ServiceCategory
+                                    key={config.title}
+                                    title={config.title}
+                                    actions={config.actions}
+                                    rows={config.rows}
+                                    services={services}
+                                />
+                            ))}
+
+                            <div className="flex items-center gap-2 p-1 text-[9.5px]">
+                                <span className="shrink-0 font-bold whitespace-nowrap">
+                                    OTHERS{' '}
+                                    <span className="font-normal">
+                                        (Please specify):
+                                    </span>
+                                </span>
+                                <span className="min-w-0 flex-1 border-b border-dotted border-gray-400 px-0.5 text-[10px] break-words">
+                                    {joinValues(
+                                        unmatchedServices.map(
+                                            (service) => service.specification,
+                                        ),
+                                    ) || '\u00A0'}
+                                </span>
+                            </div>
+                        </div>
+                    </Section>
+
+                    {/* III. For ICT personnel use only */}
+                    <Section title="For ICT Personnel Use Only">
+                        <table className="w-full border-collapse text-[9.5px]">
                             <tbody>
                                 <tr>
-                                    <td className="border border-black bg-black px-2 py-0.5 text-center text-[9.5px] font-bold tracking-widest text-white uppercase">
-                                        ICT SERVICES (Check the service(s) that
-                                        has been requested)
+                                    <td
+                                        className="border-r border-b border-black align-top"
+                                        style={{ width: '25%' }}
+                                    >
+                                        <Field
+                                            label="Responded by (Name and Signature):"
+                                            value={technician?.name ?? ''}
+                                        />
+                                    </td>
+                                    <td
+                                        className="border-r border-b border-black align-top"
+                                        style={{ width: '25%' }}
+                                    >
+                                        <Field
+                                            label="Designation:"
+                                            value={technician?.department ?? ''}
+                                        />
+                                    </td>
+                                    <td
+                                        className="border-r border-b border-black align-top"
+                                        style={{ width: '25%' }}
+                                    >
+                                        <Field
+                                            label="Date/Time Responded:"
+                                            value={formatDateTime(respondedAt)}
+                                        />
+                                    </td>
+                                    <td
+                                        className="border-b border-black align-top"
+                                        style={{ width: '25%' }}
+                                    >
+                                        <Field
+                                            label="Date/Time Resolved:"
+                                            value={formatDateTime(resolvedAt)}
+                                        />
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td className="border border-black p-1">
-                                        {CATEGORY_CONFIG.map((config) => (
-                                            <ServiceCategory
-                                                key={config.title}
-                                                title={config.title}
-                                                actions={config.actions}
-                                                rows={config.rows}
-                                                services={services}
-                                            />
-                                        ))}
-
-                                        {/* Others */}
-                                        <div className="mt-1">
-                                            <p className="mb-0.5 text-[10.5px] font-bold text-black">
-                                                OTHERS (Please specify)
+                                    <td colSpan={4}>
+                                        <div className="p-1">
+                                            <p className="text-[9.5px] font-normal">
+                                                Report
                                             </p>
-                                            <div className="min-h-[16px] border-b border-black px-1 py-0.5 text-[10px] text-black">
-                                                {joinValues(
-                                                    unmatchedServices.map(
-                                                        (service) =>
-                                                            service.specification,
-                                                    ),
-                                                )}
+                                            <div className="mt-1 min-h-[40px] border-b border-dotted border-gray-400 px-0.5 text-[10px] leading-relaxed break-words text-black">
+                                                {reportText || '\u00A0'}
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
+                    </Section>
 
-                        {/* III. For ICT Personnel Use Only */}
-                        <table className="w-full border-collapse">
+                    {/* IV. For ICT supervisor use only */}
+                    <Section title="For ICT Supervisor Use Only">
+                        <table className="w-full border-collapse text-[9.5px]">
                             <tbody>
                                 <tr>
                                     <td
-                                        className="border border-black bg-black px-2 py-0.5 text-center text-[9.5px] font-bold tracking-widest text-white uppercase"
-                                        colSpan={4}
-                                    >
-                                        FOR ICT PERSONNEL USE ONLY
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td
-                                        className="border border-black p-0"
-                                        style={{ width: '25%' }}
-                                    >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            Responded by (Name and Signature)
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            {technician?.name ?? ''}
-                                        </div>
-                                    </td>
-                                    <td
-                                        className="border border-black p-0"
-                                        style={{ width: '25%' }}
-                                    >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            Designation
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            {technician?.department ?? ''}
-                                        </div>
-                                    </td>
-                                    <td
-                                        className="border border-black p-0"
-                                        style={{ width: '25%' }}
-                                    >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            Date/Time Responded
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            {formatDateTime(respondedAt)}
-                                        </div>
-                                    </td>
-                                    <td
-                                        className="border border-black p-0"
-                                        style={{ width: '25%' }}
-                                    >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            Date/Time Resolved
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            {formatDateTime(resolvedAt)}
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td
-                                        className="border border-black p-0"
-                                        colSpan={4}
-                                    >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            Report
-                                        </div>
-                                        <div className="min-h-[40px] px-1.5 py-0.5 text-[11px] leading-relaxed text-black">
-                                            {reportText ?? ''}
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        {/* IV. For ICT Supervisor Use Only */}
-                        <table className="w-full border-collapse">
-                            <tbody>
-                                <tr>
-                                    <td
-                                        className="border border-black bg-black px-2 py-0.5 text-center text-[9.5px] font-bold tracking-widest text-white uppercase"
-                                        colSpan={3}
-                                    >
-                                        FOR ICT SUPERVISOR USE ONLY
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td
-                                        className="border border-black p-0"
+                                        className="border-r border-b border-black align-top"
                                         style={{ width: '33.33%' }}
                                     >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            Checked by (Name and Signature)
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            &nbsp;
-                                        </div>
+                                        <Field
+                                            label="Checked by (Name and Signature):"
+                                            value=""
+                                        />
                                     </td>
                                     <td
-                                        className="border border-black p-0"
+                                        className="border-r border-b border-black align-top"
                                         style={{ width: '33.33%' }}
                                     >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            Designation
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            &nbsp;
-                                        </div>
+                                        <Field label="Designation:" value="" />
                                     </td>
                                     <td
-                                        className="border border-black p-0"
+                                        className="border-b border-black align-top"
                                         style={{ width: '33.34%' }}
                                     >
-                                        <div className="border-b border-black bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-black">
-                                            Date and Time
-                                        </div>
-                                        <div className="min-h-[18px] px-1.5 py-0.5 text-[11px] text-black">
-                                            &nbsp;
-                                        </div>
+                                        <Field
+                                            label="Date and Time:"
+                                            value=""
+                                        />
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td
-                                        className="border border-black p-1"
-                                        colSpan={3}
-                                    >
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                                            <span className="text-[9.5px] font-bold text-black">
+                                    <td className="p-1.5" colSpan={3}>
+                                        <div className="flex flex-wrap items-center justify-between gap-2 text-[10px]">
+                                            <span className="font-bold">
                                                 Final Remarks
                                             </span>
-                                            {FINAL_REMARKS.map((remark) => (
-                                                <div
-                                                    key={remark.key}
-                                                    className="flex items-center gap-1"
-                                                >
-                                                    <Bracket
-                                                        checked={
-                                                            jobOrder.final_remarks ===
-                                                            remark.key
-                                                        }
-                                                    />
-                                                    <span className="text-[9.5px] text-black">
-                                                        {remark.label}
+                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                                                {FINAL_REMARKS.map((remark) => (
+                                                    <span
+                                                        key={remark.key}
+                                                        className="flex items-center gap-1.5"
+                                                    >
+                                                        <Checkbox
+                                                            checked={
+                                                                jobOrder.final_remarks ===
+                                                                remark.key
+                                                            }
+                                                        />
+                                                        <span
+                                                            className={
+                                                                remark.key ===
+                                                                'task_completed'
+                                                                    ? 'font-semibold'
+                                                                    : undefined
+                                                            }
+                                                        >
+                                                            {remark.label}
+                                                        </span>
                                                     </span>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
-
-                        {/* Footer */}
-                        <table className="w-full border-collapse">
-                            <tbody>
-                                <tr>
-                                    <td className="border-t-[1.5px] border-black bg-slate-100 px-2 py-0.5">
-                                        <table
-                                            className="w-full border-collapse"
-                                            style={{ tableLayout: 'fixed' }}
-                                        >
-                                            <tbody>
-                                                <tr>
-                                                    <td
-                                                        className="text-[10px] font-semibold tracking-wide text-black"
-                                                        style={{
-                                                            width: '30%',
-                                                        }}
-                                                    >
-                                                        FM-USTP-ICT-001
-                                                    </td>
-                                                    <td
-                                                        className="text-right text-[10px] text-black"
-                                                        style={{
-                                                            width: '70%',
-                                                        }}
-                                                    >
-                                                        Rev. No.: 00
-                                                        &nbsp;|&nbsp; Effective
-                                                        Date: 03.17.25
-                                                        &nbsp;|&nbsp; Page 1 of
-                                                        1
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                    </Section>
+                </main>
             </div>
         </>
     );
