@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar } from '@heroui/react';
 import { useInitials } from '@/hooks/use-initials';
 import type { Team, User } from '@/types';
 
@@ -20,13 +20,11 @@ export function UserInfo({
 
     return (
         <>
-            <Avatar className="h-9 w-9 overflow-hidden rounded-lg ring-2 ring-ustp-gold/50 shadow-md shadow-black/20">
+            <Avatar>
                 {showAvatar ? (
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <Avatar.Image src={user.avatar} alt={user.name} />
                 ) : null}
-                <AvatarFallback className="rounded-lg bg-ustp-navy-light text-sm font-semibold text-ustp-gold">
-                    {getInitials(user.name)}
-                </AvatarFallback>
+                <Avatar.Fallback>{getInitials(user.name)}</Avatar.Fallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold text-white">
@@ -37,7 +35,7 @@ export function UserInfo({
                         {team.name}
                     </span>
                 ) : showRole && role ? (
-                    <span className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-wider text-ustp-gold">
+                    <span className="mt-0.5 truncate text-[10px] font-medium tracking-wider text-ustp-gold uppercase">
                         {role.replace(/_/g, ' ')}
                     </span>
                 ) : showEmail ? (

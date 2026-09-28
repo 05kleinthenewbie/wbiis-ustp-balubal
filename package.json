@@ -29,6 +29,8 @@
         "typescript-eslint": "^8.23.0"
     },
     "dependencies": {
+        "@heroui/react": "^3.2.6",
+        "@heroui/styles": "^3.2.6",
         "@inertiajs/react": "^3.0.0",
         "@inertiajs/vite": "^3.0.0",
         "@radix-ui/react-avatar": "^1.1.3",
