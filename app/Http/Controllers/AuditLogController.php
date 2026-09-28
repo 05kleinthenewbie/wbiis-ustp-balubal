@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +39,7 @@ class AuditLogController extends Controller
             'logs' => $query->paginate(25)->withQueryString(),
             'modules' => AuditLog::distinct()->pluck('module_name'),
             'filters' => $request->only('module', 'search'),
+            'suggestions' => $this->suggestions(),
             'stats' => [
                 'total' => $total,
                 'today' => $todayCount,
@@ -45,5 +47,53 @@ class AuditLogController extends Controller
                 'modules' => $modulesCount,
             ],
         ]);
+    }
+
+    /**
+     * Distinct action phrases, actor names and details offered by the search
+     * field as the user types. Ordered by type so actions are suggested first.
+     *
+     * @return array<int, array{value: string, type: string}>
+     */
+    private function suggestions(): array
+    {
+        $suggestions = [];
+
+        $add = function (string $value, string $type) use (&$suggestions): void {
+            $value = trim($value);
+
+            if ($value === '' || isset($suggestions[$value])) {
+                return;
+            }
+
+            $suggestions[$value] = ['value' => $value, 'type' => $type];
+        };
+
+        AuditLog::query()
+            ->whereNotNull('action_taken')
+            ->distinct()
+            ->orderBy('action_taken')
+            ->limit(100)
+            ->pluck('action_taken')
+            ->each(fn (string $action) => $add($action, 'action'));
+
+        User::whereIn(
+            'id',
+            AuditLog::query()->distinct()->pluck('admin_user_id'),
+        )
+            ->orderBy('name')
+            ->limit(100)
+            ->pluck('name')
+            ->each(fn (string $name) => $add($name, 'actor'));
+
+        AuditLog::query()
+            ->whereNotNull('details')
+            ->distinct()
+            ->orderBy('details')
+            ->limit(100)
+            ->pluck('details')
+            ->each(fn (string $details) => $add($details, 'details'));
+
+        return array_values($suggestions);
     }
 }
