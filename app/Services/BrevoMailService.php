@@ -89,6 +89,28 @@ class BrevoMailService
     }
 
     /**
+     * Send the registration verification code to a prospective user.
+     */
+    public function sendRegistrationOtpEmail(string $email, string $name, string $code, int $expiresInMinutes): array
+    {
+        $appName = (string) config('app.name');
+
+        $html = view('emails.auth.registration-otp', [
+            'name' => $name,
+            'appName' => $appName,
+            'code' => $code,
+            'expiresInMinutes' => $expiresInMinutes,
+        ])->render();
+
+        return $this->send(
+            [['email' => $email, 'name' => $name]],
+            "Your {$appName} verification code",
+            $html,
+            "Hi {$name}, your {$appName} verification code is {$code}. It expires in {$expiresInMinutes} minutes.",
+        );
+    }
+
+    /**
      * Send the account-approved email to a newly approved user.
      */
     public function sendAccountApprovedEmail(string $email, string $name): array

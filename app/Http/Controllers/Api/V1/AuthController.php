@@ -47,7 +47,7 @@ class AuthController extends ApiController
      */
     public function register(Request $request): JsonResponse
     {
-        $user = app(CreateNewUser::class)->create($request->only([
+        $user = app(CreateNewUser::class)->createWithoutEmailVerification($request->only([
             'name',
             'email',
             'password',

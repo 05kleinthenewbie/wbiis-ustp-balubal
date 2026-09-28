@@ -1,9 +1,11 @@
 import { Form, Head } from '@inertiajs/react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordStrength } from '@/components/ui/password-strength';
 import { Spinner } from '@/components/ui/spinner';
 import { update } from '@/routes/password';
 
@@ -14,6 +16,8 @@ type Props = {
 };
 
 export default function ResetPassword({ token, email, passwordRules }: Props) {
+    const [password, setPassword] = useState('');
+
     return (
         <>
             <Head title="Reset password" />
@@ -48,11 +52,19 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 id="password"
                                 name="password"
                                 autoComplete="new-password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="mt-1 block w-full"
                                 autoFocus
                                 placeholder="Password"
                                 passwordrules={passwordRules}
                             />
+                            {password.length > 0 && (
+                                <PasswordStrength
+                                    value={password}
+                                    className="mt-1"
+                                />
+                            )}
                             <InputError message={errors.password} />
                         </div>
 

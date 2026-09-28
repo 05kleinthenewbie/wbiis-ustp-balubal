@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 test('rejected accounts can register again', function () {
+    fakeBrevoMail();
     Role::firstOrCreate(['role_name' => 'faculty_staff'], ['description' => 'Faculty and staff']);
 
     $rejected = User::factory()->create([
@@ -13,13 +14,15 @@ test('rejected accounts can register again', function () {
         'status' => 'inactive',
     ]);
 
-    $user = app(CreateNewUser::class)->create([
+    $this->post(route('register.store'), registrationPayload([
         'name' => 'Returning User',
         'email' => 'rejected@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
-        'role' => 'faculty_staff',
-    ]);
+    ]))->assertRedirect(route('register.otp.show'));
+
+    $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])
+        ->assertRedirect(route('login'));
+
+    $user = User::where('email', 'rejected@example.com')->first();
 
     expect($user->id)->toBe($rejected->id)
         ->and($user->status)->toBe('pending')

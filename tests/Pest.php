@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /*
@@ -44,7 +45,56 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Configure Brevo credentials and fake outbound HTTP for mail tests.
+ */
+function fakeBrevoMail(): void
 {
-    // ..
+    config()->set('services.brevo.key', 'test-key');
+    config()->set('services.brevo.sender_email', 'noreply@example.com');
+    config()->set('services.brevo.sender_name', 'Test App');
+
+    Http::fake([
+        'api.brevo.com/*' => Http::response(['messageId' => 'test-id'], 201),
+    ]);
+}
+
+/**
+ * A payload accepted by the web registration flow.
+ *
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function registrationPayload(array $overrides = []): array
+{
+    return array_merge([
+        'name' => 'Test User',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'role' => 'faculty_staff',
+        'terms' => 'on',
+    ], $overrides);
+}
+
+/**
+ * Extract the six-digit OTP from the most recently recorded Brevo email.
+ */
+function registrationOtpCode(): string
+{
+    $recorded = Http::recorded()->last();
+
+    if ($recorded === null) {
+        return '';
+    }
+
+    $body = $recorded[0]->body();
+    $decoded = json_decode($body, true);
+    $html = is_array($decoded) && isset($decoded['htmlContent'])
+        ? (string) $decoded['htmlContent']
+        : $body;
+
+    preg_match('/\b\d{6}\b/', $html, $matches);
+
+    return $matches[0] ?? '';
 }

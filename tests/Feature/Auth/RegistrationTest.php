@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\TeamRole;
+use App\Models\Role;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
@@ -34,15 +35,21 @@ test('registration screen includes team invitation context', function () {
 });
 
 test('new users can register', function () {
-    $response = $this->post(route('register.store'), [
-        'name' => 'Test User',
-        'email' => 'test@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
-    ]);
+    fakeBrevoMail();
+    Role::firstOrCreate(['role_name' => 'faculty_staff'], ['description' => 'Faculty and staff']);
 
-    $this->assertAuthenticated();
+    $response = $this->post(route('register.store'), registrationPayload());
+
+    $response->assertRedirect(route('register.otp.show'));
+    $this->assertGuest();
+    expect(User::where('email', 'test@example.com')->exists())->toBeFalse();
+
+    $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])
+        ->assertRedirect(route('login'));
 
     $user = User::where('email', 'test@example.com')->first();
-    $response->assertRedirect(route('dashboard'));
+
+    expect($user)->not->toBeNull()
+        ->and($user->status)->toBe('pending')
+        ->and($user->email_verified_at)->not->toBeNull();
 });

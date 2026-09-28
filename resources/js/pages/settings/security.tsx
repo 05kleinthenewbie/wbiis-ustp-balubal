@@ -1,11 +1,12 @@
 import { Form, Head } from '@inertiajs/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { PasswordStrength } from '@/components/ui/password-strength';
 import { edit } from '@/routes/security';
 
 type Props = {
@@ -15,6 +16,7 @@ type Props = {
 export default function Security(props: Props) {
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
+    const [password, setPassword] = useState('');
 
     return (
         <>
@@ -40,6 +42,7 @@ export default function Security(props: Props) {
                         'current_password',
                     ]}
                     resetOnSuccess
+                    onSuccess={() => setPassword('')}
                     onError={(errors) => {
                         if (errors.password) {
                             passwordInput.current?.focus();
@@ -71,7 +74,9 @@ export default function Security(props: Props) {
                                         placeholder="Current password"
                                     />
 
-                                    <InputError message={errors.current_password} />
+                                    <InputError
+                                        message={errors.current_password}
+                                    />
                                 </div>
 
                                 <div className="grid gap-2">
@@ -86,11 +91,22 @@ export default function Security(props: Props) {
                                         id="password"
                                         ref={passwordInput}
                                         name="password"
+                                        value={password}
+                                        onChange={(e) =>
+                                            setPassword(e.target.value)
+                                        }
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
                                         placeholder="New password"
                                         passwordrules={props.passwordRules}
                                     />
+
+                                    {password.length > 0 && (
+                                        <PasswordStrength
+                                            value={password}
+                                            className="mt-1"
+                                        />
+                                    )}
 
                                     <InputError message={errors.password} />
                                 </div>

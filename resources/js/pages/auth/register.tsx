@@ -1,13 +1,15 @@
 import { Form, Head } from '@inertiajs/react';
 import { Lock, Mail, User } from 'lucide-react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordStrength } from '@/components/ui/password-strength';
 import { Spinner } from '@/components/ui/spinner';
-import { login } from '@/routes';
+import { login, privacy, terms } from '@/routes';
 import { store } from '@/routes/register';
 
 type Props = {
@@ -15,6 +17,8 @@ type Props = {
 };
 
 export default function Register({ passwordRules }: Props) {
+    const [password, setPassword] = useState('');
+
     return (
         <>
             <Head title="Register" />
@@ -100,11 +104,21 @@ export default function Register({ passwordRules }: Props) {
                                         tabIndex={4}
                                         autoComplete="new-password"
                                         name="password"
+                                        value={password}
+                                        onChange={(e) =>
+                                            setPassword(e.target.value)
+                                        }
                                         placeholder="Create a password"
                                         passwordrules={passwordRules}
                                         className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
+                                {password.length > 0 && (
+                                    <PasswordStrength
+                                        value={password}
+                                        className="mt-1"
+                                    />
+                                )}
                                 <InputError message={errors.password} />
                             </div>
 
@@ -133,16 +147,59 @@ export default function Register({ passwordRules }: Props) {
                                 />
                             </div>
 
+                            <div className="mt-2 flex items-start gap-3">
+                                <input
+                                    type="checkbox"
+                                    id="terms"
+                                    name="terms"
+                                    value="on"
+                                    required
+                                    tabIndex={6}
+                                    className="mt-0.5 size-4 shrink-0 rounded-[4px] border border-input accent-ustp-navy focus-visible:ring-2 focus-visible:ring-ustp-navy/30 dark:border-white/20"
+                                />
+                                <Label
+                                    htmlFor="terms"
+                                    className="text-sm leading-snug font-normal text-muted-foreground"
+                                >
+                                    By clicking continue, you agree to our{' '}
+                                    <a
+                                        href={terms.url()}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="font-medium text-ustp-navy underline-offset-2 hover:underline dark:text-white/90"
+                                    >
+                                        Terms of Service
+                                    </a>{' '}
+                                    and{' '}
+                                    <a
+                                        href={privacy.url()}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="font-medium text-ustp-navy underline-offset-2 hover:underline dark:text-white/90"
+                                    >
+                                        Privacy Policy
+                                    </a>
+                                    .
+                                </Label>
+                            </div>
+                            <InputError message={errors.terms} />
+
                             <Button
                                 type="submit"
-                                className="mt-2 h-11 w-full rounded-lg bg-ustp-gold font-semibold text-ustp-navy shadow-md shadow-ustp-gold/20 transition-all hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-lg hover:shadow-ustp-gold/30 active:scale-[0.98]"
-                                tabIndex={6}
+                                className="h-11 w-full rounded-lg bg-ustp-gold font-semibold text-ustp-navy shadow-md shadow-ustp-gold/20 transition-all hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-lg hover:shadow-ustp-gold/30 active:scale-[0.98]"
+                                tabIndex={7}
                                 disabled={processing}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
-                                Create account
+                                Continue
                             </Button>
+
+                            <p className="text-xs text-muted-foreground">
+                                We'll email you a 6-digit verification code to
+                                confirm your address before your account is
+                                created.
+                            </p>
                         </div>
 
                         <div className="relative">
@@ -161,7 +218,7 @@ export default function Register({ passwordRules }: Props) {
                             <TextLink
                                 href={login()}
                                 data-test="team-invitation-login-link"
-                                tabIndex={7}
+                                tabIndex={8}
                                 className="font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
                             >
                                 Sign in

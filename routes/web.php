@@ -7,6 +7,7 @@ use App\Http\Controllers\IncidentReportController;
 use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\JobOrderController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\RegisterOtpController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceRequestController;
 use App\Http\Controllers\Teams\TeamInvitationController;
@@ -16,6 +17,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('/health', fn () => response()->json(['ok' => true]))->name('health');
 
 Route::inertia('/', 'welcome')->name('home');
+
+Route::inertia('/terms', 'terms')->name('terms');
+Route::inertia('/privacy-policy', 'privacy-policy')->name('privacy');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/register/otp', [RegisterOtpController::class, 'show'])->name('register.otp.show');
+    Route::post('/register/otp', [RegisterOtpController::class, 'verify'])->name('register.otp.verify');
+    Route::post('/register/otp/resend', [RegisterOtpController::class, 'resend'])->name('register.otp.resend');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
