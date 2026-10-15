@@ -23,6 +23,52 @@ test('registering emails an OTP and defers account creation', function () {
     expect(registrationOtpCode())->toHaveLength(6);
 });
 
+test('a student can register and is assigned the student role', function () {
+    Role::firstOrCreate(['role_name' => 'student'], ['description' => 'Students']);
+    fakeBrevoMail();
+
+    $this->post(route('register.store'), registrationPayload([
+        'name' => 'Juan Dela Cruz',
+        'email' => 'student@ustp.edu.ph',
+        'role' => 'student',
+        'department' => 'CITC',
+    ]))->assertRedirect(route('register.otp.show'));
+
+    $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])
+        ->assertRedirect(route('login'));
+
+    $user = User::where('email', 'student@ustp.edu.ph')->first();
+
+    expect($user)->not->toBeNull()
+        ->and($user->status)->toBe('pending')
+        ->and($user->role->role_name)->toBe('student')
+        ->and($user->department)->toBe('CITC');
+});
+
+test('a student registration without a department is rejected', function () {
+    fakeBrevoMail();
+
+    $this->post(route('register.store'), registrationPayload([
+        'role' => 'student',
+        'department' => null,
+    ]))->assertSessionHasErrors('department');
+
+    Http::assertNothingSent();
+});
+
+test('a faculty registration without a department is accepted', function () {
+    fakeBrevoMail();
+
+    $this->post(route('register.store'), registrationPayload([
+        'department' => null,
+    ]))->assertRedirect(route('register.otp.show'));
+
+    $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])
+        ->assertRedirect(route('login'));
+
+    expect(User::where('email', 'test@example.com')->first()->department)->toBeNull();
+});
+
 test('the OTP verification page renders', function () {
     fakeBrevoMail();
 

@@ -97,7 +97,7 @@ class CreateNewUser implements CreatesNewUsers
                     'name' => $input['name'],
                     'password' => $input['password'],
                     'role_id' => $role->id,
-                    'department' => null,
+                    'department' => $input['department'] ?? null,
                     'status' => 'pending',
                     'email_verified_at' => null,
                 ]);
@@ -114,7 +114,7 @@ class CreateNewUser implements CreatesNewUsers
                 'email' => $input['email'],
                 'password' => $input['password'],
                 'role_id' => $role->id,
-                'department' => null,
+                'department' => $input['department'] ?? null,
                 'status' => 'pending',
             ]);
 
@@ -156,7 +156,8 @@ class CreateNewUser implements CreatesNewUsers
                 // pending/active emails block a new registration.
                 Rule::unique(User::class)->where(fn ($query) => $query->whereIn('status', ['pending', 'active'])),
             ],
-            'role' => ['required', Rule::in(['faculty_staff'])],
+            'role' => ['required', Rule::in(['faculty_staff', 'student'])],
+            'department' => ['required_if:role,student', 'nullable', 'string', 'max:100'],
             'password' => $this->passwordRules(),
         ])->validate();
     }

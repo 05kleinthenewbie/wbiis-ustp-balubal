@@ -22,8 +22,30 @@ it('can register and waits for approval', function () {
     $this->assertDatabaseHas('users', ['email' => 'new@ustp.edu.ph', 'status' => 'pending']);
 });
 
-it('rejects student role registration', function () {
-    Role::create(['role_name' => 'faculty_staff']);
+it('can register as a student and waits for approval', function () {
+    Role::create(['role_name' => 'student']);
+
+    $response = $this->postJson('/api/v1/auth/register', [
+        'name' => 'New Student',
+        'email' => 'student@ustp.edu.ph',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+        'role' => 'student',
+        'department' => 'CITC',
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonStructure(['message', 'user']);
+
+    $this->assertDatabaseHas('users', [
+        'email' => 'student@ustp.edu.ph',
+        'status' => 'pending',
+        'department' => 'CITC',
+    ]);
+});
+
+it('rejects a student registration without a department', function () {
+    Role::create(['role_name' => 'student']);
 
     $response = $this->postJson('/api/v1/auth/register', [
         'name' => 'New Student',
@@ -34,7 +56,7 @@ it('rejects student role registration', function () {
     ]);
 
     $response->assertUnprocessable()
-        ->assertJsonValidationErrors(['role']);
+        ->assertJsonValidationErrors(['department']);
 
     $this->assertDatabaseMissing('users', ['email' => 'student@ustp.edu.ph']);
 });
