@@ -27,6 +27,7 @@ import {
     Pencil,
     LocateFixed,
 } from 'lucide-react';
+import { useState } from 'react';
 import { BackButton } from '@/components/back-button';
 import { Button } from '@/components/ui/button';
 
@@ -318,6 +319,13 @@ export default function InventoryShow({ item }: Props) {
     const incidentReports = item.incident_reports ?? [];
     const auditLogs = item.audit_logs ?? [];
 
+    const [showDefectForm, setShowDefectForm] = useState(false);
+    const [damageDescription, setDamageDescription] = useState('');
+    const [defectProcessing, setDefectProcessing] = useState(false);
+    const [repairProcessingId, setRepairProcessingId] = useState<number | null>(
+        null,
+    );
+
     const jobOrderMap = new Map<number, JobOrderRecord>();
     defectiveRecords.forEach((record) => {
         if (record.jobOrder) {
@@ -338,6 +346,36 @@ export default function InventoryShow({ item }: Props) {
 
     function handlePrintLabel() {
         window.open(`/inventory/${item.id}/qr`, '_blank');
+    }
+
+    function handleFlagDefective(e: React.FormEvent) {
+        e.preventDefault();
+
+        if (!damageDescription.trim()) {
+            return;
+        }
+
+        setDefectProcessing(true);
+        router.post(
+            `/inventory/${item.id}/defective`,
+            { damage_description: damageDescription.trim() },
+            {
+                onFinish: () => setDefectProcessing(false),
+                onSuccess: () => {
+                    setDamageDescription('');
+                    setShowDefectForm(false);
+                },
+            },
+        );
+    }
+
+    function handleRepairStatus(defectiveId: number, repairStatus: string) {
+        setRepairProcessingId(defectiveId);
+        router.patch(
+            `/inventory/${item.id}/defective/${defectiveId}`,
+            { repair_status: repairStatus },
+            { onFinish: () => setRepairProcessingId(null) },
+        );
     }
 
     return (
@@ -902,9 +940,9 @@ export default function InventoryShow({ item }: Props) {
                             )}
 
                             {/* Defective Records */}
-                            {defectiveRecords.length > 0 && (
-                                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                    <div className="flex items-center gap-3 border-b border-slate-200 bg-red-50/50 px-5 py-4 md:px-6">
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-red-50/50 px-5 py-4 md:px-6">
+                                    <div className="flex items-center gap-3">
                                         <div className="flex size-9 items-center justify-center rounded-lg bg-red-400/10">
                                             <AlertTriangle className="size-4 text-red-400" />
                                         </div>
@@ -921,6 +959,70 @@ export default function InventoryShow({ item }: Props) {
                                         </div>
                                     </div>
 
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        className="h-8 border border-red-200 bg-white px-3 text-xs font-medium text-red-600 shadow-sm hover:bg-red-50 hover:text-red-700"
+                                        onClick={() =>
+                                            setShowDefectForm((open) => !open)
+                                        }
+                                    >
+                                        <AlertTriangle className="size-3.5" />
+                                        Report as defective
+                                    </Button>
+                                </div>
+
+                                {showDefectForm && (
+                                    <form
+                                        onSubmit={handleFlagDefective}
+                                        className="border-b border-slate-200 bg-slate-50/50 px-5 py-4 md:px-6"
+                                    >
+                                        <p className="text-[10px] font-semibold tracking-[0.15em] text-slate-500 uppercase">
+                                            Damage description
+                                        </p>
+                                        <textarea
+                                            required
+                                            rows={3}
+                                            value={damageDescription}
+                                            onChange={(
+                                                e: React.ChangeEvent<HTMLTextAreaElement>,
+                                            ) =>
+                                                setDamageDescription(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="Describe the damage or defect..."
+                                            className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-red-300 focus:ring-2 focus:ring-red-100 focus:outline-none"
+                                        />
+                                        <div className="mt-3 flex justify-end gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                className="h-8 px-3 text-xs text-slate-500 hover:bg-slate-100"
+                                                onClick={() => {
+                                                    setShowDefectForm(false);
+                                                    setDamageDescription('');
+                                                }}
+                                            >
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                type="submit"
+                                                disabled={
+                                                    defectProcessing ||
+                                                    !damageDescription.trim()
+                                                }
+                                                className="h-8 bg-red-500 px-3 text-xs font-medium text-white shadow-sm hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                            >
+                                                {defectProcessing
+                                                    ? 'Flagging...'
+                                                    : 'Flag as defective'}
+                                            </Button>
+                                        </div>
+                                    </form>
+                                )}
+
+                                {defectiveRecords.length > 0 ? (
                                     <div className="divide-y divide-slate-200">
                                         {defectiveRecords.map((record) => (
                                             <div
@@ -954,6 +1056,54 @@ export default function InventoryShow({ item }: Props) {
                                                                 </Link>
                                                             )}
                                                         </div>
+
+                                                        {record.repair_status !==
+                                                            'completed' && (
+                                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                                {record.repair_status ===
+                                                                    'pending' && (
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        disabled={
+                                                                            repairProcessingId ===
+                                                                            record.id
+                                                                        }
+                                                                        className="h-7 border border-sky-200 bg-sky-50 px-2.5 text-[11px] font-medium text-sky-700 hover:bg-sky-100"
+                                                                        onClick={() =>
+                                                                            handleRepairStatus(
+                                                                                record.id,
+                                                                                'in_progress',
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Wrench className="size-3" />
+                                                                        Start
+                                                                        repair
+                                                                    </Button>
+                                                                )}
+
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    disabled={
+                                                                        repairProcessingId ===
+                                                                        record.id
+                                                                    }
+                                                                    className="h-7 border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-medium text-emerald-700 hover:bg-emerald-100"
+                                                                    onClick={() =>
+                                                                        handleRepairStatus(
+                                                                            record.id,
+                                                                            'completed',
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <BadgeCheck className="size-3" />
+                                                                    Mark as
+                                                                    repaired
+                                                                </Button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <span
                                                         className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-medium capitalize ${repairStatusConfig[record.repair_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
@@ -967,8 +1117,14 @@ export default function InventoryShow({ item }: Props) {
                                             </div>
                                         ))}
                                     </div>
-                                </div>
-                            )}
+                                ) : (
+                                    !showDefectForm && (
+                                        <p className="px-5 py-6 text-sm text-slate-400 md:px-6">
+                                            No defects recorded for this item.
+                                        </p>
+                                    )
+                                )}
+                            </div>
 
                             {/* Incident Reports */}
                             {incidentReports.length > 0 && (

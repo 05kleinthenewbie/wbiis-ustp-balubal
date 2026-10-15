@@ -217,6 +217,69 @@ class InventoryItemController extends Controller
     }
 
     /**
+     * Flag an inventory item as defective and create a defect record.
+     */
+    public function flagDefective(Request $request, string $id)
+    {
+        $this->ensureAdmin();
+
+        $item = InventoryItem::findOrFail($id);
+
+        $validated = $request->validate([
+            'damage_description' => ['required', 'string', 'max:1000'],
+            'job_order_id' => ['nullable', 'exists:job_orders,id'],
+        ]);
+
+        $item->defectiveRecords()->create([
+            ...$validated,
+            'repair_status' => 'pending',
+            'date_reported' => now(),
+        ]);
+
+        $item->update(['condition' => 'defective']);
+
+        AuditLog::record(
+            'Flagged item as defective',
+            'inventory_items',
+            $item->id,
+            $validated['damage_description'],
+        );
+
+        return redirect()->back()
+            ->with('status', 'Item flagged as defective. A defect record was created.');
+    }
+
+    /**
+     * Update the repair status of a defect record.
+     */
+    public function updateRepairStatus(Request $request, string $id, string $defectiveId)
+    {
+        $this->ensureAdmin();
+
+        $item = InventoryItem::findOrFail($id);
+        $record = $item->defectiveRecords()->findOrFail($defectiveId);
+
+        $validated = $request->validate([
+            'repair_status' => ['required', 'in:pending,in_progress,completed'],
+        ]);
+
+        $record->update($validated);
+
+        if ($validated['repair_status'] === 'completed') {
+            $item->update(['condition' => 'working']);
+        }
+
+        AuditLog::record(
+            'Repair status changed to '.$validated['repair_status'],
+            'inventory_items',
+            $item->id,
+        );
+
+        return redirect()->back()
+            ->with('status', 'Repair status updated successfully.');
+    }
+
+    /**
      * Generate the QR code for the physical property label.
      * The QR content identifies the record via its canonical URL, and
      * the database remains the source of truth for all fields.

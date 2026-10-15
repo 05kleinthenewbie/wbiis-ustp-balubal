@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingStatusUpdated;
 use App\Models\Booking;
 use App\Models\Facility;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class BookingController extends Controller
@@ -134,20 +137,53 @@ class BookingController extends Controller
     public function update(Request $request, string $id)
     {
         $user = Auth::user();
-
-        if ($user->role->role_name !== 'ict_admin') {
-            abort(403, 'Only ICT Admins can approve or reject bookings.');
-        }
+        $isAdmin = $user->role->role_name === 'ict_admin';
 
         $validated = $request->validate([
             'booking_status' => ['required', 'in:pending,approved,rejected,cancelled'],
         ]);
 
-        $booking = Booking::findOrFail($id);
+        $booking = Booking::with(['user', 'facility'])->findOrFail($id);
+
+        // Admins decide on any booking; owners may only cancel their own pending booking.
+        if ($isAdmin) {
+            //
+        } elseif ($validated['booking_status'] !== 'cancelled'
+            || $booking->user_id !== $user->id
+            || $booking->booking_status !== 'pending') {
+            abort(403, 'Only ICT Admins can approve or reject bookings.');
+        }
+
+        $oldStatus = $booking->booking_status;
+
         $booking->update([
             ...$validated,
-            'approved_by' => Auth::id(),
+            'approved_by' => $isAdmin ? Auth::id() : $booking->approved_by,
         ]);
+
+        if ($oldStatus !== $booking->booking_status
+            && in_array($booking->booking_status, ['approved', 'rejected'], true)) {
+            $facilityName = $booking->facility?->facility_name ?? 'a facility';
+            $bookingSummary = $booking->booking_date->format('M d, Y')
+                .' · '.substr($booking->start_time, 0, 5).'-'.substr($booking->end_time, 0, 5);
+
+            Notification::create([
+                'user_id' => $booking->user_id,
+                'message' => 'Your booking for '.$facilityName.' on '.$booking->booking_date->format('M d, Y').' has been '.$booking->booking_status.'.',
+                'notification_type' => 'booking',
+                'notification_status' => 'unread',
+            ]);
+
+            Mail::to($booking->user->email)->queue(
+                new BookingStatusUpdated(
+                    $booking->user->name,
+                    $facilityName,
+                    $bookingSummary,
+                    $booking->booking_status,
+                    $booking->id,
+                )
+            );
+        }
 
         return redirect()->back()->with('status', 'Booking updated successfully.');
     }

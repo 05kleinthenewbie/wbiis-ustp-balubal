@@ -39,7 +39,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('incidents', IncidentReportController::class)->except(['edit', 'destroy']);
     Route::resource('inventory', InventoryItemController::class);
     Route::get('inventory/{id}/qr', [InventoryItemController::class, 'qr'])->name('inventory.qr');
+    Route::post('inventory/{id}/defective', [InventoryItemController::class, 'flagDefective'])->name('inventory.defective.store');
+    Route::patch('inventory/{id}/defective/{defectiveId}', [InventoryItemController::class, 'updateRepairStatus'])->name('inventory.defective.update');
+    Route::post('incidents/{incident}/liabilities/{liability}/resolve', [IncidentReportController::class, 'resolveLiability'])->name('incidents.liabilities.resolve');
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/export', [ReportController::class, 'export'])->name('reports.export');
     Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::delete('notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');

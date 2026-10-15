@@ -124,6 +124,33 @@ class IncidentReportController extends Controller
     }
 
     /**
+     * Settle or waive a liability assigned from this incident.
+     */
+    public function resolveLiability(Request $request, string $incident, string $liability)
+    {
+        if (Auth::user()->role->role_name !== 'ict_admin') {
+            abort(403, 'Only ICT Admins can resolve liabilities.');
+        }
+
+        $validated = $request->validate([
+            'liability_status' => ['required', 'in:settled,waived'],
+        ]);
+
+        $incidentReport = IncidentReport::findOrFail($incident);
+        $liabilityRecord = $incidentReport->userLiabilities()->findOrFail($liability);
+
+        $liabilityRecord->update([
+            'liability_status' => $validated['liability_status'],
+            'date_settled' => now(),
+        ]);
+
+        return redirect()->back()->with(
+            'status',
+            'Liability marked as '.$validated['liability_status'].'.',
+        );
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)

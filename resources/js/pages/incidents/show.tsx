@@ -93,6 +93,12 @@ const statusSteps = [
     { key: 'resolved', label: 'Resolved' },
 ];
 
+const liabilityStatusConfig: Record<string, string> = {
+    pending: 'border-amber-200 bg-amber-50 text-amber-700',
+    settled: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    waived: 'border-slate-200 bg-slate-50 text-slate-500',
+};
+
 const NONE_VALUE = '__none__';
 
 function formatDate(value: string | null): string {
@@ -180,6 +186,7 @@ export default function IncidentsShow({
     const [liabilityUserId, setLiabilityUserId] = useState('');
     const [liabilityDescription, setLiabilityDescription] = useState('');
     const [processing, setProcessing] = useState(false);
+    const [resolvingId, setResolvingId] = useState<number | null>(null);
 
     const displayStatus = status;
     const statusCfg = statusConfig[displayStatus] ?? statusConfig.open;
@@ -223,6 +230,28 @@ export default function IncidentsShow({
         setStatus(incident.status);
         setLiabilityUserId('');
         setLiabilityDescription('');
+    }
+
+    function handleResolveLiability(
+        liabilityId: number,
+        liabilityStatus: 'settled' | 'waived',
+    ) {
+        setResolvingId(liabilityId);
+        router.post(
+            `/incidents/${incident.id}/liabilities/${liabilityId}/resolve`,
+            { liability_status: liabilityStatus },
+            {
+                onFinish: () => setResolvingId(null),
+                onSuccess: () => {
+                    toast.success(`Liability marked as ${liabilityStatus}.`);
+                },
+                onError: () => {
+                    toast.error(
+                        'Could not update the liability. Please try again.',
+                    );
+                },
+            },
+        );
     }
 
     return (
@@ -407,7 +436,7 @@ export default function IncidentsShow({
                                             (liability) => (
                                                 <div
                                                     key={liability.id}
-                                                    className="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6"
+                                                    className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6"
                                                 >
                                                     <div>
                                                         <p className="text-sm font-medium text-slate-800">
@@ -425,11 +454,59 @@ export default function IncidentsShow({
                                                         )}
                                                     </div>
 
-                                                    <span className="w-fit rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 capitalize">
-                                                        {
-                                                            liability.liability_status
-                                                        }
-                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span
+                                                            className={`w-fit rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${liabilityStatusConfig[liability.liability_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
+                                                        >
+                                                            {
+                                                                liability.liability_status
+                                                            }
+                                                        </span>
+
+                                                        {isAdmin &&
+                                                            liability.liability_status ===
+                                                                'pending' && (
+                                                                <div className="flex gap-1.5">
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        disabled={
+                                                                            resolvingId ===
+                                                                            liability.id
+                                                                        }
+                                                                        className="h-7 border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-medium text-emerald-700 hover:bg-emerald-100"
+                                                                        onClick={() =>
+                                                                            handleResolveLiability(
+                                                                                liability.id,
+                                                                                'settled',
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <CheckCircle2 className="size-3" />
+                                                                        Settle
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        disabled={
+                                                                            resolvingId ===
+                                                                            liability.id
+                                                                        }
+                                                                        className="h-7 border border-slate-200 bg-slate-50 px-2.5 text-[11px] font-medium text-slate-600 hover:bg-slate-100"
+                                                                        onClick={() =>
+                                                                            handleResolveLiability(
+                                                                                liability.id,
+                                                                                'waived',
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <RotateCcw className="size-3" />
+                                                                        Waive
+                                                                    </Button>
+                                                                </div>
+                                                            )}
+                                                    </div>
                                                 </div>
                                             ),
                                         )}

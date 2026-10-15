@@ -4,6 +4,7 @@ import {
     Box,
     Calendar,
     ClipboardList,
+    Download,
     FileText,
     Star,
 } from 'lucide-react';
@@ -109,22 +110,32 @@ export default function ReportsIndex({
             <div className="min-h-full flex-1 bg-slate-50 text-slate-800">
                 <div className="relative flex flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
                     {/* Header */}
-                    <div className="relative">
-                        <div className="mb-2 flex items-center gap-2">
-                            <span className="size-1.5 rounded-full bg-ustp-light-blue shadow-[0_0_8px_rgba(50,157,234,0.6)]" />
+                    <div className="relative flex items-start justify-between gap-4">
+                        <div>
+                            <div className="mb-2 flex items-center gap-2">
+                                <span className="size-1.5 rounded-full bg-ustp-light-blue shadow-[0_0_8px_rgba(50,157,234,0.6)]" />
 
-                            <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
-                                Analytics
-                            </span>
+                                <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
+                                    Analytics
+                                </span>
+                            </div>
+
+                            <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
+                                Reports
+                            </h1>
+
+                            <p className="mt-1.5 max-w-xl text-sm text-slate-400">
+                                System-wide statistics and performance overview.
+                            </p>
                         </div>
 
-                        <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
-                            Reports
-                        </h1>
-
-                        <p className="mt-1.5 max-w-xl text-sm text-slate-400">
-                            System-wide statistics and performance overview.
-                        </p>
+                        <a
+                            href="/reports/export"
+                            className="flex h-9 shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 shadow-sm transition-colors hover:border-ustp-gold/30 hover:bg-ustp-gold/10 hover:text-ustp-gold"
+                        >
+                            <Download className="size-4" />
+                            Export CSV
+                        </a>
                     </div>
 
                     {/* Top stat cards */}
