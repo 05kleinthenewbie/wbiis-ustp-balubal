@@ -1,6 +1,7 @@
 // Components
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
+import StatusAlert from '@/components/status-alert';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,11 +52,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 )}
             </Form>
 
-            {status && (
-                <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-center text-sm font-medium text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-400">
-                    {status}
-                </div>
-            )}
+            {status && <StatusAlert message={status} className="mt-4" />}
 
             <div className="-mx-6 -mb-6 mt-6 border-t border-border bg-muted px-6 py-4 text-center text-sm text-accent-foreground">
                 Remembered your password?{' '}

@@ -1,5 +1,6 @@
 // Components
 import { Form, Head } from '@inertiajs/react';
+import StatusAlert from '@/components/status-alert';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -12,10 +13,10 @@ export default function VerifyEmail({ status }: { status?: string }) {
             <Head title="Email verification" />
 
             {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    A new verification link has been sent to the email address
-                    you provided during registration.
-                </div>
+                <StatusAlert
+                    message="A new verification link has been sent to the email address you provided during registration."
+                    className="mb-4"
+                />
             )}
 
             <Form {...send.form()} className="space-y-6 text-center">

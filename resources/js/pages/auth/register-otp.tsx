@@ -1,6 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
 import { MailCheck } from 'lucide-react';
 import InputError from '@/components/input-error';
+import StatusAlert from '@/components/status-alert';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,11 +32,7 @@ export default function RegisterOtp({ email, status }: Props) {
                 </p>
             </div>
 
-            {status && (
-                <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-center text-sm font-medium text-green-700">
-                    {status}
-                </div>
-            )}
+            {status && <StatusAlert message={status} className="mb-4" />}
 
             <Form
                 {...verify.form()}

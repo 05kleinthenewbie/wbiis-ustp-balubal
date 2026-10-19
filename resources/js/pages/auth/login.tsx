@@ -2,6 +2,7 @@ import { Form, Head } from '@inertiajs/react';
 import { ArrowRight, Info, Mail } from 'lucide-react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import StatusAlert, { isAlertMessage } from '@/components/status-alert';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -54,7 +55,14 @@ export default function Login({ status, canResetPassword }: Props) {
                                         className="h-11 rounded-lg border-border pl-10 text-sm transition-all focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
-                                <InputError message={errors.email} />
+                                {isAlertMessage(errors.email ?? '') ? (
+                                    <StatusAlert
+                                        message={errors.email}
+                                        className="mt-1.5"
+                                    />
+                                ) : (
+                                    <InputError message={errors.email} />
+                                )}
                             </div>
 
                             <div className="grid gap-1.5">
@@ -153,11 +161,7 @@ export default function Login({ status, canResetPassword }: Props) {
                 )}
             </Form>
 
-            {status && (
-                <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-center text-sm font-medium text-green-700">
-                    {status}
-                </div>
-            )}
+            {status && <StatusAlert message={status} />}
         </>
     );
 }
