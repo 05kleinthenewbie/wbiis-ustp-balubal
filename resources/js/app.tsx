@@ -1,5 +1,4 @@
 import { createInertiaApp } from '@inertiajs/react';
-import BubbleCursor from '@/components/bubble-cursor';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
@@ -32,7 +31,6 @@ createInertiaApp({
             <TooltipProvider delayDuration={0}>
                 {app}
                 <Toaster />
-                <BubbleCursor />
             </TooltipProvider>
         );
     },
