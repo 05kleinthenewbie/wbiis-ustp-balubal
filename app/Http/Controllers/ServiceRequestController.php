@@ -8,10 +8,13 @@ use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\ServiceCategory;
 use App\Models\ServiceRequest as ServiceRequestModel;
+use App\Models\ServiceType;
 use App\Services\SlaService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ServiceRequestController extends Controller
@@ -44,7 +47,7 @@ class ServiceRequestController extends Controller
         } elseif ($sort === 'newest') {
             $query->latest();
         } else {
-            $query->orderByRaw("FIELD(request_status, 'pending', 'approved', 'rejected', 'completed') ASC")
+            $query->orderByRaw("CASE WHEN request_status = 'pending' THEN 1 WHEN request_status = 'approved' THEN 2 WHEN request_status = 'rejected' THEN 3 WHEN request_status = 'completed' THEN 4 ELSE 5 END ASC")
                 ->latest();
         }
 
@@ -60,16 +63,21 @@ class ServiceRequestController extends Controller
      */
     public function create()
     {
-        $user = Auth::user();
+        $isStudent = Auth::user()->role->role_name === 'student';
 
-        if ($user->role->role_name === 'ict_admin') {
-            abort(403, 'ICT Administrators cannot submit service requests.');
-        }
-
-        $categories = ServiceCategory::with('serviceTypes')->get();
+        $categories = ServiceCategory::query()
+            ->when(
+                $isStudent,
+                fn ($query) => $query
+                    ->where('category_name', 'Information System Services')
+                    ->with(['serviceTypes' => fn ($types) => $types->whereIn('service_name', ['E-mail', 'Office 365'])]),
+                fn ($query) => $query->with('serviceTypes'),
+            )
+            ->get();
 
         return Inertia::render('requests/create', [
             'categories' => $categories,
+            'isStudent' => $isStudent,
         ]);
     }
 
@@ -78,10 +86,14 @@ class ServiceRequestController extends Controller
      */
     public function store(Request $request)
     {
-        $user = Auth::user();
+        $isStudent = Auth::user()->role->role_name === 'student';
 
-        if ($user->role->role_name === 'ict_admin') {
-            abort(403, 'ICT Administrators cannot submit service requests.');
+        $serviceTypeIdRules = ['required', 'exists:service_types,id'];
+        $messages = [];
+
+        if ($isStudent) {
+            $serviceTypeIdRules = ['required', Rule::in($this->studentAllowedServiceTypeIds())];
+            $messages['problem_description.required'] = 'The purpose field is required.';
         }
 
         $validated = $request->validate([
@@ -89,11 +101,11 @@ class ServiceRequestController extends Controller
             'location' => ['nullable', 'string', 'max:255'],
             'contact_details' => ['nullable', 'string', 'max:255'],
             'services' => ['required', 'array', 'min:1'],
-            'services.*.service_type_id' => ['required', 'exists:service_types,id'],
+            'services.*.service_type_id' => $serviceTypeIdRules,
             'services.*.specification' => ['nullable', 'string'],
             'services.*.quantity' => ['required', 'integer', 'min:1'],
             'services.*.action_type' => ['nullable', 'string'],
-        ]);
+        ], $messages);
 
         $serviceRequest = ServiceRequestModel::create([
             'user_id' => Auth::id(),
@@ -110,6 +122,19 @@ class ServiceRequestController extends Controller
 
         return redirect()->route('requests.index')
             ->with('status', 'Service request submitted successfully.');
+    }
+
+    /**
+     * Service type IDs a student account is allowed to request.
+     *
+     * @return Collection<int, int>
+     */
+    private function studentAllowedServiceTypeIds()
+    {
+        return ServiceType::query()
+            ->whereIn('service_name', ['E-mail', 'Office 365'])
+            ->whereHas('category', fn ($query) => $query->where('category_name', 'Information System Services'))
+            ->pluck('id');
     }
 
     /**

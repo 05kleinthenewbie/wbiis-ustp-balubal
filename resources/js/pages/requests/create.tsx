@@ -36,6 +36,7 @@ type ServiceCategoryItem = {
 
 type Props = {
     categories: ServiceCategoryItem[];
+    isStudent: boolean;
 };
 
 type ServiceLine = {
@@ -55,7 +56,10 @@ const actionOptionsByCategory: Record<string, string[]> = {
 const fieldClass =
     'h-9 border-slate-300 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20';
 
-export default function RequestsCreate({ categories }: Props) {
+export default function RequestsCreate({
+    categories,
+    isStudent,
+}: Props) {
     const [selected, setSelected] = useState<Record<number, ServiceLine>>({});
 
     const { data, setData, post, processing, errors } = useForm({
@@ -412,11 +416,14 @@ export default function RequestsCreate({ categories }: Props) {
 
                                 <div>
                                     <p className="text-sm font-semibold text-slate-800">
-                                        Problem description
+                                        {isStudent
+                                            ? 'Purpose'
+                                            : 'Problem description'}
                                     </p>
                                     <p className="mt-0.5 text-[11px] text-slate-400">
-                                        Explain the issue or provide details
-                                        that may help the ICT team.
+                                        {isStudent
+                                            ? 'State the purpose of your request.'
+                                            : 'Explain the issue or provide details that may help the ICT team.'}
                                     </p>
                                 </div>
                             </div>
@@ -424,7 +431,11 @@ export default function RequestsCreate({ categories }: Props) {
                             <Textarea
                                 id="problem_description"
                                 rows={5}
-                                placeholder="Describe the problem, affected equipment, or any relevant details..."
+                                placeholder={
+                                    isStudent
+                                        ? 'Describe the purpose of your request...'
+                                        : 'Describe the problem, affected equipment, or any relevant details...'
+                                }
                                 value={data.problem_description}
                                 onChange={(e) =>
                                     setData(

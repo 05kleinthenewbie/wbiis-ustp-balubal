@@ -7,10 +7,13 @@ use App\Mail\ServiceRequestRejected;
 use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\ServiceRequest as ServiceRequestModel;
+use App\Models\ServiceType;
 use App\Services\SlaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 class ServiceRequestController extends ApiController
 {
@@ -55,8 +58,10 @@ class ServiceRequestController extends ApiController
      */
     public function store(Request $request): JsonResponse
     {
-        if ($this->roleName() === 'ict_admin') {
-            abort(403, 'ICT Administrators cannot submit service requests.');
+        $serviceTypeIdRules = ['required', 'exists:service_types,id'];
+
+        if ($this->roleName() === 'student') {
+            $serviceTypeIdRules = ['required', Rule::in($this->studentAllowedServiceTypeIds())];
         }
 
         $validated = $request->validate([
@@ -65,7 +70,7 @@ class ServiceRequestController extends ApiController
             'contact_details' => ['nullable', 'string', 'max:255'],
             'priority_level' => ['nullable', 'in:low,medium,high,urgent'],
             'services' => ['required', 'array', 'min:1'],
-            'services.*.service_type_id' => ['required', 'exists:service_types,id'],
+            'services.*.service_type_id' => $serviceTypeIdRules,
             'services.*.specification' => ['nullable', 'string'],
             'services.*.quantity' => ['required', 'integer', 'min:1'],
             'services.*.action_type' => ['nullable', 'string'],
@@ -91,6 +96,19 @@ class ServiceRequestController extends ApiController
             'message' => 'Service request submitted successfully.',
             'request' => $serviceRequest->load(['user', 'requestServices.serviceType.category']),
         ], 201);
+    }
+
+    /**
+     * Service type IDs a student account is allowed to request.
+     *
+     * @return Collection<int, int>
+     */
+    private function studentAllowedServiceTypeIds()
+    {
+        return ServiceType::query()
+            ->whereIn('service_name', ['E-mail', 'Office 365'])
+            ->whereHas('category', fn ($query) => $query->where('category_name', 'Information System Services'))
+            ->pluck('id');
     }
 
     /**

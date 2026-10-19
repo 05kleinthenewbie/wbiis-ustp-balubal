@@ -75,6 +75,68 @@ it('creates a service request with services', function () {
     $this->assertDatabaseHas('service_requests', ['problem_description' => 'Lab 1 PC not booting']);
 });
 
+it('allows admins to create a service request', function () {
+    $admin = apiUser($this->adminRole);
+    $category = ServiceCategory::create(['category_name' => 'Network']);
+    $type = ServiceType::create(['category_id' => $category->id, 'service_name' => 'LAN Repair']);
+    $token = auth('api')->login($admin);
+
+    $this->withHeader('Authorization', "Bearer {$token}")
+        ->postJson('/api/v1/requests', [
+            'problem_description' => 'Admin submitted request',
+            'services' => [
+                ['service_type_id' => $type->id, 'quantity' => 1],
+            ],
+        ])
+        ->assertCreated()
+        ->assertJsonStructure(['request']);
+
+    $this->assertDatabaseHas('service_requests', [
+        'user_id' => $admin->id,
+        'problem_description' => 'Admin submitted request',
+        'request_status' => 'pending',
+    ]);
+});
+
+it('blocks students from submitting unrelated service requests', function () {
+    $student = apiUser(roleFor('student'));
+    $category = ServiceCategory::create(['category_name' => 'Network Services']);
+    $type = ServiceType::create(['category_id' => $category->id, 'service_name' => 'Network Connection']);
+    $token = auth('api')->login($student);
+
+    $this->withHeader('Authorization', "Bearer {$token}")
+        ->postJson('/api/v1/requests', [
+            'problem_description' => 'Fix the lab network',
+            'services' => [
+                ['service_type_id' => $type->id, 'quantity' => 1],
+            ],
+        ])
+        ->assertUnprocessable();
+
+    $this->assertDatabaseCount('service_requests', 0);
+});
+
+it('allows students to submit email requests via the api', function () {
+    $student = apiUser(roleFor('student'));
+    $category = ServiceCategory::create(['category_name' => 'Information System Services']);
+    $type = ServiceType::create(['category_id' => $category->id, 'service_name' => 'E-mail']);
+    $token = auth('api')->login($student);
+
+    $this->withHeader('Authorization', "Bearer {$token}")
+        ->postJson('/api/v1/requests', [
+            'problem_description' => 'Need a school email account',
+            'services' => [
+                ['service_type_id' => $type->id, 'quantity' => 1],
+            ],
+        ])
+        ->assertCreated();
+
+    $this->assertDatabaseHas('service_requests', [
+        'user_id' => $student->id,
+        'request_status' => 'pending',
+    ]);
+});
+
 it('restricts service request review to admins', function () {
     $user = apiUser($this->facultyRole);
     $token = auth('api')->login($user);

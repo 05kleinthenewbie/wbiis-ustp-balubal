@@ -37,7 +37,6 @@ type ServiceRequestItem = {
 
 type Props = {
     requests: ServiceRequestItem[] | { data: ServiceRequestItem[] };
-    isAdmin: boolean;
 };
 
 const statusConfig: Record<string, { badge: string; icon: typeof CheckCircle2 }> = {
@@ -54,7 +53,7 @@ const priorityBadge: Record<string, string> = {
     urgent: 'border-red-200 bg-red-50 text-red-600',
 };
 
-export default function RequestsIndex({ requests, isAdmin }: Props) {
+export default function RequestsIndex({ requests }: Props) {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
 
@@ -114,17 +113,15 @@ export default function RequestsIndex({ requests, isAdmin }: Props) {
                             </p>
                         </div>
 
-                        {!isAdmin && (
-                            <Button
-                                asChild
-                                className="h-10 bg-ustp-gold px-4 text-sm font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
-                            >
-                                <Link href="/requests/create">
-                                    <Plus className="mr-2 size-4" />
-                                    New Request
-                                </Link>
-                            </Button>
-                        )}
+                        <Button
+                            asChild
+                            className="h-10 bg-ustp-gold px-4 text-sm font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
+                        >
+                            <Link href="/requests/create">
+                                <Plus className="mr-2 size-4" />
+                                New Request
+                            </Link>
+                        </Button>
                     </div>
 
                     {/* Stats Cards */}
@@ -240,7 +237,7 @@ export default function RequestsIndex({ requests, isAdmin }: Props) {
                                     : 'Submitted ICT service requests will appear here once they are created.'}
                             </p>
 
-                            {!hasActiveFilter && !isAdmin && (
+                            {!hasActiveFilter && (
                                 <Button
                                     asChild
                                     variant="outline"
