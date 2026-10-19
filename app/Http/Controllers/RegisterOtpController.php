@@ -71,7 +71,9 @@ class RegisterOtpController extends Controller
 
         return redirect()->route('login')->with(
             'status',
-            'Registration successful! Your account is pending ICT Admin approval. You will be able to log in once approved.',
+            $user->status === 'active'
+                ? 'Registration successful! You can now log in to your account.'
+                : 'Registration successful! Your account is pending ICT Admin approval. You will be able to log in once approved.',
         );
     }
 

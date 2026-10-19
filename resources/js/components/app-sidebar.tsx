@@ -9,6 +9,7 @@ import {
     History,
     BarChart3,
     Users,
+    GraduationCap,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -39,6 +40,7 @@ export function AppSidebar() {
         { title: 'Laboratory Incident Reports', href: '/incidents', icon: AlertTriangle },
         { title: 'Audit Log', href: '/audit-log', icon: History },
         { title: 'Reports', href: '/reports', icon: BarChart3 },
+        { title: 'Student Roster', href: '/student-roster', icon: GraduationCap },
         { title: 'User Management', href: '/users', icon: Users },
     ];
 

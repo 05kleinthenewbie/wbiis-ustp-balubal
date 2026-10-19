@@ -10,6 +10,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RegisterOtpController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceRequestController;
+use App\Http\Controllers\StudentLookupController;
+use App\Http\Controllers\StudentRosterController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +21,10 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::inertia('/terms', 'terms')->name('terms');
 Route::inertia('/privacy-policy', 'privacy-policy')->name('privacy');
+
+Route::get('/register/students/{idNumber}', StudentLookupController::class)
+    ->middleware('throttle:20,1')
+    ->name('register.student.lookup');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register/otp', [RegisterOtpController::class, 'show'])->name('register.otp.show');
@@ -47,6 +53,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::delete('notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
+    Route::get('student-roster', [StudentRosterController::class, 'index'])->name('student-roster.index');
+    Route::post('student-roster', [StudentRosterController::class, 'store'])->name('student-roster.store');
+    Route::post('student-roster/import', [StudentRosterController::class, 'import'])->name('student-roster.import');
+    Route::delete('student-roster/{studentRoster}', [StudentRosterController::class, 'destroy'])->name('student-roster.destroy');
     Route::resource('users', UserController::class)->only(['index', 'update']);
 });
 

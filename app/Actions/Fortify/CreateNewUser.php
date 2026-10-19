@@ -5,6 +5,7 @@ namespace App\Actions\Fortify;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\Role;
+use App\Models\StudentRoster;
 use App\Models\User;
 use App\Services\BrevoMailService;
 use App\Services\RegistrationOtpService;
@@ -45,6 +46,8 @@ class CreateNewUser implements CreatesNewUsers
             'terms.accepted' => 'You must agree to the Terms of Service and Privacy Policy to continue.',
         ])->validate();
 
+        $this->applyStudentRosterDetails($input);
+
         $email = (string) $input['email'];
         $this->throttleOtpRequest($email);
 
@@ -79,11 +82,20 @@ class CreateNewUser implements CreatesNewUsers
     /**
      * Create the user account once the emailed OTP has been verified.
      *
+     * Students are activated immediately — the roster check above already
+     * proves they belong to the campus, so there is nothing for an admin to
+     * approve. Faculty/staff accounts still wait for admin approval.
+     *
      * @param  array<string, string>  $input
      */
     public function createVerified(array $input): User
     {
-        return DB::transaction(function () use ($input) {
+        $this->applyStudentRosterDetails($input);
+        $this->applyEmploymentDefaults($input);
+
+        $autoApproved = ($input['role'] ?? null) === 'student';
+
+        return DB::transaction(function () use ($input, $autoApproved) {
             $role = Role::where('role_name', $input['role'])->firstOrFail();
 
             $rejected = User::where('email', $input['email'])
@@ -96,6 +108,8 @@ class CreateNewUser implements CreatesNewUsers
                     'password' => $input['password'],
                     'role_id' => $role->id,
                     'department' => $input['department'] ?? null,
+                    'employment_type' => $input['employment_type'] ?? null,
+                    'id_number' => $input['id_number'] ?? null,
                     'status' => 'pending',
                     'email_verified_at' => null,
                 ]);
@@ -109,7 +123,10 @@ class CreateNewUser implements CreatesNewUsers
                 'password' => $input['password'],
                 'role_id' => $role->id,
                 'department' => $input['department'] ?? null,
-                'status' => 'pending',
+                'employment_type' => $input['employment_type'] ?? null,
+                'id_number' => $input['id_number'] ?? null,
+                'status' => $autoApproved ? 'active' : 'pending',
+                'email_verified_at' => $autoApproved ? now() : null,
             ]);
 
             return $user;
@@ -149,18 +166,98 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique(User::class)->where(fn ($query) => $query->whereIn('status', ['pending', 'active'])),
             ],
             'role' => ['required', Rule::in(['faculty_staff', 'student'])],
+            // Faculty declare whether they teach; teaching faculty must pick
+            // one of the campus departments below.
+            'employment_type' => [
+                'required_if:role,faculty_staff',
+                'nullable',
+                'string',
+                Rule::when(
+                    ($input['role'] ?? null) === 'faculty_staff',
+                    Rule::in(['teaching', 'non_teaching']),
+                ),
+            ],
             'department' => [
                 'required_if:role,student',
+                'required_if:employment_type,teaching',
                 'nullable',
                 'string',
                 'max:100',
                 Rule::when(
-                    ($input['role'] ?? null) === 'student',
+                    ($input['role'] ?? null) === 'student'
+                        || ($input['employment_type'] ?? null) === 'teaching',
                     Rule::in(['BSA', 'BSIT', 'BTLED']),
                 ),
             ],
+            // Students register with their university ID number, which must
+            // exist on the ICT-managed roster before an account can be made.
+            // The ID is strictly unique: deactivated students must be
+            // reactivated by an admin instead of registering a new account.
+            'id_number' => [
+                'required_if:role,student',
+                'nullable',
+                'string',
+                'max:20',
+                'regex:/^[0-9]{10}$/',
+                Rule::when(
+                    ($input['role'] ?? null) === 'student',
+                    [
+                        Rule::unique(User::class, 'id_number'),
+                        Rule::exists(StudentRoster::class, 'id_number'),
+                    ],
+                ),
+            ],
             'password' => $this->passwordRules(),
+        ], [
+            'id_number.regex' => 'ID number must be exactly 10 digits (e.g., 2023303709).',
+            'id_number.unique' => 'This ID number is already registered to an account.',
+            'id_number.exists' => 'ID number not found in the student roster. Please visit ICT/Registrar to be enrolled.',
         ])->validate();
+    }
+
+    /**
+     * For student registrations, replace the submitted name and program with
+     * the authoritative details from the roster, and fail when the ID number
+     * is no longer (or never was) on the roster.
+     *
+     * @param  array<string, string>  $input
+     */
+    private function applyStudentRosterDetails(array &$input): void
+    {
+        if (($input['role'] ?? null) !== 'student') {
+            return;
+        }
+
+        $roster = StudentRoster::where('id_number', $input['id_number'] ?? '')->first();
+
+        if ($roster === null) {
+            throw ValidationException::withMessages([
+                'id_number' => 'ID number not found in the student roster. Please visit ICT/Registrar to be enrolled.',
+            ]);
+        }
+
+        $input['id_number'] = $roster->id_number;
+        $input['name'] = $roster->name;
+        $input['department'] = $roster->program;
+    }
+
+    /**
+     * Students never carry an employment type, and only teaching faculty
+     * carry a department; everyone else is stored without one.
+     *
+     * @param  array<string, string>  $input
+     */
+    private function applyEmploymentDefaults(array &$input): void
+    {
+        if (($input['role'] ?? null) !== 'faculty_staff') {
+            $input['employment_type'] = null;
+
+            return;
+        }
+
+        if (($input['employment_type'] ?? null) !== 'teaching') {
+            $input['department'] = null;
+        }
     }
 
     /**

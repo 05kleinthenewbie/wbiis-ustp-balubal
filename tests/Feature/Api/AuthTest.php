@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Role;
+use App\Models\StudentRoster;
 use App\Models\User;
 
 it('can register and waits for approval', function () {
@@ -12,6 +13,7 @@ it('can register and waits for approval', function () {
         'password' => 'password123',
         'password_confirmation' => 'password123',
         'role' => 'faculty_staff',
+        'employment_type' => 'non_teaching',
     ];
 
     $response = $this->postJson('/api/v1/auth/register', $payload);
@@ -22,7 +24,60 @@ it('can register and waits for approval', function () {
     $this->assertDatabaseHas('users', ['email' => 'new@ustp.edu.ph', 'status' => 'pending']);
 });
 
-it('can register as a student and waits for approval', function () {
+it('rejects a faculty registration without an employment type', function () {
+    Role::create(['role_name' => 'faculty_staff']);
+
+    $response = $this->postJson('/api/v1/auth/register', [
+        'name' => 'New Faculty',
+        'email' => 'new@ustp.edu.ph',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+        'role' => 'faculty_staff',
+        'employment_type' => null,
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['employment_type']);
+
+    $this->assertDatabaseMissing('users', ['email' => 'new@ustp.edu.ph']);
+});
+
+it('can register as a student and log in immediately', function () {
+    Role::create(['role_name' => 'student']);
+    StudentRoster::create([
+        'id_number' => '2023303709',
+        'name' => 'New Student',
+        'program' => 'BSIT',
+    ]);
+
+    $response = $this->postJson('/api/v1/auth/register', [
+        'name' => 'New Student',
+        'email' => 'student@ustp.edu.ph',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+        'role' => 'student',
+        'department' => 'BSIT',
+        'id_number' => '2023303709',
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonStructure(['message', 'user'])
+        ->assertJsonPath('message', 'Account created successfully. You can now log in.');
+
+    $this->assertDatabaseHas('users', [
+        'email' => 'student@ustp.edu.ph',
+        'status' => 'active',
+        'department' => 'BSIT',
+        'id_number' => '2023303709',
+    ]);
+
+    $this->postJson('/api/v1/auth/login', [
+        'email' => 'student@ustp.edu.ph',
+        'password' => 'password123',
+    ])->assertOk();
+});
+
+it('rejects a student registration with an unrostered id number', function () {
     Role::create(['role_name' => 'student']);
 
     $response = $this->postJson('/api/v1/auth/register', [
@@ -32,20 +87,22 @@ it('can register as a student and waits for approval', function () {
         'password_confirmation' => 'password123',
         'role' => 'student',
         'department' => 'BSIT',
+        'id_number' => '9999999999',
     ]);
 
-    $response->assertCreated()
-        ->assertJsonStructure(['message', 'user']);
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['id_number']);
 
-    $this->assertDatabaseHas('users', [
-        'email' => 'student@ustp.edu.ph',
-        'status' => 'pending',
-        'department' => 'BSIT',
-    ]);
+    $this->assertDatabaseMissing('users', ['email' => 'student@ustp.edu.ph']);
 });
 
 it('rejects a student registration without a department', function () {
     Role::create(['role_name' => 'student']);
+    StudentRoster::create([
+        'id_number' => '2023303709',
+        'name' => 'New Student',
+        'program' => 'BSIT',
+    ]);
 
     $response = $this->postJson('/api/v1/auth/register', [
         'name' => 'New Student',
@@ -53,6 +110,7 @@ it('rejects a student registration without a department', function () {
         'password' => 'password123',
         'password_confirmation' => 'password123',
         'role' => 'student',
+        'id_number' => '2023303709',
     ]);
 
     $response->assertUnprocessable()

@@ -73,6 +73,7 @@ function registrationPayload(array $overrides = []): array
         'password' => 'password',
         'password_confirmation' => 'password',
         'role' => 'faculty_staff',
+        'employment_type' => 'non_teaching',
         'terms' => 'on',
     ], $overrides);
 }

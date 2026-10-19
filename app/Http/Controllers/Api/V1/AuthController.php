@@ -54,10 +54,14 @@ class AuthController extends ApiController
             'password_confirmation',
             'role',
             'department',
+            'employment_type',
+            'id_number',
         ]));
 
         return response()->json([
-            'message' => 'Account created successfully. Please wait for ICT Admin approval before logging in.',
+            'message' => $user->status === 'active'
+                ? 'Account created successfully. You can now log in.'
+                : 'Account created successfully. Please wait for ICT Admin approval before logging in.',
             'user' => $user->load('role'),
         ], 201);
     }

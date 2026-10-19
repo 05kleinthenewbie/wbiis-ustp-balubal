@@ -27,6 +27,8 @@ use RuntimeException;
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $avatar
+ * @property string|null $id_number
+ * @property string|null $employment_type
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -34,7 +36,7 @@ use RuntimeException;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password', 'role_id', 'department', 'contact_no', 'status', 'avatar'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'department', 'employment_type', 'id_number', 'contact_no', 'status', 'avatar'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements JWTSubject
 {

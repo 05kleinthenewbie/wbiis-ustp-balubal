@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Role;
+use App\Models\StudentRoster;
 use App\Models\User;
 use App\Services\RegistrationOtpService;
 use Illuminate\Support\Facades\Http;
@@ -25,6 +26,11 @@ test('registering emails an OTP and defers account creation', function () {
 
 test('a student can register and is assigned the student role', function () {
     Role::firstOrCreate(['role_name' => 'student'], ['description' => 'Students']);
+    StudentRoster::create([
+        'id_number' => '2023303709',
+        'name' => 'Juan S. Dela Cruz',
+        'program' => 'BSIT',
+    ]);
     fakeBrevoMail();
 
     $this->post(route('register.store'), registrationPayload([
@@ -32,36 +38,120 @@ test('a student can register and is assigned the student role', function () {
         'email' => 'student@ustp.edu.ph',
         'role' => 'student',
         'department' => 'BSIT',
+        'id_number' => '2023303709',
     ]))->assertRedirect(route('register.otp.show'));
 
     $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])
-        ->assertRedirect(route('login'));
+        ->assertRedirect(route('login'))
+        ->assertSessionHas(
+            'status',
+            'Registration successful! You can now log in to your account.',
+        );
 
     $user = User::where('email', 'student@ustp.edu.ph')->first();
 
     expect($user)->not->toBeNull()
-        ->and($user->status)->toBe('pending')
+        ->and($user->status)->toBe('active')
+        ->and($user->email_verified_at)->not->toBeNull()
         ->and($user->role->role_name)->toBe('student')
-        ->and($user->department)->toBe('BSIT');
+        ->and($user->id_number)->toBe('2023303709')
+        ->and($user->department)->toBe('BSIT')
+        ->and($user->name)->toBe('Juan S. Dela Cruz');
+});
+
+test('a student can log in immediately after registering', function () {
+    Role::firstOrCreate(['role_name' => 'student'], ['description' => 'Students']);
+    StudentRoster::create([
+        'id_number' => '2023303709',
+        'name' => 'Juan S. Dela Cruz',
+        'program' => 'BSIT',
+    ]);
+    fakeBrevoMail();
+
+    $this->post(route('register.store'), registrationPayload([
+        'email' => 'student@ustp.edu.ph',
+        'role' => 'student',
+        'department' => 'BSIT',
+        'id_number' => '2023303709',
+    ]));
+
+    $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])
+        ->assertRedirect(route('login'));
+
+    $this->post(route('login'), [
+        'email' => 'student@ustp.edu.ph',
+        'password' => 'password',
+    ])->assertRedirect(route('dashboard'));
+});
+
+test('a deactivated student cannot register again with the same id number', function () {
+    Role::firstOrCreate(['role_name' => 'student'], ['description' => 'Students']);
+    StudentRoster::create([
+        'id_number' => '2023303709',
+        'name' => 'Juan S. Dela Cruz',
+        'program' => 'BSIT',
+    ]);
+    User::factory()->create([
+        'email' => 'blocked@ustp.edu.ph',
+        'status' => 'inactive',
+        'id_number' => '2023303709',
+        'role_id' => Role::firstOrCreate(['role_name' => 'student'])->id,
+    ]);
+    fakeBrevoMail();
+
+    $this->post(route('register.store'), registrationPayload([
+        'email' => 'new@ustp.edu.ph',
+        'role' => 'student',
+        'department' => 'BSIT',
+        'id_number' => '2023303709',
+    ]))->assertSessionHasErrors('id_number');
+
+    Http::assertNothingSent();
+    expect(User::where('email', 'new@ustp.edu.ph')->exists())->toBeFalse();
+});
+
+test('a student registration without a rostered id number is rejected', function () {
+    fakeBrevoMail();
+
+    $this->post(route('register.store'), registrationPayload([
+        'role' => 'student',
+        'department' => 'BSIT',
+        'id_number' => '9999999999',
+    ]))->assertSessionHasErrors('id_number');
+
+    Http::assertNothingSent();
+    expect(User::where('email', 'test@example.com')->exists())->toBeFalse();
 });
 
 test('a student registration with an invalid department is rejected', function () {
+    StudentRoster::create([
+        'id_number' => '2023303709',
+        'name' => 'Juan S. Dela Cruz',
+        'program' => 'BSIT',
+    ]);
     fakeBrevoMail();
 
     $this->post(route('register.store'), registrationPayload([
         'role' => 'student',
         'department' => 'CITC',
+        'id_number' => '2023303709',
     ]))->assertSessionHasErrors('department');
 
     Http::assertNothingSent();
 });
 
 test('a student registration without a department is rejected', function () {
+    StudentRoster::create([
+        'id_number' => '2023303709',
+        'name' => 'Juan S. Dela Cruz',
+        'program' => 'BSIT',
+    ]);
     fakeBrevoMail();
 
     $this->post(route('register.store'), registrationPayload([
         'role' => 'student',
         'department' => null,
+        'id_number' => '2023303709',
     ]))->assertSessionHasErrors('department');
 
     Http::assertNothingSent();
@@ -78,6 +168,63 @@ test('a faculty registration without a department is accepted', function () {
         ->assertRedirect(route('login'));
 
     expect(User::where('email', 'test@example.com')->first()->department)->toBeNull();
+});
+
+test('a faculty registration without an employment type is rejected', function () {
+    fakeBrevoMail();
+
+    $this->post(route('register.store'), registrationPayload([
+        'employment_type' => null,
+    ]))->assertSessionHasErrors('employment_type');
+
+    Http::assertNothingSent();
+    expect(User::where('email', 'test@example.com')->exists())->toBeFalse();
+});
+
+test('a teaching faculty registration requires a department', function () {
+    fakeBrevoMail();
+
+    $this->post(route('register.store'), registrationPayload([
+        'employment_type' => 'teaching',
+        'department' => null,
+    ]))->assertSessionHasErrors('department');
+
+    Http::assertNothingSent();
+    expect(User::where('email', 'test@example.com')->exists())->toBeFalse();
+});
+
+test('a teaching faculty registration is stored with their department', function () {
+    fakeBrevoMail();
+
+    $this->post(route('register.store'), registrationPayload([
+        'employment_type' => 'teaching',
+        'department' => 'BSIT',
+    ]))->assertRedirect(route('register.otp.show'));
+
+    $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])
+        ->assertRedirect(route('login'));
+
+    $user = User::where('email', 'test@example.com')->first();
+
+    expect($user->employment_type)->toBe('teaching')
+        ->and($user->department)->toBe('BSIT');
+});
+
+test('a non-teaching faculty registration stores no department', function () {
+    fakeBrevoMail();
+
+    $this->post(route('register.store'), registrationPayload([
+        'employment_type' => 'non_teaching',
+        'department' => 'CITC',
+    ]))->assertRedirect(route('register.otp.show'));
+
+    $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])
+        ->assertRedirect(route('login'));
+
+    $user = User::where('email', 'test@example.com')->first();
+
+    expect($user->employment_type)->toBe('non_teaching')
+        ->and($user->department)->toBeNull();
 });
 
 test('the OTP verification page renders', function () {
