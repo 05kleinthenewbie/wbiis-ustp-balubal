@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { UserCheck, Users, Search, X } from 'lucide-react';
+import { UserCheck, Users, Search, UserX, X } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,7 @@ type UserRow = {
 type Props = {
     pendingUsers: UserRow[];
     activeUsers: UserRow[];
+    deactivatedUsers: UserRow[];
 };
 
 const roleLabels: Record<string, string> = {
@@ -29,7 +30,11 @@ const roleLabels: Record<string, string> = {
     ict_admin: 'ICT Admin',
 };
 
-export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
+export default function UsersIndex({
+    pendingUsers,
+    activeUsers,
+    deactivatedUsers,
+}: Props) {
     const getInitials = useInitials();
     const [processingId, setProcessingId] = useState<number | null>(null);
     const [searchPending, setSearchPending] = useState('');
@@ -49,6 +54,30 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
         router.put(
             `/users/${id}`,
             { status: 'inactive' },
+            { onFinish: () => setProcessingId(null) },
+        );
+    }
+
+    function deactivateUser(id: number) {
+        if (
+            confirm(
+                'Deactivate this account? They will no longer be able to log in.',
+            )
+        ) {
+            setProcessingId(id);
+            router.put(
+                `/users/${id}`,
+                { status: 'inactive' },
+                { onFinish: () => setProcessingId(null) },
+            );
+        }
+    }
+
+    function reactivateUser(id: number) {
+        setProcessingId(id);
+        router.put(
+            `/users/${id}`,
+            { status: 'active' },
             { onFinish: () => setProcessingId(null) },
         );
     }
@@ -323,6 +352,7 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
                                                 <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Status
                                                 </th>
+                                                <th className="px-5 py-3.5" />
                                             </tr>
                                         </thead>
 
@@ -377,6 +407,143 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
                                                         >
                                                             {user.status}
                                                         </Badge>
+                                                    </td>
+                                                    <td className="px-5 py-4 text-right">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            disabled={
+                                                                processingId ===
+                                                                user.id
+                                                            }
+                                                            onClick={() =>
+                                                                deactivateUser(
+                                                                    user.id,
+                                                                )
+                                                            }
+                                                            className="h-8 border-rose-200 bg-white px-3 text-xs text-rose-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"
+                                                        >
+                                                            <UserX className="mr-1 size-3" />
+                                                            Deactivate
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+                    </section>
+
+                    {/* Deactivated Users */}
+                    <section className="relative">
+                        <div className="mb-4 flex items-center gap-2">
+                            <div className="flex size-8 items-center justify-center rounded-lg bg-rose-100 text-rose-700">
+                                <UserX className="size-4" />
+                            </div>
+
+                            <div>
+                                <p className="text-sm font-medium text-slate-600">
+                                    Deactivated
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                    {deactivatedUsers.length} account
+                                    {deactivatedUsers.length !== 1 ? 's' : ''}{' '}
+                                    cannot log in
+                                </p>
+                            </div>
+                        </div>
+
+                        {deactivatedUsers.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
+                                <UserX className="mb-3 size-8 text-slate-400" />
+                                <p className="text-sm text-slate-400">
+                                    No deactivated accounts.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full min-w-180 text-sm">
+                                        <thead>
+                                            <tr className="border-b border-slate-200 bg-slate-50">
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                    Name
+                                                </th>
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                    Email
+                                                </th>
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                    Role
+                                                </th>
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                    Department
+                                                </th>
+                                                <th className="px-5 py-3.5" />
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            {deactivatedUsers.map((user) => (
+                                                <tr
+                                                    key={user.id}
+                                                    className="border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
+                                                >
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="size-8 shrink-0 rounded-lg">
+                                                                {user.avatar ? (
+                                                                    <AvatarImage
+                                                                        src={
+                                                                            user.avatar
+                                                                        }
+                                                                        alt={
+                                                                            user.name
+                                                                        }
+                                                                        className="object-cover"
+                                                                    />
+                                                                ) : null}
+                                                                <AvatarFallback className="rounded-lg bg-slate-200 text-[10px] font-bold text-slate-500">
+                                                                    {getInitials(
+                                                                        user.name,
+                                                                    )}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <span className="font-medium text-slate-600">
+                                                                {user.name}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-4 text-xs text-slate-400">
+                                                        {user.email}
+                                                    </td>
+                                                    <td className="px-5 py-4 text-xs text-slate-400">
+                                                        {roleLabels[
+                                                            user.role
+                                                                ?.role_name ?? ''
+                                                        ] ?? '—'}
+                                                    </td>
+                                                    <td className="px-5 py-4 text-xs text-slate-400">
+                                                        {user.department ?? '—'}
+                                                    </td>
+                                                    <td className="px-5 py-4 text-right">
+                                                        <Button
+                                                            size="sm"
+                                                            disabled={
+                                                                processingId ===
+                                                                user.id
+                                                            }
+                                                            onClick={() =>
+                                                                reactivateUser(
+                                                                    user.id,
+                                                                )
+                                                            }
+                                                            className="h-8 bg-emerald-600 px-3 text-xs text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700"
+                                                        >
+                                                            <UserCheck className="mr-1 size-3" />
+                                                            Reactivate
+                                                        </Button>
                                                     </td>
                                                 </tr>
                                             ))}

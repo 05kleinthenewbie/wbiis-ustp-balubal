@@ -39,6 +39,11 @@ class UserController extends Controller
                 ->where('id', '!=', Auth::id())
                 ->latest()
                 ->get(),
+            'deactivatedUsers' => User::with('role')
+                ->where('status', 'inactive')
+                ->where('id', '!=', Auth::id())
+                ->latest()
+                ->get(),
         ]);
     }
 
@@ -86,12 +91,15 @@ class UserController extends Controller
         ]);
 
         $user = User::findOrFail($id);
+        $previousStatus = $user->status;
         $user->update($validated);
 
         if ($validated['status'] === 'active') {
             Notification::create([
                 'user_id' => $user->id,
-                'message' => 'Your account has been approved. You can now log in.',
+                'message' => $previousStatus === 'inactive'
+                    ? 'Your account has been reactivated. You can now log in.'
+                    : 'Your account has been approved. You can now log in.',
                 'notification_type' => 'account_approval',
                 'notification_status' => 'unread',
             ]);
@@ -102,7 +110,9 @@ class UserController extends Controller
         } elseif ($validated['status'] === 'inactive') {
             Notification::create([
                 'user_id' => $user->id,
-                'message' => 'Your account registration was not approved. Please contact the ICT office for more information.',
+                'message' => $previousStatus === 'active'
+                    ? 'Your account has been deactivated. Please contact the ICT office for more information.'
+                    : 'Your account registration was not approved. Please contact the ICT office for more information.',
                 'notification_type' => 'account_rejection',
                 'notification_status' => 'unread',
             ]);
