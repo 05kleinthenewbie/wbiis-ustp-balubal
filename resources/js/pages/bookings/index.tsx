@@ -7,7 +7,6 @@ import {
     Plus,
     Search,
     XCircle,
-    Filter,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -59,6 +58,7 @@ export default function BookingsIndex({ bookings, isAdmin, stats }: Props) {
             String(booking.id).includes(q);
         const matchesStatus =
             statusFilter === 'all' || booking.booking_status === statusFilter;
+
         return matchesSearch && matchesStatus;
     });
 
@@ -78,13 +78,6 @@ export default function BookingsIndex({ bookings, isAdmin, stats }: Props) {
                     {/* Header */}
                     <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div>
-                            <div className="mb-2 flex items-center gap-2">
-                                <span className="size-1.5 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
-                                <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
-                                    Facility Management
-                                </span>
-                            </div>
-
                             <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                                 Facility Booking
                             </h1>
@@ -189,7 +182,9 @@ export default function BookingsIndex({ bookings, isAdmin, stats }: Props) {
                         <div className="flex items-center gap-3">
                             {(statusFilter !== 'all' || search) && (
                                 <button
-                                    onClick={() => { setStatusFilter('all'); setSearch(''); }}
+                                    onClick={() => {
+ setStatusFilter('all'); setSearch(''); 
+}}
                                     className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
                                 >
                                     <XCircle className="size-3" />

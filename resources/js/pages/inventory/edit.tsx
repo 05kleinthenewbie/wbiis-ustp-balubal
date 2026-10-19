@@ -271,13 +271,6 @@ export default function InventoryEdit({ item, users }: Props) {
                             </div>
 
                             <div>
-                                <div className="mb-2.5 flex items-center gap-2">
-                                    <span className="size-2 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
-                                    <span className="text-[11px] font-medium tracking-[0.2em] text-slate-500 uppercase">
-                                        Inventory Management
-                                    </span>
-                                </div>
-
                                 <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
                                     {data.item_name || 'Edit Equipment'}
                                 </h1>

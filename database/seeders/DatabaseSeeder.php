@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Actions\Teams\CreateTeam;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -34,14 +33,6 @@ class DatabaseSeeder extends Seeder
             $admin->update(['name' => 'Anthony Michael Chua']);
         }
 
-        if (! $admin->current_team_id) {
-            app(CreateTeam::class)->handle(
-                $admin,
-                $admin->name."'s Team",
-                isPersonal: true
-            );
-        }
-
         $facultyRole = Role::where('role_name', 'faculty_staff')->first();
 
         $faculty = User::firstOrCreate(
@@ -55,14 +46,6 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-
-        if (! $faculty->current_team_id) {
-            app(CreateTeam::class)->handle(
-                $faculty,
-                $faculty->name."'s Team",
-                isPersonal: true
-            );
-        }
 
         $this->call(ServiceCategorySeeder::class);
         $this->call(ServiceTypeSeeder::class);

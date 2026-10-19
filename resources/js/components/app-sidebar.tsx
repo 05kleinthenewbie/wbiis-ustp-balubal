@@ -45,8 +45,6 @@ export function AppSidebar() {
     const facultyStaffNavItems: NavItem[] = [
         { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
         { title: 'My Service Requests', href: '/requests', icon: FileText },
-        { title: 'Facility Booking', href: '/bookings', icon: Calendar },
-        { title: 'Incidents', href: '/incidents', icon: AlertTriangle },
     ];
 
     let mainNavItems: NavItem[] = facultyStaffNavItems;

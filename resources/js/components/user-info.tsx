@@ -1,17 +1,15 @@
 import { Avatar } from '@heroui/react';
 import { useInitials } from '@/hooks/use-initials';
-import type { Team, User } from '@/types';
+import type { User } from '@/types';
 
 export function UserInfo({
     user,
     showEmail = false,
     showRole = false,
-    team = null,
 }: {
     user: User;
     showEmail?: boolean;
     showRole?: boolean;
-    team?: Team | null;
 }) {
     const getInitials = useInitials();
     const showAvatar = Boolean(user.avatar && user.avatar !== '');
@@ -30,11 +28,7 @@ export function UserInfo({
                 <span className="truncate font-semibold text-white">
                     {user.name}
                 </span>
-                {team ? (
-                    <span className="truncate text-xs text-muted-foreground">
-                        {team.name}
-                    </span>
-                ) : showRole && role ? (
+                {showRole && role ? (
                     <span className="mt-0.5 truncate text-[10px] font-medium tracking-wider text-ustp-gold uppercase">
                         {role.replace(/_/g, ' ')}
                     </span>

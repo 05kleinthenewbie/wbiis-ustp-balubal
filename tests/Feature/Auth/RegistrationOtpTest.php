@@ -31,7 +31,7 @@ test('a student can register and is assigned the student role', function () {
         'name' => 'Juan Dela Cruz',
         'email' => 'student@ustp.edu.ph',
         'role' => 'student',
-        'department' => 'CITC',
+        'department' => 'BSIT',
     ]))->assertRedirect(route('register.otp.show'));
 
     $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])
@@ -42,7 +42,18 @@ test('a student can register and is assigned the student role', function () {
     expect($user)->not->toBeNull()
         ->and($user->status)->toBe('pending')
         ->and($user->role->role_name)->toBe('student')
-        ->and($user->department)->toBe('CITC');
+        ->and($user->department)->toBe('BSIT');
+});
+
+test('a student registration with an invalid department is rejected', function () {
+    fakeBrevoMail();
+
+    $this->post(route('register.store'), registrationPayload([
+        'role' => 'student',
+        'department' => 'CITC',
+    ]))->assertSessionHasErrors('department');
+
+    Http::assertNothingSent();
 });
 
 test('a student registration without a department is rejected', function () {

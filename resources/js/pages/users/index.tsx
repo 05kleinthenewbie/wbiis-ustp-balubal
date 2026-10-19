@@ -1,14 +1,17 @@
 import { Head, router } from '@inertiajs/react';
 import { UserCheck, Users, Search, X } from 'lucide-react';
 import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useInitials } from '@/hooks/use-initials';
 
 type UserRow = {
     id: number;
     name: string;
     email: string;
+    avatar?: string | null;
     department: string | null;
     status: string;
     role: { role_name: string } | null;
@@ -27,6 +30,7 @@ const roleLabels: Record<string, string> = {
 };
 
 export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
+    const getInitials = useInitials();
     const [processingId, setProcessingId] = useState<number | null>(null);
     const [searchPending, setSearchPending] = useState('');
     const [searchActive, setSearchActive] = useState('');
@@ -79,14 +83,6 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
                 <div className="relative flex flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
                     {/* Header */}
                     <div className="relative">
-                        <div className="mb-2 flex items-center gap-2">
-                            <span className="size-1.5 rounded-full bg-ustp-light-blue shadow-[0_0_8px_rgba(50,157,234,0.6)]" />
-
-                            <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
-                                Administration
-                            </span>
-                        </div>
-
                         <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                             User Management
                         </h1>
@@ -172,8 +168,30 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
                                                     key={user.id}
                                                     className="border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
                                                 >
-                                                    <td className="px-5 py-4 font-medium text-slate-600">
-                                                        {user.name}
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="size-8 shrink-0 rounded-lg">
+                                                                {user.avatar ? (
+                                                                    <AvatarImage
+                                                                        src={
+                                                                            user.avatar
+                                                                        }
+                                                                        alt={
+                                                                            user.name
+                                                                        }
+                                                                        className="object-cover"
+                                                                    />
+                                                                ) : null}
+                                                                <AvatarFallback className="rounded-lg bg-ustp-navy text-[10px] font-bold text-ustp-gold">
+                                                                    {getInitials(
+                                                                        user.name,
+                                                                    )}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <span className="font-medium text-slate-600">
+                                                                {user.name}
+                                                            </span>
+                                                        </div>
                                                     </td>
                                                     <td className="px-5 py-4 text-xs text-slate-400">
                                                         {user.email}
@@ -314,8 +332,30 @@ export default function UsersIndex({ pendingUsers, activeUsers }: Props) {
                                                     key={user.id}
                                                     className="border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
                                                 >
-                                                    <td className="px-5 py-4 font-medium text-slate-600">
-                                                        {user.name}
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="size-8 shrink-0 rounded-lg">
+                                                                {user.avatar ? (
+                                                                    <AvatarImage
+                                                                        src={
+                                                                            user.avatar
+                                                                        }
+                                                                        alt={
+                                                                            user.name
+                                                                        }
+                                                                        className="object-cover"
+                                                                    />
+                                                                ) : null}
+                                                                <AvatarFallback className="rounded-lg bg-ustp-navy text-[10px] font-bold text-ustp-gold">
+                                                                    {getInitials(
+                                                                        user.name,
+                                                                    )}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <span className="font-medium text-slate-600">
+                                                                {user.name}
+                                                            </span>
+                                                        </div>
                                                     </td>
                                                     <td className="px-5 py-4 text-xs text-slate-400">
                                                         {user.email}

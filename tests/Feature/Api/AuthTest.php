@@ -31,7 +31,7 @@ it('can register as a student and waits for approval', function () {
         'password' => 'password123',
         'password_confirmation' => 'password123',
         'role' => 'student',
-        'department' => 'CITC',
+        'department' => 'BSIT',
     ]);
 
     $response->assertCreated()
@@ -40,7 +40,7 @@ it('can register as a student and waits for approval', function () {
     $this->assertDatabaseHas('users', [
         'email' => 'student@ustp.edu.ph',
         'status' => 'pending',
-        'department' => 'CITC',
+        'department' => 'BSIT',
     ]);
 });
 

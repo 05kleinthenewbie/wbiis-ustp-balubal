@@ -31,13 +31,13 @@ const modules = [
     },
     {
         icon: ClipboardList,
-        title: 'Job Order Management',
+        title: 'Job Orders',
         description:
             'ICT staff can create, assign, and monitor job orders to resolve service requests efficiently.',
     },
     {
         icon: Inbox,
-        title: 'Inventory Management',
+        title: 'Inventory',
         description:
             'Track ICT equipment, property records, and monitor defective items across the campus.',
     },
@@ -49,7 +49,7 @@ const modules = [
     },
     {
         icon: Shield,
-        title: 'Incident Recording',
+        title: 'Incident Reports',
         description:
             'Document ICT-related incidents and monitor user responsibilities and liabilities.',
     },
@@ -158,7 +158,10 @@ export default function Welcome() {
     useEffect(() => {
         const queries = [
             { query: '(min-width: 1024px)', count: 3 },
-            { query: '(min-width: 640px)', count: 2 },
+            {
+                query: '(min-width: 640px) and (max-width: 1023px)',
+                count: 2,
+            },
             { query: '(max-width: 639px)', count: 1 },
         ];
 
@@ -418,7 +421,7 @@ export default function Welcome() {
                                 <div
                                     className="flex transition-transform duration-500 ease-out"
                                     style={{
-                                        transform: `translateX(-${currentPage * (100 / itemsPerView)}%)`,
+                                        transform: `translateX(-${currentPage * 100}%)`,
                                     }}
                                 >
                                     {modules.map((mod) => {

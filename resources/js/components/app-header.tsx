@@ -11,7 +11,6 @@ import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { NotificationBell } from '@/components/notification-bell';
-import { TeamSwitcher } from '@/components/team-switcher';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -241,11 +240,6 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 <UserMenuContent user={auth.user} />
                             </DropdownMenuContent>
                         </DropdownMenu>
-
-                        <TeamSwitcher
-                            inHeader
-                            triggerClassName="text-white hover:bg-ustp-navy-light hover:text-ustp-gold"
-                        />
                     </div>
                 </div>
             </div>

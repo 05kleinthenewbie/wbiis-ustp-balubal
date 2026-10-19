@@ -398,13 +398,6 @@ export default function InventoryShow({ item }: Props) {
                             </div>
 
                             <div>
-                                <div className="mb-2.5 flex items-center gap-2">
-                                    <span className="size-2 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
-                                    <span className="text-[11px] font-medium tracking-[0.2em] text-slate-500 uppercase">
-                                        Inventory Record
-                                    </span>
-                                </div>
-
                                 <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                                     {item.item_name}
                                 </h1>

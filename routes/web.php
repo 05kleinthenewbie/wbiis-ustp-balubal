@@ -10,7 +10,6 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RegisterOtpController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceRequestController;
-use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -49,11 +48,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
     Route::resource('users', UserController::class)->only(['index', 'update']);
-});
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');
-    Route::delete('invitations/{invitation}', [TeamInvitationController::class, 'decline'])->name('invitations.decline');
 });
 
 require __DIR__.'/settings.php';

@@ -1,23 +1,15 @@
 import { Head } from '@inertiajs/react';
-import { ArrowRight, Check, Monitor, Moon, Package, Palette, Sun } from 'lucide-react';
+import { Monitor, Moon, Package, Palette, Sun } from 'lucide-react';
 import { useState } from 'react';
-import type { CSSProperties } from 'react';
-import { cn } from '@/lib/utils';
 import { useAppearance } from '@/hooks/use-appearance';
-import { edit as editAppearance } from '@/routes/appearance';
 import type { Appearance } from '@/hooks/use-appearance';
+import { cn } from '@/lib/utils';
+import { edit as editAppearance } from '@/routes/appearance';
 
 const themeOptions: { value: Appearance; label: string; icon: typeof Sun }[] = [
     { value: 'light', label: 'Light', icon: Sun },
     { value: 'dark', label: 'Dark', icon: Moon },
     { value: 'system', label: 'System', icon: Monitor },
-];
-
-const accentColors = [
-    { name: 'USTP Navy', value: '#1a1851' },
-    { name: 'USTP Gold', value: '#fcb315' },
-    { name: 'Charcoal', value: '#151515' },
-    { name: 'Cool Gray', value: '#b3b3b3' },
 ];
 
 function ToggleSwitch({
@@ -59,9 +51,9 @@ export default function Appearance() {
 
             <h1 className="sr-only">Appearance settings</h1>
 
-            <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+            <div className="grid grid-cols-1 items-start gap-8">
                 {/* Left Main Appearance Card */}
-                <div className="space-y-8 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-8 lg:col-span-8">
+                <div className="space-y-8 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-8">
                     {/* Card Header */}
                     <div className="flex items-start gap-4 border-b border-slate-100 pb-6">
                         <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-700">
@@ -191,69 +183,6 @@ export default function Appearance() {
                                 checked={highContrast}
                                 onChange={setHighContrast}
                             />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right Supplementary Column */}
-                <div className="space-y-6 lg:col-span-4">
-                    {/* Campus Accent Tone Card */}
-                    <div className="space-y-4 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-bold text-slate-900">
-                                Campus Accent Tone
-                            </h3>
-                            <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-ustp-gold-dark uppercase">
-                                Default
-                            </span>
-                        </div>
-                        <p className="text-xs leading-relaxed text-slate-500">
-                            The Balubal Campus Portal enforces standardized USTP
-                            institutional color tokens for accessibility and
-                            identity consistency.
-                        </p>
-                        <div className="grid grid-cols-4 gap-2 pt-2">
-                            {accentColors.map((color, index) => (
-                                <button
-                                    key={color.name}
-                                    type="button"
-                                    title={color.name}
-                                    className={cn(
-                                        'flex h-10 cursor-pointer items-center justify-center rounded-lg text-white transition-opacity',
-                                        index === 0 &&
-                                            'ring-2 ring-offset-2',
-                                    )}
-                                    style={
-                                        {
-                                            backgroundColor: color.value,
-                                            '--tw-ring-color': color.value,
-                                        } as CSSProperties
-                                    }
-                                >
-                                    {index === 0 && <Check className="size-4" />}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Portal Information Box */}
-                    <div className="space-y-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-6">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-blue-900">
-                            <Palette className="size-4 text-blue-600" />
-                            <span>Need Accessibility Support?</span>
-                        </div>
-                        <p className="text-xs leading-relaxed text-blue-800/80">
-                            Faculty and personnel requiring specialized contrast
-                            or screen-reader layouts can contact the USTP Balubal
-                            ICT Helpdesk directly.
-                        </p>
-                        <div className="pt-2">
-                            <a
-                                href="#"
-                                className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 hover:underline"
-                            >
-                                Contact ICT Helpdesk <ArrowRight className="size-3" />
-                            </a>
                         </div>
                     </div>
                 </div>

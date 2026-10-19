@@ -62,13 +62,6 @@ export default function BookingsCreate({ facilities }: Props) {
 
                         {/* Heading */}
                         <div>
-                            <div className="mb-2 flex items-center gap-2">
-                                <span className="size-1.5 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
-                                <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
-                                    Facility Management
-                                </span>
-                            </div>
-
                             <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                                 Book a Facility
                             </h1>

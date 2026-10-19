@@ -3,23 +3,16 @@ import {
     AlertTriangle,
     ArrowUpRight,
     Calendar,
-    CalendarCheck,
     ChevronRight,
     Clock,
     ClipboardList,
     FileText,
     Layers,
     Package,
-    Plus,
     TrendingUp,
     Wrench,
     Zap,
 } from 'lucide-react';
-
-
-import { useState } from 'react';
-import PendingInvitationsModal from '@/components/pending-invitations-modal';
-import type { DashboardInvitation } from '@/types';
 
 type AdminStats = {
     pendingRequests: number;
@@ -31,8 +24,6 @@ type AdminStats = {
 type UserStats = {
     myRequests: number;
     pendingRequests: number;
-    myBookings: number;
-    upcomingBookings: number;
 };
 
 type RecentRequest = {
@@ -68,7 +59,6 @@ type RecentBooking = {
 };
 
 type Props = {
-    pendingInvitations?: DashboardInvitation[];
     stats: AdminStats | UserStats;
     isAdmin: boolean;
     greeting: string;
@@ -385,7 +375,6 @@ function formatRelativeTime(dateStr: string): string {
 }
 
 export default function Dashboard({
-    pendingInvitations = [],
     stats,
     isAdmin,
     greeting,
@@ -398,9 +387,6 @@ export default function Dashboard({
     recentIncidents,
     recentBookings,
 }: Props) {
-    const [showInvitations, setShowInvitations] = useState(
-        pendingInvitations.length > 0,
-    );
     const { auth } = usePage().props as any;
     const userName = auth?.user?.name?.split(' ')[0] ?? 'User';
 
@@ -418,25 +404,11 @@ export default function Dashboard({
     return (
         <>
             <Head title="Dashboard" />
-            <PendingInvitationsModal
-                invitations={pendingInvitations}
-                open={pendingInvitations.length > 0 && showInvitations}
-                onOpenChange={setShowInvitations}
-            />
             <div className="min-h-full flex-1 bg-slate-50 text-slate-800">
                 <div className="relative flex flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
                     {/* ── Welcome header ── */}
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <div className="mb-2 flex items-center gap-2">
-                                <span className="size-1.5 rounded-full bg-ustp-gold shadow-[0_0_10px_rgba(252,179,21,0.5)]" />
-                                <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
-                                    {isAdmin
-                                        ? 'ICT Admin Overview'
-                                        : 'Dashboard'}
-                                </span>
-                            </div>
-
                             <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                                 {greeting}, {userName}
                             </h1>
@@ -444,7 +416,7 @@ export default function Dashboard({
                             <p className="mt-1.5 max-w-lg text-sm text-slate-500">
                                 {isAdmin
                                     ? "Here\u2019s what needs your attention today."
-                                    : 'A quick look at your requests and bookings.'}
+                                    : 'A quick look at your service requests.'}
                             </p>
                         </div>
 
@@ -454,91 +426,10 @@ export default function Dashboard({
                         </div>
                     </div>
 
-                    {/* ── Quick actions ── */}
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                        {!isAdmin && (
-                            <Link
-                                href="/requests/create"
-                                className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-ustp-light-blue/40 hover:shadow-md"
-                            >
-                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
-                                    <Plus className="size-4 text-ustp-light-blue" />
-                                </div>
-                                <span className="text-xs font-medium text-slate-700 group-hover:text-ustp-light-blue">
-                                    New Request
-                                </span>
-                            </Link>
-                        )}
-
-                        {isAdmin && (
-                            <Link
-                                href="/requests"
-                                className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-ustp-light-blue/40 hover:shadow-md"
-                            >
-                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
-                                    <FileText className="size-4 text-ustp-light-blue" />
-                                </div>
-                                    <span className="text-xs font-medium text-slate-700 group-hover:text-ustp-light-blue">
-                                    Service Requests
-                                </span>
-                            </Link>
-                        )}
-
-                        <Link
-                            href={isAdmin ? '/bookings' : '/bookings/create'}
-                            className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-ustp-gold/40 hover:shadow-md"
-                        >
-                            <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
-                                <Calendar className="size-4 text-ustp-gold" />
-                            </div>
-                            <span className="text-xs font-medium text-slate-700 group-hover:text-ustp-gold">
-                                {isAdmin ? 'Facility Bookings' : 'Book Facility'}
-                            </span>
-                        </Link>
-
-                        <Link
-                            href="/incidents"
-                            className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-red-400/40 hover:shadow-md"
-                        >
-                            <div className="flex size-9 items-center justify-center rounded-lg bg-red-400/10">
-                                <AlertTriangle className="size-4 text-red-400" />
-                            </div>
-                            <span className="text-xs font-medium text-slate-700 group-hover:text-red-400">
-                                Incidents
-                            </span>
-                        </Link>
-
-                        {isAdmin && (
-                            <>
-                                <Link
-                                    href="/job-orders"
-                                    className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-amber-400/40 hover:shadow-md"
-                                >
-                                    <div className="flex size-9 items-center justify-center rounded-lg bg-amber-400/10">
-                                        <Wrench className="size-4 text-amber-400" />
-                                    </div>
-                                    <span className="text-xs font-medium text-slate-700 group-hover:text-amber-400">
-                                        Job Orders
-                                    </span>
-                                </Link>
-
-                                <Link
-                                    href="/inventory"
-                                    className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-emerald-400/40 hover:shadow-md"
-                                >
-                                    <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-400/10">
-                                        <Package className="size-4 text-emerald-400" />
-                                    </div>
-                                    <span className="text-xs font-medium text-slate-700 group-hover:text-emerald-400">
-                                        Inventory
-                                    </span>
-                                </Link>
-                            </>
-                        )}
-                    </div>
-
                     {/* ── Stat cards ── */}
-                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    <div
+                        className={`grid grid-cols-2 gap-4 ${isAdmin ? 'lg:grid-cols-4' : 'lg:max-w-xl'}`}
+                    >
                         {isAdmin ? (
                             <>
                                 {[
@@ -574,8 +465,6 @@ export default function Dashboard({
                                 {[
                                     { label: 'My Requests', value: (stats as UserStats).myRequests, icon: FileText, href: '/requests', color: 'text-ustp-navy', bg: 'bg-ustp-navy/5' },
                                     { label: 'Pending', value: (stats as UserStats).pendingRequests, icon: ClipboardList, href: '/requests', color: 'text-amber-600', bg: 'bg-amber-50' },
-                                    { label: 'My Facility Bookings', value: (stats as UserStats).myBookings, icon: Calendar, href: '/bookings', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                                    { label: 'Upcoming', value: (stats as UserStats).upcomingBookings, icon: CalendarCheck, href: '/bookings', color: 'text-purple-600', bg: 'bg-purple-50' },
                                 ].map((card) => (
                                     <Link
                                         key={card.label}

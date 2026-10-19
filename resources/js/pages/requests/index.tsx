@@ -81,6 +81,7 @@ export default function RequestsIndex({ requests, isAdmin }: Props) {
             String(request.id).includes(query);
         const matchesStatus =
             statusFilter === 'all' || request.request_status === statusFilter;
+
         return matchesSearch && matchesStatus;
     });
 
@@ -103,13 +104,6 @@ export default function RequestsIndex({ requests, isAdmin }: Props) {
                     {/* Header */}
                     <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div>
-                            <div className="mb-2 flex items-center gap-2">
-                                <span className="size-1.5 rounded-full bg-ustp-light-blue shadow-[0_0_8px_rgba(50,157,234,0.6)]" />
-                                <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
-                                    ICT Services
-                                </span>
-                            </div>
-
                             <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                                 Service Requests
                             </h1>
@@ -211,7 +205,9 @@ export default function RequestsIndex({ requests, isAdmin }: Props) {
                         <div className="flex items-center gap-3">
                             {hasActiveFilter && (
                                 <button
-                                    onClick={() => { setStatusFilter('all'); setSearch(''); }}
+                                    onClick={() => {
+ setStatusFilter('all'); setSearch(''); 
+}}
                                     className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
                                 >
                                     <X className="size-3" />

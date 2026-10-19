@@ -112,14 +112,6 @@ export default function ReportsIndex({
                     {/* Header */}
                     <div className="relative flex items-start justify-between gap-4">
                         <div>
-                            <div className="mb-2 flex items-center gap-2">
-                                <span className="size-1.5 rounded-full bg-ustp-light-blue shadow-[0_0_8px_rgba(50,157,234,0.6)]" />
-
-                                <span className="text-[10px] font-medium tracking-[0.18em] text-slate-500 uppercase">
-                                    Analytics
-                                </span>
-                            </div>
-
                             <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                                 Reports
                             </h1>

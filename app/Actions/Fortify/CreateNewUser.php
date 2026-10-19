@@ -2,7 +2,6 @@
 
 namespace App\Actions\Fortify;
 
-use App\Actions\Teams\CreateTeam;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\Role;
@@ -25,7 +24,6 @@ class CreateNewUser implements CreatesNewUsers
     use PasswordValidationRules, ProfileValidationRules;
 
     public function __construct(
-        private CreateTeam $createTeam,
         private RegistrationOtpService $registrationOtp,
         private BrevoMailService $mail,
     ) {}
@@ -102,10 +100,6 @@ class CreateNewUser implements CreatesNewUsers
                     'email_verified_at' => null,
                 ]);
 
-                if (! $rejected->ownedTeams()->exists()) {
-                    $this->createTeam->handle($rejected, $rejected->name."'s Team", isPersonal: true);
-                }
-
                 return $rejected->refresh();
             }
 
@@ -117,8 +111,6 @@ class CreateNewUser implements CreatesNewUsers
                 'department' => $input['department'] ?? null,
                 'status' => 'pending',
             ]);
-
-            $this->createTeam->handle($user, $user->name."'s Team", isPersonal: true);
 
             return $user;
         });
@@ -157,7 +149,16 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique(User::class)->where(fn ($query) => $query->whereIn('status', ['pending', 'active'])),
             ],
             'role' => ['required', Rule::in(['faculty_staff', 'student'])],
-            'department' => ['required_if:role,student', 'nullable', 'string', 'max:100'],
+            'department' => [
+                'required_if:role,student',
+                'nullable',
+                'string',
+                'max:100',
+                Rule::when(
+                    ($input['role'] ?? null) === 'student',
+                    Rule::in(['BSA', 'BSIT', 'BTLED']),
+                ),
+            ],
             'password' => $this->passwordRules(),
         ])->validate();
     }

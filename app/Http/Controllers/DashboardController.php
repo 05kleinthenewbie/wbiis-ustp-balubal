@@ -7,7 +7,6 @@ use App\Models\IncidentReport;
 use App\Models\InventoryItem;
 use App\Models\JobOrder;
 use App\Models\ServiceRequest;
-use App\Models\TeamInvitation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,25 +16,6 @@ class DashboardController extends Controller
     public function __invoke(Request $request): Response
     {
         $user = $request->user()->load('role');
-        $email = strtolower($user->email);
-
-        $pendingInvitations = TeamInvitation::query()
-            ->with(['inviter', 'team'])
-            ->whereRaw('LOWER(email) = ?', [$email])
-            ->whereNull('accepted_at')
-            ->where(fn ($query) => $query
-                ->whereNull('expires_at')
-                ->orWhere('expires_at', '>=', now()))
-            ->latest()
-            ->get()
-            ->map(fn (TeamInvitation $invitation) => [
-                'code' => $invitation->code,
-                'inviterName' => $invitation->inviter->name,
-                'team' => [
-                    'name' => $invitation->team->name,
-                    'slug' => $invitation->team->slug,
-                ],
-            ]);
 
         $isAdmin = $user->role->role_name === 'ict_admin';
 
@@ -128,11 +108,6 @@ class DashboardController extends Controller
                 'myRequests' => ServiceRequest::where('user_id', $user->id)->count(),
                 'pendingRequests' => ServiceRequest::where('user_id', $user->id)
                     ->where('request_status', 'pending')->count(),
-                'myBookings' => Booking::where('user_id', $user->id)->count(),
-                'upcomingBookings' => Booking::where('user_id', $user->id)
-                    ->where('booking_status', 'approved')
-                    ->where('booking_date', '>=', now()->toDateString())
-                    ->count(),
             ];
 
             $requestsByStatus = [
@@ -162,27 +137,14 @@ class DashboardController extends Controller
                     'date' => $r->date_requested?->toIso8601String(),
                 ]);
 
-            $recentBookings = Booking::with(['facility'])
-                ->where('user_id', $user->id)
-                ->latest()
-                ->take(5)
-                ->get()
-                ->map(fn (Booking $b) => [
-                    'id' => $b->id,
-                    'user_name' => $user->name,
-                    'facility' => $b->facility?->facility_name ?? 'Unknown Facility',
-                    'status' => $b->booking_status,
-                    'date' => $b->booking_date,
-                ]);
-
             $jobOrdersByStatus = [];
             $inventorySummary = [];
             $recentJobOrders = [];
             $recentIncidents = [];
+            $recentBookings = [];
         }
 
         return Inertia::render('dashboard', [
-            'pendingInvitations' => $pendingInvitations,
             'stats' => $stats,
             'isAdmin' => $isAdmin,
             'greeting' => $greeting,

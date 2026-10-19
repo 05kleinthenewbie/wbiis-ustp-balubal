@@ -23,9 +23,16 @@ type Props = {
     passwordRules: string;
 };
 
+const studentDepartments = [
+    { value: 'BSA', label: 'BSA' },
+    { value: 'BSIT', label: 'BSIT' },
+    { value: 'BTLED', label: 'BTLED' },
+];
+
 export default function Register({ passwordRules }: Props) {
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('faculty_staff');
+    const [department, setDepartment] = useState('');
 
     return (
         <>
@@ -100,7 +107,10 @@ export default function Register({ passwordRules }: Props) {
                                 <Select
                                     name="role"
                                     value={role}
-                                    onValueChange={setRole}
+                                    onValueChange={(value) => {
+                                        setRole(value);
+                                        setDepartment('');
+                                    }}
                                     required
                                 >
                                     <SelectTrigger
@@ -110,9 +120,9 @@ export default function Register({ passwordRules }: Props) {
                                         <SelectValue placeholder="Select role" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="faculty_staff">
-                                            Faculty/Staff
-                                        </SelectItem>
+                                            <SelectItem value="faculty_staff">
+                                                Faculty
+                                            </SelectItem>
                                         <SelectItem value="student">
                                             Student
                                         </SelectItem>
@@ -133,24 +143,44 @@ export default function Register({ passwordRules }: Props) {
                                         </span>
                                     )}
                                 </Label>
-                                <div className="relative">
-                                    <Building2 className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input
-                                        id="department"
-                                        type="text"
-                                        required={role === 'student'}
-                                        tabIndex={
-                                            role === 'student' ? 3 : undefined
-                                        }
+                                {role === 'student' ? (
+                                    <Select
                                         name="department"
-                                        placeholder={
-                                            role === 'student'
-                                                ? 'e.g. CITC, COE, CAS'
-                                                : 'Optional for faculty/staff'
-                                        }
-                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
-                                    />
-                                </div>
+                                        value={department}
+                                        onValueChange={setDepartment}
+                                        required
+                                    >
+                                        <SelectTrigger
+                                            id="department"
+                                            className="h-11 w-full rounded-lg border-border text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                        >
+                                            <SelectValue placeholder="Select your program" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {studentDepartments.map(
+                                                (option) => (
+                                                    <SelectItem
+                                                        key={option.value}
+                                                        value={option.value}
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ),
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <div className="relative">
+                                        <Building2 className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            id="department"
+                                            type="text"
+                                            name="department"
+                                            placeholder="Optional for faculty/staff"
+                                            className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                        />
+                                    </div>
+                                )}
                                 <InputError message={errors.department} />
                             </div>
 
@@ -260,11 +290,6 @@ export default function Register({ passwordRules }: Props) {
                                 Continue
                             </Button>
 
-                            <p className="text-xs text-muted-foreground">
-                                We'll email you a 6-digit verification code to
-                                confirm your address before your account is
-                                created.
-                            </p>
                         </div>
 
                         <div className="relative">

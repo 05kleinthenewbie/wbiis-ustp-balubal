@@ -124,6 +124,18 @@ export default function Login({ status, canResetPassword }: Props) {
                             </span>
                         </div>
 
+                        <div className="pt-1 text-center text-sm text-muted-foreground">
+                            Don't have an account?{' '}
+                            <TextLink
+                                href={register()}
+                                data-test="register-link"
+                                tabIndex={5}
+                                className="font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
+                            >
+                                Create an account
+                            </TextLink>
+                        </div>
+
                         <div className="flex flex-col gap-2.5">
                             <div className="flex items-start gap-2 rounded-lg border border-ustp-gold/40 bg-ustp-gold/10 p-2.5">
                                 <Info className="mt-0.5 size-4 shrink-0 text-ustp-gold-dark dark:text-ustp-gold-light" />
@@ -136,18 +148,6 @@ export default function Login({ status, canResetPassword }: Props) {
                                     campuses cannot be authenticated here.
                                 </p>
                             </div>
-                        </div>
-
-                        <div className="pt-1 text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink
-                                href={register()}
-                                data-test="register-link"
-                                tabIndex={5}
-                                className="font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
-                            >
-                                Create an account
-                            </TextLink>
                         </div>
                     </>
                 )}

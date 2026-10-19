@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Teams;
+namespace App\Http\Requests\Settings;
 
-use App\Enums\TeamRole;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class UpdateTeamMemberRequest extends FormRequest
+class AvatarUpdateRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -17,7 +15,7 @@ class UpdateTeamMemberRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role' => ['required', 'string', Rule::in(array_column(TeamRole::assignable(), 'value'))],
+            'avatar' => ['required', 'file', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
         ];
     }
 }
