@@ -49,9 +49,16 @@ export function AppSidebar() {
         { title: 'Laboratory Incident Reports', href: '/incidents', icon: AlertTriangle },
     ];
 
+    const studentNavItems: NavItem[] = [
+        { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
+        { title: 'My Service Requests', href: '/requests', icon: FileText },
+    ];
+
     let mainNavItems: NavItem[] = facultyStaffNavItems;
 
-    if (roleName === 'ict_admin') {
+    if (roleName === 'student') {
+        mainNavItems = studentNavItems;
+    } else if (roleName === 'ict_admin') {
         mainNavItems = adminNavItems;
     }
 

@@ -14,6 +14,8 @@ class BookingController extends ApiController
      */
     public function index(): JsonResponse
     {
+        $this->ensureNotStudent();
+
         $query = Booking::with(['user', 'facility', 'approver'])->latest();
 
         if (! $this->isAdmin()) {
@@ -31,6 +33,8 @@ class BookingController extends ApiController
      */
     public function facilities(): JsonResponse
     {
+        $this->ensureNotStudent();
+
         return response()->json([
             'data' => Facility::where('availability_status', 'available')->get(),
         ]);
@@ -41,6 +45,8 @@ class BookingController extends ApiController
      */
     public function store(Request $request): JsonResponse
     {
+        $this->ensureNotStudent();
+
         if ($this->roleName() === 'ict_admin') {
             abort(403, 'Only Faculty/Staff can book facilities.');
         }
@@ -87,6 +93,8 @@ class BookingController extends ApiController
      */
     public function show(string $id): JsonResponse
     {
+        $this->ensureNotStudent();
+
         $booking = Booking::with(['user', 'facility', 'approver'])->findOrFail($id);
 
         if (! $this->isAdmin() && $booking->user_id !== $this->user()->id) {
@@ -117,5 +125,15 @@ class BookingController extends ApiController
             'message' => 'Booking updated successfully.',
             'booking' => $booking->load(['user', 'facility', 'approver']),
         ]);
+    }
+
+    /**
+     * Students do not have access to facility booking.
+     */
+    private function ensureNotStudent(): void
+    {
+        if ($this->roleName() === 'student') {
+            abort(403, 'Students do not have access to facility booking.');
+        }
     }
 }

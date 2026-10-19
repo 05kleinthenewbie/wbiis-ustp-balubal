@@ -16,6 +16,8 @@ class IncidentReportController extends Controller
      */
     public function index()
     {
+        $this->ensureNotStudent();
+
         $user = Auth::user();
 
         $query = IncidentReport::with(['reporter', 'inventoryItem', 'userLiabilities'])->latest();
@@ -36,6 +38,8 @@ class IncidentReportController extends Controller
      */
     public function create()
     {
+        $this->ensureNotStudent();
+
         return Inertia::render('incidents/create', [
             'inventoryItems' => InventoryItem::select('id', 'item_name', 'property_no')->get(),
         ]);
@@ -46,6 +50,8 @@ class IncidentReportController extends Controller
      */
     public function store(Request $request)
     {
+        $this->ensureNotStudent();
+
         $validated = $request->validate([
             'item_id' => ['nullable', 'exists:inventory_items,id'],
             'incident_type' => ['required', 'string', 'max:100'],
@@ -68,6 +74,8 @@ class IncidentReportController extends Controller
      */
     public function show(string $id)
     {
+        $this->ensureNotStudent();
+
         $incident = IncidentReport::with([
             'reporter', 'inventoryItem', 'userLiabilities.user',
         ])->findOrFail($id);
@@ -156,5 +164,15 @@ class IncidentReportController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Students do not have access to laboratory incident reports.
+     */
+    private function ensureNotStudent(): void
+    {
+        if (Auth::user()->role->role_name === 'student') {
+            abort(403, 'Students do not have access to laboratory incident reports.');
+        }
     }
 }

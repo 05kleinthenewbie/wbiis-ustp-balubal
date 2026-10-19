@@ -18,6 +18,8 @@ class BookingController extends Controller
      */
     public function index()
     {
+        $this->ensureNotStudent();
+
         $user = Auth::user();
 
         $query = Booking::with(['user', 'facility', 'approver'])->latest();
@@ -53,6 +55,8 @@ class BookingController extends Controller
      */
     public function create()
     {
+        $this->ensureNotStudent();
+
         $user = Auth::user();
 
         if ($user->role->role_name === 'ict_admin') {
@@ -69,6 +73,8 @@ class BookingController extends Controller
      */
     public function store(Request $request)
     {
+        $this->ensureNotStudent();
+
         $user = Auth::user();
 
         if ($user->role->role_name === 'ict_admin') {
@@ -115,6 +121,8 @@ class BookingController extends Controller
      */
     public function show(string $id)
     {
+        $this->ensureNotStudent();
+
         $booking = Booking::with(['user', 'facility', 'approver'])->findOrFail($id);
 
         return Inertia::render('bookings/show', [
@@ -136,6 +144,8 @@ class BookingController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->ensureNotStudent();
+
         $user = Auth::user();
         $isAdmin = $user->role->role_name === 'ict_admin';
 
@@ -194,5 +204,15 @@ class BookingController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Students do not have access to facility booking.
+     */
+    private function ensureNotStudent(): void
+    {
+        if (Auth::user()->role->role_name === 'student') {
+            abort(403, 'Students do not have access to facility booking.');
+        }
     }
 }

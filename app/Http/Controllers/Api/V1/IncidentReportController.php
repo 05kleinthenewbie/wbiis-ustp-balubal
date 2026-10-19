@@ -14,6 +14,8 @@ class IncidentReportController extends ApiController
      */
     public function index(): JsonResponse
     {
+        $this->ensureNotStudent();
+
         $query = IncidentReport::with(['reporter', 'inventoryItem', 'userLiabilities'])->latest();
 
         if (! $this->isAdmin()) {
@@ -31,6 +33,8 @@ class IncidentReportController extends ApiController
      */
     public function store(Request $request): JsonResponse
     {
+        $this->ensureNotStudent();
+
         $validated = $request->validate([
             'item_id' => ['nullable', 'exists:inventory_items,id'],
             'incident_type' => ['required', 'string', 'max:100'],
@@ -55,6 +59,8 @@ class IncidentReportController extends ApiController
      */
     public function show(string $id): JsonResponse
     {
+        $this->ensureNotStudent();
+
         $incident = IncidentReport::with([
             'reporter', 'inventoryItem', 'userLiabilities.user',
         ])->findOrFail($id);
@@ -95,5 +101,15 @@ class IncidentReportController extends ApiController
             'message' => 'Incident updated successfully.',
             'incident' => $incident->load(['reporter', 'inventoryItem', 'userLiabilities.user']),
         ]);
+    }
+
+    /**
+     * Students do not have access to laboratory incident reports.
+     */
+    private function ensureNotStudent(): void
+    {
+        if ($this->roleName() === 'student') {
+            abort(403, 'Students do not have access to laboratory incident reports.');
+        }
     }
 }
