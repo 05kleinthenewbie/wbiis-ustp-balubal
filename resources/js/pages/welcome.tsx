@@ -49,9 +49,9 @@ const modules = [
     },
     {
         icon: Shield,
-        title: 'Incident Reports',
+        title: 'Laboratory Incident Reports',
         description:
-            'Document ICT-related incidents and monitor user responsibilities and liabilities.',
+            'Document laboratory incidents and monitor user responsibilities and liabilities.',
     },
     {
         icon: Mail,
@@ -83,7 +83,7 @@ const roles = [
             'Manage Requests',
             'Process Job Orders',
             'Monitor Inventory',
-            'Record Incidents',
+            'Record Laboratory Incidents',
         ],
     },
     {
@@ -372,7 +372,7 @@ export default function Welcome() {
                                         },
                                         {
                                             icon: Shield,
-                                            label: 'Incidents',
+                                            label: 'Laboratory Incidents',
                                             value: 'Accountable',
                                         },
                                     ].map((stat) => {
@@ -701,7 +701,7 @@ export default function Welcome() {
                                         'Job Orders',
                                         'Inventory',
                                         'Facility Booking',
-                                        'Incident Reports',
+                                        'Laboratory Incident Reports',
                                         'Notifications',
                                     ].map((link) => (
                                         <li key={link}>

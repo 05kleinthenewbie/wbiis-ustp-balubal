@@ -6,7 +6,6 @@ import {
     MapPin,
     UserRound,
     XCircle,
-    ArrowLeft,
     Building2,
     Users,
 } from 'lucide-react';

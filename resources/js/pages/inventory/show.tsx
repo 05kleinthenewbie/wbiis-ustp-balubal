@@ -1128,7 +1128,7 @@ export default function InventoryShow({ item }: Props) {
                                         </div>
                                         <div>
                                             <h3 className="text-sm font-semibold text-slate-800">
-                                                Incident Reports
+                                                Laboratory Incident Reports
                                             </h3>
                                             <p className="text-[11px] text-slate-400">
                                                 {incidentReports.length} report
@@ -1337,7 +1337,7 @@ export default function InventoryShow({ item }: Props) {
                                                 </p>
                                                 <p className="flex items-center gap-1 text-[10px] text-slate-400">
                                                     <Shield className="size-3" />
-                                                    Incidents
+                                                    Laboratory Incidents
                                                 </p>
                                             </div>
                                         </div>

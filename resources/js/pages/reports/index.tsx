@@ -51,7 +51,7 @@ const topCards = [
     },
     {
         key: 'incidents',
-        label: 'Total Incidents',
+        label: 'Total Laboratory Incidents',
         icon: AlertTriangle,
         color: 'ustp-gold',
     },
@@ -235,7 +235,7 @@ export default function ReportsIndex({
                         {/* Incidents by Type */}
                         <div className="rounded-2xl border border-slate-200 bg-white p-5">
                             <p className="mb-3 text-sm font-medium text-slate-600">
-                                Incidents by Type
+                                Laboratory Incidents by Type
                             </p>
                             <BreakdownList data={incidentStats.by_type} />
                         </div>
@@ -243,7 +243,7 @@ export default function ReportsIndex({
                         {/* Incidents by Status */}
                         <div className="rounded-2xl border border-slate-200 bg-white p-5">
                             <p className="mb-3 text-sm font-medium text-slate-600">
-                                Incidents by Status
+                                Laboratory Incidents by Status
                             </p>
                             <BreakdownList data={incidentStats.by_status} />
                         </div>

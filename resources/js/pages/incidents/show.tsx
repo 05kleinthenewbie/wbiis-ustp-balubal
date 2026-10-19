@@ -215,7 +215,7 @@ export default function IncidentsShow({
             {
                 onFinish: () => setProcessing(false),
                 onSuccess: () => {
-                    toast.success('Incident updated successfully.');
+                    toast.success('Laboratory incident updated successfully.');
                     setLiabilityUserId('');
                     setLiabilityDescription('');
                 },
@@ -256,7 +256,7 @@ export default function IncidentsShow({
 
     return (
         <>
-            <Head title={`Incident #${incident.id}`} />
+            <Head title={`Laboratory Incident #${incident.id}`} />
 
             <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-4xl space-y-6">
@@ -283,13 +283,13 @@ export default function IncidentsShow({
                                 <div>
                                     <div className="mb-1 flex flex-wrap items-center gap-2">
                                         <span className="font-mono text-[10px] text-slate-400">
-                                            INCIDENT #{incident.id}
+                                            LABORATORY INCIDENT #{incident.id}
                                         </span>
 
                                         <span className="size-1 rounded-full bg-slate-300" />
 
                                         <span className="text-[10px] tracking-wider text-slate-400 uppercase">
-                                            ICT Incident
+                                            Laboratory Incident
                                         </span>
                                     </div>
 

@@ -88,7 +88,7 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
 
     return (
         <>
-            <Head title="Report Incident" />
+            <Head title="Report Laboratory Incident" />
 
             <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-3xl space-y-6">
@@ -104,12 +104,12 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
 
                         <div>
                             <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
-                                Report an Incident
+                                Report a Laboratory Incident
                             </h1>
 
                             <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">
                                 Report damage, misuse, or safety concerns
-                                involving ICT equipment.
+                                involving laboratory ICT equipment.
                             </p>
                         </div>
                     </div>

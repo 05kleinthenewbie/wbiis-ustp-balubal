@@ -268,7 +268,7 @@ function ActivityFeed({
             icon: AlertTriangle,
             iconBg: 'bg-red-400/10',
             iconText: 'text-red-400',
-            title: `Incident by ${i.reporter_name}`,
+            title: `Laboratory Incident by ${i.reporter_name}`,
             subtitle: `${i.type} · ${i.status.replace('_', ' ')}`,
             date: i.date,
             href: `/incidents/${i.id}`,
@@ -436,7 +436,7 @@ export default function Dashboard({
                                     { label: 'Pending Requests', value: (stats as AdminStats).pendingRequests, icon: FileText, href: '/requests', color: 'text-ustp-navy', bg: 'bg-ustp-navy/5' },
                                     { label: 'Open Job Orders', value: (stats as AdminStats).openJobOrders, icon: ClipboardList, href: '/job-orders', color: 'text-amber-600', bg: 'bg-amber-50' },
                                     { label: 'Pending Facility Bookings', value: (stats as AdminStats).pendingBookings, icon: Calendar, href: '/bookings', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                                    { label: 'Open Incidents', value: (stats as AdminStats).openIncidents, icon: AlertTriangle, href: '/incidents', color: 'text-rose-600', bg: 'bg-rose-50' },
+                                    { label: 'Open Laboratory Incidents', value: (stats as AdminStats).openIncidents, icon: AlertTriangle, href: '/incidents', color: 'text-rose-600', bg: 'bg-rose-50' },
                                 ].map((card) => (
                                     <Link
                                         key={card.label}

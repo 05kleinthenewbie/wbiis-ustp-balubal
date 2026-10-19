@@ -36,7 +36,7 @@ export function AppSidebar() {
         { title: 'Job Orders', href: '/job-orders', icon: ClipboardList },
         { title: 'Inventory', href: '/inventory', icon: Box },
         { title: 'Facility Booking', href: '/bookings', icon: Calendar },
-        { title: 'Incidents', href: '/incidents', icon: AlertTriangle },
+        { title: 'Laboratory Incident Reports', href: '/incidents', icon: AlertTriangle },
         { title: 'Audit Log', href: '/audit-log', icon: History },
         { title: 'Reports', href: '/reports', icon: BarChart3 },
         { title: 'User Management', href: '/users', icon: Users },
@@ -45,6 +45,8 @@ export function AppSidebar() {
     const facultyStaffNavItems: NavItem[] = [
         { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
         { title: 'My Service Requests', href: '/requests', icon: FileText },
+        { title: 'Facility Booking', href: '/bookings', icon: Calendar },
+        { title: 'Laboratory Incident Reports', href: '/incidents', icon: AlertTriangle },
     ];
 
     let mainNavItems: NavItem[] = facultyStaffNavItems;

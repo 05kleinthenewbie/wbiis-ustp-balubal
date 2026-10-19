@@ -106,7 +106,7 @@ export default function IncidentsIndex({ incidents }: Props) {
 
     return (
         <>
-            <Head title="Incident Reports" />
+            <Head title="Laboratory Incident Reports" />
 
             <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-7xl space-y-6">
@@ -114,11 +114,11 @@ export default function IncidentsIndex({ incidents }: Props) {
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
-                                Incident Reports
+                                Laboratory Incident Reports
                             </h1>
 
                             <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">
-                                Report and track ICT-related incidents across
+                                Report and track laboratory incidents across
                                 the campus.
                             </p>
                         </div>
@@ -129,7 +129,7 @@ export default function IncidentsIndex({ incidents }: Props) {
                         >
                             <Link href="/incidents/create">
                                 <Plus className="size-4" />
-                                Report Incident
+                                Report Laboratory Incident
                             </Link>
                         </Button>
                     </div>
@@ -138,7 +138,7 @@ export default function IncidentsIndex({ incidents }: Props) {
                     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                         {[
                             {
-                                label: 'Total Incidents',
+                                label: 'Total Laboratory Incidents',
                                 value: stats.total,
                                 icon: FileText,
                                 color: 'text-ustp-navy',
@@ -273,14 +273,14 @@ export default function IncidentsIndex({ incidents }: Props) {
 
                             <h2 className="text-sm font-medium text-slate-800">
                                 {hasActiveFilter
-                                    ? 'No matching incidents'
-                                    : 'No incidents reported yet'}
+                                    ? 'No matching laboratory incidents'
+                                    : 'No laboratory incidents reported yet'}
                             </h2>
 
                             <p className="mt-1.5 max-w-sm text-xs leading-5 text-slate-400">
                                 {hasActiveFilter
                                     ? 'Try a different incident type, reporter, equipment, status, or ID.'
-                                    : 'Reported ICT incidents will appear here once they are created.'}
+                                    : 'Reported laboratory incidents will appear here once they are created.'}
                             </p>
 
                             {hasActiveFilter ? (
@@ -303,7 +303,7 @@ export default function IncidentsIndex({ incidents }: Props) {
                                 >
                                     <Link href="/incidents/create">
                                         <Plus className="size-4" />
-                                        Report your first incident
+                                        Report your first laboratory incident
                                     </Link>
                                 </Button>
                             )}
