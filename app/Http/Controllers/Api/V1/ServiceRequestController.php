@@ -171,6 +171,7 @@ class ServiceRequestController extends ApiController
                 'user_id' => $serviceRequest->user_id,
                 'message' => "Your service request #{$serviceRequest->form_number} has been {$validated['request_status']}.",
                 'notification_type' => 'service_request',
+                'link' => '/requests/'.$serviceRequest->id,
                 'notification_status' => 'unread',
             ]);
 

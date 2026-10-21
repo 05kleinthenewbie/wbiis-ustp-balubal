@@ -8,6 +8,13 @@ import SettingsLayout from '@/layouts/settings/layout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+// Asset filenames change on every build. Reload once if the browser requests
+// a chunk from an older build so stale pages never end up blank.
+window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+    window.location.reload();
+});
+
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     layout: (name) => {

@@ -35,6 +35,7 @@ type BookingDetail = {
 type Props = {
     booking: BookingDetail;
     isAdmin: boolean;
+    isOwner: boolean;
 };
 
 const statusConfig: Record<
@@ -76,7 +77,7 @@ const facilityTypeLabel: Record<string, string> = {
     av_room: 'AV Room',
 };
 
-export default function BookingsShow({ booking, isAdmin }: Props) {
+export default function BookingsShow({ booking, isAdmin, isOwner }: Props) {
     const [processing, setProcessing] = useState(false);
 
     function updateStatus(status: string) {
@@ -87,6 +88,16 @@ export default function BookingsShow({ booking, isAdmin }: Props) {
             { booking_status: status },
             { onFinish: () => setProcessing(false) },
         );
+    }
+
+    function cancelBooking() {
+        if (
+            confirm(
+                'Cancel this booking? This cannot be undone. Cancelling is allowed even after the scheduled time if the facility was not used.',
+            )
+        ) {
+            updateStatus('cancelled');
+        }
     }
 
     const status = statusConfig[booking.booking_status] ?? statusConfig.pending;
@@ -411,29 +422,53 @@ export default function BookingsShow({ booking, isAdmin }: Props) {
                                                 </p>
                                             </div>
                                         </div>
+
+                                        {isAdmin &&
+                                            booking.booking_status ===
+                                                'approved' && (
+                                                <Button
+                                                    variant="outline"
+                                                    disabled={processing}
+                                                    onClick={cancelBooking}
+                                                    className="mt-4 w-full border-rose-200 text-rose-600 hover:border-rose-300 hover:bg-rose-50"
+                                                >
+                                                    <XCircle className="mr-2 size-4" />
+                                                    Cancel booking
+                                                </Button>
+                                            )}
                                     </div>
                                 )}
 
-                                {/* Quick actions for non-admin pending bookings */}
-                                {!isAdmin && booking.booking_status === 'pending' && (
-                                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                        <p className="text-[10px] font-medium tracking-[0.12em] text-slate-400 uppercase">
-                                            Actions
-                                        </p>
+                                {/* Quick actions for the owner's active bookings */}
+                                {isOwner &&
+                                    !isAdmin &&
+                                    ['pending', 'approved'].includes(
+                                        booking.booking_status,
+                                    ) && (
+                                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                            <p className="text-[10px] font-medium tracking-[0.12em] text-slate-400 uppercase">
+                                                Actions
+                                            </p>
 
-                                        <div className="mt-4">
-                                            <Button
-                                                variant="outline"
-                                                disabled={processing}
-                                                onClick={() => updateStatus('cancelled')}
-                                                className="w-full border-slate-200 text-slate-600 hover:bg-slate-50"
-                                            >
-                                                <XCircle className="mr-2 size-4" />
-                                                Cancel booking
-                                            </Button>
+                                            <div className="mt-4">
+                                                <Button
+                                                    variant="outline"
+                                                    disabled={processing}
+                                                    onClick={cancelBooking}
+                                                    className="w-full border-slate-200 text-slate-600 hover:bg-slate-50"
+                                                >
+                                                    <XCircle className="mr-2 size-4" />
+                                                    Cancel booking
+                                                </Button>
+                                            </div>
+
+                                            <p className="mt-3 text-[11px] leading-5 text-slate-400">
+                                                You can cancel even after the
+                                                scheduled time if the facility
+                                                was not used.
+                                            </p>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
                             </div>
                         </div>
                     </div>

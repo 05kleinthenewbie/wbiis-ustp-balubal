@@ -130,7 +130,7 @@ export default function RequestsCreate({
                         </div>
 
                         <div>
-                            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
+                            <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                                 New Service Request
                             </h1>
 

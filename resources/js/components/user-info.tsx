@@ -6,10 +6,12 @@ export function UserInfo({
     user,
     showEmail = false,
     showRole = false,
+    hideDetailsOnMobile = false,
 }: {
     user: User;
     showEmail?: boolean;
     showRole?: boolean;
+    hideDetailsOnMobile?: boolean;
 }) {
     const getInitials = useInitials();
     const showAvatar = Boolean(user.avatar && user.avatar !== '');
@@ -24,7 +26,11 @@ export function UserInfo({
                 ) : null}
                 <Avatar.Fallback>{getInitials(user.name)}</Avatar.Fallback>
             </Avatar>
-            <div className="grid flex-1 text-left text-sm leading-tight">
+            <div
+                className={`grid flex-1 text-left text-sm leading-tight ${
+                    hideDetailsOnMobile ? 'hidden md:grid' : ''
+                }`}
+            >
                 <span className="truncate font-semibold text-white">
                     {user.name}
                 </span>

@@ -9,12 +9,20 @@ import {
     Trash2,
     MapPin,
     Tag,
-    Monitor,
+    Computer,
+    Keyboard,
+    Wifi,
     Laptop,
     Printer,
     Projector,
-    Wifi,
+    BatteryCharging,
+    Droplets,
+    Sparkles,
     Battery,
+    ShieldCheck,
+    KeyRound,
+    Lock,
+    CalendarClock,
     ArrowUpRight,
     User as UserIcon,
 } from 'lucide-react';
@@ -44,6 +52,8 @@ type InventoryItemRow = {
     end_user: string | null;
     condition: string;
     status: string;
+    expiration_date: string | null;
+    expiration_type?: string | null;
 };
 
 type Filters = {
@@ -67,6 +77,7 @@ type Stats = {
     defective: number;
     under_repair: number;
     active: number;
+    for_disposal: number;
     retired: number;
     disposed: number;
 };
@@ -101,8 +112,16 @@ const conditionConfig: Record<
 
 const statusConfig: Record<string, string> = {
     active: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    for_disposal: 'border-orange-200 bg-orange-50 text-orange-700',
     retired: 'border-slate-200 bg-slate-50 text-slate-600',
     disposed: 'border-red-200 bg-red-50 text-red-600',
+};
+
+const statusLabels: Record<string, string> = {
+    active: 'Active',
+    for_disposal: 'For Disposal',
+    retired: 'Retired',
+    disposed: 'Disposed',
 };
 
 const conditionLabels: Record<string, string> = {
@@ -111,68 +130,158 @@ const conditionLabels: Record<string, string> = {
     under_repair: 'Under Repair',
 };
 
+function expiryState(dateStr: string | null): 'expired' | 'soon' | 'valid' | null {
+    if (!dateStr) {
+        return null;
+    }
+
+    const expiry = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (expiry < today) {
+        return 'expired';
+    }
+
+    const soon = new Date(today);
+    soon.setDate(soon.getDate() + 30);
+
+    return expiry <= soon ? 'soon' : 'valid';
+}
+
 function getCategoryFromName(name: string): string {
     const lower = name.toLowerCase();
 
-    if (lower.includes('desktop')) {
-        return 'Desktop';
+    if (
+        lower.includes('router') ||
+        lower.includes('switch') ||
+        lower.includes('access point') ||
+        lower.includes('modem') ||
+        lower.includes('firewall') ||
+        lower.includes('network')
+    ) {
+        return 'Network Devices';
     }
 
-    if (lower.includes('laptop')) {
-        return 'Laptop';
+    if (lower.includes('toner')) {
+        return 'Toner Cartridges';
     }
 
-    if (lower.includes('monitor')) {
-        return 'Monitor';
+    if (
+        lower.includes('ink') ||
+        lower.includes('cartridge') ||
+        lower.includes('refill')
+    ) {
+        return 'Printer Ink';
     }
 
-    if (lower.includes('printer')) {
-        return 'Printer';
+    if (lower.includes('laptop') || lower.includes('notebook')) {
+        return 'Laptops';
     }
 
     if (lower.includes('projector')) {
-        return 'Projector';
-    }
-
-    if (lower.includes('network')) {
-        return 'Network';
+        return 'Projectors';
     }
 
     if (lower.includes('ups')) {
-        return 'UPS';
+        return 'UPS Devices';
     }
 
-    return 'Other';
+    if (lower.includes('printer')) {
+        return 'Printers';
+    }
+
+    if (
+        lower.includes('thermal paste') ||
+        lower.includes('thermal compound')
+    ) {
+        return 'Thermal Paste';
+    }
+
+    if (
+        lower.includes('cleaning solution') ||
+        lower.includes('cleaner') ||
+        lower.includes('contact cleaner')
+    ) {
+        return 'Cleaning Supplies';
+    }
+
+    if (lower.includes('antivirus') || lower.includes('security suite')) {
+        return 'Antivirus Licenses';
+    }
+
+    if (
+        lower.includes('ssl') ||
+        lower.includes('tls') ||
+        lower.includes('certificate')
+    ) {
+        return 'SSL/TLS Certificates';
+    }
+
+    return 'Desktop Computers';
 }
 
-function resolveCategory(item: InventoryItemRow): string {
-    if (item.category) {
-        return item.category;
-    }
+const legacyCategoryAliases: Record<string, string> = {
+    Desktop: 'Desktop Computers',
+    Laptop: 'Laptops',
+    Printer: 'Printers',
+    Projector: 'Projectors',
+    Server: 'Desktop Computers',
+    Other: 'Desktop Computers',
+    Network: 'Network Devices',
+    Monitor: 'Desktop Computers',
+    UPS: 'UPS Devices',
+    Battery: 'Batteries',
+    'SSL Certificate': 'SSL/TLS Certificates',
+    Hardware: 'Desktop Computers',
+    'Network Equipment': 'Network Devices',
+    'ICT Peripherals': 'Desktop Computers',
+};
 
-    return getCategoryFromName(item.item_name);
+function resolveCategory(item: InventoryItemRow): string {
+    const stored = item.category || getCategoryFromName(item.item_name);
+
+    return legacyCategoryAliases[stored] ?? stored;
 }
 
 const categoryIcons: Record<string, React.ElementType> = {
-    Desktop: Monitor,
-    Laptop: Laptop,
-    Monitor: Monitor,
-    Printer: Printer,
-    Projector: Projector,
-    Network: Wifi,
-    UPS: Battery,
-    Other: Box,
+    'Desktop Computers': Computer,
+    Laptops: Laptop,
+    Printers: Printer,
+    Projectors: Projector,
+    'Network Devices': Wifi,
+    'UPS Devices': BatteryCharging,
+    'Printer Ink': Droplets,
+    'Toner Cartridges': Printer,
+    'Thermal Paste': Wrench,
+    'Cleaning Supplies': Sparkles,
+    Batteries: Battery,
+    'Antivirus Licenses': ShieldCheck,
+    'Software Subscriptions': KeyRound,
+    'SSL/TLS Certificates': Lock,
+    Hardware: Computer,
+    'Network Equipment': Wifi,
+    'ICT Peripherals': Keyboard,
 };
 
 const categoryColors: Record<string, string> = {
-    Desktop: 'bg-ustp-gold/10 text-ustp-gold',
-    Laptop: 'bg-purple-400/10 text-purple-400',
-    Monitor: 'bg-ustp-gold/10 text-ustp-gold',
-    Printer: 'bg-emerald-400/10 text-emerald-400',
-    Projector: 'bg-orange-400/10 text-orange-400',
-    Network: 'bg-cyan-400/10 text-cyan-400',
-    UPS: 'bg-amber-400/10 text-amber-400',
-    Other: 'bg-slate-50 text-slate-400',
+    'Desktop Computers': 'bg-ustp-gold/10 text-ustp-gold',
+    Laptops: 'bg-ustp-gold/10 text-ustp-gold',
+    Printers: 'bg-ustp-gold/10 text-ustp-gold',
+    Projectors: 'bg-ustp-gold/10 text-ustp-gold',
+    'Network Devices': 'bg-cyan-400/10 text-cyan-400',
+    'UPS Devices': 'bg-cyan-400/10 text-cyan-400',
+    'Printer Ink': 'bg-emerald-400/10 text-emerald-400',
+    'Toner Cartridges': 'bg-emerald-400/10 text-emerald-400',
+    'Thermal Paste': 'bg-emerald-400/10 text-emerald-400',
+    'Cleaning Supplies': 'bg-emerald-400/10 text-emerald-400',
+    Batteries: 'bg-emerald-400/10 text-emerald-400',
+    'Antivirus Licenses': 'bg-purple-400/10 text-purple-400',
+    'Software Subscriptions': 'bg-purple-400/10 text-purple-400',
+    'SSL/TLS Certificates': 'bg-purple-400/10 text-purple-400',
+    Hardware: 'bg-ustp-gold/10 text-ustp-gold',
+    'Network Equipment': 'bg-cyan-400/10 text-cyan-400',
+    'ICT Peripherals': 'bg-emerald-400/10 text-emerald-400',
 };
 
 function ConditionRingChart({
@@ -373,6 +482,22 @@ export default function InventoryIndex({
         }
     }
 
+    function handleMarkDisposal(id: number) {
+        if (
+            confirm(
+                'Mark this item for disposal? It has reached its service life.',
+            )
+        ) {
+            router.patch(`/inventory/${id}/mark-disposal`);
+        }
+    }
+
+    const disposalReview = items.filter(
+        (item) =>
+            item.status === 'active' &&
+            expiryState(item.expiration_date) === 'expired',
+    );
+
     const totalCount = items.length;
 
     const hasActiveFilters =
@@ -392,7 +517,7 @@ export default function InventoryIndex({
                     {/* Header */}
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
+                            <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                                 Inventory
                             </h1>
 
@@ -401,15 +526,28 @@ export default function InventoryIndex({
                             </p>
                         </div>
 
-                        <Button
-                            asChild
-                            className="h-10 bg-ustp-gold px-4 text-sm font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
-                        >
-                            <Link href="/inventory/create">
-                                <Plus className="size-4" />
-                                Add Equipment
-                            </Link>
-                        </Button>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="h-10 border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:border-ustp-navy/30 hover:bg-slate-50"
+                            >
+                                <Link href="/inventory/expirations">
+                                    <CalendarClock className="size-4" />
+                                    Expiration Monitor
+                                </Link>
+                            </Button>
+
+                            <Button
+                                asChild
+                                className="h-10 bg-ustp-gold px-4 text-sm font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
+                            >
+                                <Link href="/inventory/create">
+                                    <Plus className="size-4" />
+                                    Add Equipment
+                                </Link>
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Stat cards */}
@@ -535,6 +673,96 @@ export default function InventoryIndex({
                         </div>
                     </div>
 
+                    {/* Disposal review */}
+                    {disposalReview.length > 0 && (
+                        <div className="rounded-2xl border border-red-200 bg-red-50/60 p-4 shadow-sm">
+                            <div className="mb-3 flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex size-9 items-center justify-center rounded-lg bg-red-100">
+                                        <AlertTriangle className="size-4 text-red-500" />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-sm font-semibold text-slate-800">
+                                                Disposal Review
+                                            </h3>
+                                            <span className="rounded-full border border-red-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-red-600">
+                                                {disposalReview.length}
+                                            </span>
+                                        </div>
+                                        <p className="text-[11px] text-slate-500">
+                                            Active items past their service life
+                                            — review for disposal or replacement.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                {disposalReview.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className="flex flex-col gap-2 rounded-xl border border-white/80 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                                    >
+                                        <div className="min-w-0">
+                                            <Link
+                                                href={`/inventory/${item.id}`}
+                                                className="truncate text-sm font-medium text-slate-800 transition-colors hover:text-ustp-gold"
+                                            >
+                                                {item.item_name}
+                                            </Link>
+                                            <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                                                <span className="font-mono">
+                                                    {item.property_no}
+                                                </span>
+                                                <span>
+                                                    · Service life ended{' '}
+                                                    {new Date(
+                                                        item.expiration_date!,
+                                                    ).toLocaleDateString(
+                                                        'en-US',
+                                                        {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            year: 'numeric',
+                                                        },
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex shrink-0 items-center gap-1">
+                                            <Button
+                                                asChild
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 px-2.5 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                                            >
+                                                <Link
+                                                    href={`/inventory/${item.id}`}
+                                                >
+                                                    View
+                                                </Link>
+                                            </Button>
+
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 border border-red-200 px-2.5 text-xs text-red-600 hover:bg-red-100 hover:text-red-700"
+                                                onClick={() =>
+                                                    handleMarkDisposal(item.id)
+                                                }
+                                            >
+                                                Mark for disposal
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Filters */}
                     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                         <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
@@ -617,6 +845,9 @@ export default function InventoryIndex({
                                     </SelectItem>
                                     <SelectItem value="active">
                                         Active
+                                    </SelectItem>
+                                    <SelectItem value="for_disposal">
+                                        For Disposal
                                     </SelectItem>
                                     <SelectItem value="retired">
                                         Retired
@@ -708,7 +939,7 @@ export default function InventoryIndex({
                         /* Table */
                         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                             <div className="overflow-x-auto">
-                                <table className="w-full min-w-[1150px] text-sm">
+                                <table className="w-full min-w-[1250px] text-sm">
                                     <thead>
                                         <tr className="border-b border-slate-200 bg-slate-50">
                                             <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
@@ -730,6 +961,9 @@ export default function InventoryIndex({
                                                 End User
                                             </th>
                                             <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                Service Life
+                                            </th>
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Condition
                                             </th>
                                             <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
@@ -745,6 +979,9 @@ export default function InventoryIndex({
                                                 conditionConfig[
                                                     item.condition
                                                 ] ?? conditionConfig.working;
+                                            const expiry = expiryState(
+                                                item.expiration_date,
+                                            );
                                             const category =
                                                 resolveCategory(item);
                                             const CatIcon =
@@ -862,6 +1099,47 @@ export default function InventoryIndex({
                                                         )}
                                                     </td>
 
+                                                    {/* Service Life */}
+                                                    <td className="px-5 py-4">
+                                                        {item.expiration_date ? (
+                                                            <div className="flex flex-col items-start gap-1">
+                                                                <span className="text-xs text-slate-500">
+                                                                    {new Date(
+                                                                        item.expiration_date,
+                                                                    ).toLocaleDateString(
+                                                                        'en-US',
+                                                                        {
+                                                                            month: 'short',
+                                                                            day: 'numeric',
+                                                                            year: 'numeric',
+                                                                        },
+                                                                    )}
+                                                                </span>
+                                                                {expiry &&
+                                                                    expiry !==
+                                                                        'valid' && (
+                                                                        <span
+                                                                            className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                                                                                expiry ===
+                                                                                'expired'
+                                                                                    ? 'border-red-200 bg-red-50 text-red-600'
+                                                                                    : 'border-amber-200 bg-amber-50 text-amber-700'
+                                                                            }`}
+                                                                        >
+                                                                            {expiry ===
+                                                                            'expired'
+                                                                                ? 'Expired'
+                                                                                : 'Expiring Soon'}
+                                                                        </span>
+                                                                    )}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-slate-300">
+                                                                —
+                                                            </span>
+                                                        )}
+                                                    </td>
+
                                                     {/* Condition */}
                                                     <td className="px-5 py-4">
                                                         <span
@@ -883,9 +1161,9 @@ export default function InventoryIndex({
                                                     {/* Status */}
                                                     <td className="px-5 py-4">
                                                         <span
-                                                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusConfig[item.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
+                                                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${statusConfig[item.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
                                                         >
-                                                            {item.status}
+                                                            {statusLabels[item.status] ?? item.status}
                                                         </span>
                                                     </td>
 

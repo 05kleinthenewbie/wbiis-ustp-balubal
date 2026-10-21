@@ -118,6 +118,7 @@ class JobOrderController extends ApiController
                     'user_id' => $technician->id,
                     'message' => 'You have been assigned to job order #'.$jobOrder->job_order_number.'.',
                     'notification_type' => 'job_order',
+                    'link' => '/job-orders/'.$jobOrder->id,
                     'notification_status' => 'unread',
                 ]);
 
@@ -150,6 +151,7 @@ class JobOrderController extends ApiController
                 'user_id' => $jobOrder->serviceRequest->user_id,
                 'message' => 'Your job order #'.$jobOrder->job_order_number.' has been completed. Please rate the service.',
                 'notification_type' => 'job_order',
+                'link' => '/job-orders/'.$jobOrder->id,
                 'notification_status' => 'unread',
             ]);
 
@@ -222,6 +224,7 @@ class JobOrderController extends ApiController
             'user_id' => $jobOrder->serviceRequest->user_id,
             'message' => 'Technician has added an update to your job order #'.$jobOrder->job_order_number.'.',
             'notification_type' => 'job_order',
+            'link' => '/job-orders/'.$jobOrder->id,
             'notification_status' => 'unread',
         ]);
 
@@ -269,6 +272,7 @@ class JobOrderController extends ApiController
                     'user_id' => $jobOrder->assigned_to,
                     'message' => 'Job order #'.$jobOrder->job_order_number.' has been verified and closed by the requester.',
                     'notification_type' => 'job_order',
+                    'link' => '/job-orders/'.$jobOrder->id,
                     'notification_status' => 'unread',
                 ]);
             }
@@ -287,6 +291,7 @@ class JobOrderController extends ApiController
                 'user_id' => $jobOrder->assigned_to,
                 'message' => 'Job order #'.$jobOrder->job_order_number.' has been returned by the requester. The issue persists.',
                 'notification_type' => 'job_order',
+                'link' => '/job-orders/'.$jobOrder->id,
                 'notification_status' => 'unread',
             ]);
         }

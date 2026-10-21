@@ -3,6 +3,7 @@ import { GraduationCap, Lock, Mail, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import StatusAlert, { isAlertMessage } from '@/components/status-alert';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -157,11 +158,14 @@ export default function Register({ passwordRules }: Props) {
                                         className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
-                                <InputError message={errors.email} />
-                                <p className="text-xs text-muted-foreground">
-                                    Don't have a USTP email yet? You can request
-                                    one after registering.
-                                </p>
+                                {isAlertMessage(errors.email ?? '') ? (
+                                    <StatusAlert
+                                        message={errors.email}
+                                        className="mt-1.5"
+                                    />
+                                ) : (
+                                    <InputError message={errors.email} />
+                                )}
                             </div>
 
                             <div className="grid gap-2">
@@ -191,9 +195,6 @@ export default function Register({ passwordRules }: Props) {
                                             <SelectItem value="faculty_staff">
                                                 Faculty
                                             </SelectItem>
-                                        <SelectItem value="student">
-                                            Student
-                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <InputError message={errors.role} />
@@ -238,19 +239,27 @@ export default function Register({ passwordRules }: Props) {
                                         </p>
                                     )}
                                     {lookupState === 'found' && (
-                                        <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                                            ID found. Your details were loaded
-                                            from the roster.
-                                        </p>
+                                        <StatusAlert
+                                            message="ID found. Your details were loaded from the list."
+                                            variant="success"
+                                        />
                                     )}
                                     {lookupState === 'not_found' && (
-                                        <p className="text-xs text-destructive">
-                                            ID number not found in the student
-                                            roster. Please visit ICT/Registrar
-                                            to be enrolled.
-                                        </p>
+                                        <StatusAlert
+                                            message="ID number not found in the student list. Please visit ICT/Registrar to be enrolled."
+                                            variant="warning"
+                                        />
                                     )}
-                                    <InputError message={errors.id_number} />
+                                    {isAlertMessage(
+                                        errors.id_number ?? '',
+                                    ) ? (
+                                        <StatusAlert
+                                            message={errors.id_number}
+                                            className="mt-1.5"
+                                        />
+                                    ) : (
+                                        <InputError message={errors.id_number} />
+                                    )}
                                 </div>
                             )}
 

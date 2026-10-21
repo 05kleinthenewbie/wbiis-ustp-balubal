@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { BreadcrumbItem } from '@/types/navigation';
 
@@ -18,4 +19,10 @@ export type AuthLayoutProps = {
     name?: string;
     title?: string;
     description?: string;
+    wide?: boolean;
+    icon?: LucideIcon;
+    iconClassName?: string;
+    backHref?: string;
+    backLabel?: string;
+    backTestId?: string;
 };

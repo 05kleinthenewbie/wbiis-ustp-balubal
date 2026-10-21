@@ -35,6 +35,8 @@ type LogEntry = {
     record_id: number | null;
     action_date: string;
     details: string | null;
+    old_values: Record<string, unknown> | null;
+    new_values: Record<string, unknown> | null;
     admin_user: { name: string } | null;
 };
 
@@ -63,7 +65,15 @@ type Suggestion = {
 type Props = {
     logs: PaginatedLogs;
     modules: string[];
-    filters: { module?: string; search?: string };
+    users: { id: number; name: string }[];
+    filters: {
+        module?: string;
+        search?: string;
+        user_id?: string;
+        status?: string;
+        date_from?: string;
+        date_to?: string;
+    };
     suggestions: Suggestion[];
     stats: {
         total: number;
@@ -117,7 +127,9 @@ function getActionIndicator(action: string): { color: string; label: string } {
     if (
         lower.includes('create') ||
         lower.includes('add') ||
-        lower.includes('register')
+        lower.includes('register') ||
+        lower.includes('submit') ||
+        lower.includes('provision')
     ) {
         return { color: 'bg-emerald-500', label: 'Created' };
     }
@@ -126,7 +138,11 @@ function getActionIndicator(action: string): { color: string; label: string } {
         lower.includes('update') ||
         lower.includes('edit') ||
         lower.includes('modify') ||
-        lower.includes('change')
+        lower.includes('change') ||
+        lower.includes('set') ||
+        lower.includes('mark') ||
+        lower.includes('reset') ||
+        lower.includes('flag')
     ) {
         return { color: 'bg-amber-500', label: 'Updated' };
     }
@@ -136,6 +152,26 @@ function getActionIndicator(action: string): { color: string; label: string } {
     }
 
     return { color: 'bg-blue-500', label: 'Action' };
+}
+
+function formatValue(value: unknown): string {
+    if (value === null || value === undefined || value === '') {
+        return '—';
+    }
+
+    if (typeof value === 'boolean') {
+        return value ? 'Yes' : 'No';
+    }
+
+    if (typeof value === 'object') {
+        return JSON.stringify(value);
+    }
+
+    return String(value);
+}
+
+function formatFieldLabel(field: string): string {
+    return field.replace(/_/g, ' ');
 }
 
 function highlightMatch(value: string, query: string) {
@@ -195,6 +231,7 @@ function relativeTime(dateStr: string): string {
 export default function AuditLogIndex({
     logs,
     modules,
+    users,
     filters,
     suggestions,
     stats,
@@ -205,6 +242,37 @@ export default function AuditLogIndex({
     const [activeSuggestion, setActiveSuggestion] = useState(0);
     const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const searchRef = useRef<HTMLDivElement>(null);
+
+    const buildParams = useCallback(
+        (overrides: Record<string, string | undefined> = {}) => {
+            const merged = {
+                module: filters.module,
+                user_id: filters.user_id,
+                status: filters.status,
+                date_from: filters.date_from,
+                date_to: filters.date_to,
+                ...overrides,
+            };
+
+            return Object.fromEntries(
+                Object.entries(merged).filter(
+                    ([, value]) => value && value !== 'all',
+                ),
+            ) as Record<string, string>;
+        },
+        [filters],
+    );
+
+    const applyFilters = useCallback(
+        (overrides: Record<string, string | undefined> = {}) => {
+            router.get('/audit-log', buildParams(overrides), {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            });
+        },
+        [buildParams],
+    );
 
     const matches = useMemo(() => {
         const query = search.trim().toLowerCase();
@@ -245,16 +313,9 @@ export default function AuditLogIndex({
                 searchTimeout.current = null;
             }
 
-            router.get(
-                '/audit-log',
-                {
-                    module: filters.module ?? undefined,
-                    search: value || undefined,
-                },
-                { preserveState: true, replace: true },
-            );
+            applyFilters({ search: value || undefined });
         },
-        [filters.module],
+        [applyFilters],
     );
 
     const handleSearch = useCallback(
@@ -351,14 +412,10 @@ export default function AuditLogIndex({
     }, [showSuggestions]);
 
     function applyFilter(module: string) {
-        router.get(
-            '/audit-log',
-            {
-                module: module !== 'all' ? module : undefined,
-                search: search || undefined,
-            },
-            { preserveState: true, replace: true },
-        );
+        applyFilters({
+            module: module !== 'all' ? module : undefined,
+            search: search || undefined,
+        });
     }
 
     function clearFilters() {
@@ -380,7 +437,16 @@ export default function AuditLogIndex({
         });
     }
 
-    const hasActiveFilter = !!filters.module || !!filters.search;
+    const hasActiveFilter =
+        !!filters.module ||
+        !!filters.search ||
+        !!filters.user_id ||
+        !!filters.status ||
+        !!filters.date_from ||
+        !!filters.date_to;
+    const selectedUser = users.find(
+        (user) => String(user.id) === filters.user_id,
+    );
     const from =
         logs.total > 0 ? (logs.current_page - 1) * logs.per_page + 1 : 0;
     const to = Math.min(logs.current_page * logs.per_page, logs.total);
@@ -477,7 +543,7 @@ export default function AuditLogIndex({
                                 onChange={(e) => handleSearch(e.target.value)}
                                 onFocus={() => setSuggestionsOpen(true)}
                                 onKeyDown={handleSearchKeyDown}
-                                placeholder="Search actions or details..."
+                                placeholder="Search actions, details, or users..."
                                 role="combobox"
                                 aria-expanded={showSuggestions}
                                 aria-controls="audit-search-suggestions"
@@ -554,12 +620,12 @@ export default function AuditLogIndex({
                             )}
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <Select
-                                defaultValue={filters.module ?? 'all'}
+                                value={filters.module ?? 'all'}
                                 onValueChange={applyFilter}
                             >
-                                <SelectTrigger className="h-10 w-48 border-slate-300 bg-white text-slate-600 focus:ring-1 focus:ring-ustp-navy/30">
+                                <SelectTrigger className="h-10 w-44 border-slate-300 bg-white text-slate-600 focus:ring-1 focus:ring-ustp-navy/30">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="border-slate-200 bg-white text-slate-800">
@@ -573,6 +639,117 @@ export default function AuditLogIndex({
                                     ))}
                                 </SelectContent>
                             </Select>
+
+                            <Select
+                                value={filters.user_id ?? 'all'}
+                                onValueChange={(value) =>
+                                    applyFilters({
+                                        user_id:
+                                            value !== 'all' ? value : undefined,
+                                    })
+                                }
+                            >
+                                <SelectTrigger className="h-10 w-44 border-slate-300 bg-white text-slate-600 focus:ring-1 focus:ring-ustp-navy/30">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                    <SelectItem value="all">
+                                        All users
+                                    </SelectItem>
+                                    {users.map((user) => (
+                                        <SelectItem
+                                            key={user.id}
+                                            value={String(user.id)}
+                                        >
+                                            {user.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
+                            <Select
+                                value={filters.status ?? 'all'}
+                                onValueChange={(value) =>
+                                    applyFilters({
+                                        status:
+                                            value !== 'all' ? value : undefined,
+                                    })
+                                }
+                            >
+                                <SelectTrigger className="h-10 w-36 border-slate-300 bg-white text-slate-600 focus:ring-1 focus:ring-ustp-navy/30">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                    <SelectItem value="all">
+                                        All statuses
+                                    </SelectItem>
+                                    <SelectItem value="created">
+                                        Created
+                                    </SelectItem>
+                                    <SelectItem value="updated">
+                                        Updated
+                                    </SelectItem>
+                                    <SelectItem value="deleted">
+                                        Deleted
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <div className="flex items-center gap-2">
+                                <div className="relative flex h-10 items-center rounded-lg border border-slate-300 bg-white">
+                                    <Input
+                                        type="date"
+                                        aria-label="From date"
+                                        value={filters.date_from ?? ''}
+                                        onChange={(e) =>
+                                            applyFilters({
+                                                date_from:
+                                                    e.target.value ||
+                                                    undefined,
+                                                search: search || undefined,
+                                            })
+                                        }
+                                        className={`h-8 w-40 border-0 bg-transparent px-2 text-xs text-slate-600 shadow-none focus-visible:ring-0 ${
+                                            filters.date_from
+                                                ? ''
+                                                : '[&::-webkit-datetime-edit]:text-transparent'
+                                        }`}
+                                    />
+
+                                    {!filters.date_from && (
+                                        <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-xs text-slate-400">
+                                            From date
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="relative flex h-10 items-center rounded-lg border border-slate-300 bg-white">
+                                    <Input
+                                        type="date"
+                                        aria-label="To date"
+                                        value={filters.date_to ?? ''}
+                                        onChange={(e) =>
+                                            applyFilters({
+                                                date_to:
+                                                    e.target.value ||
+                                                    undefined,
+                                                search: search || undefined,
+                                            })
+                                        }
+                                        className={`h-8 w-40 border-0 bg-transparent px-2 text-xs text-slate-600 shadow-none focus-visible:ring-0 ${
+                                            filters.date_to
+                                                ? ''
+                                                : '[&::-webkit-datetime-edit]:text-transparent'
+                                        }`}
+                                    />
+
+                                    {!filters.date_to && (
+                                        <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-xs text-slate-400">
+                                            To date
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
 
                             {hasActiveFilter && (
                                 <button
@@ -598,16 +775,58 @@ export default function AuditLogIndex({
                                     {filters.module.replace('_', ' ')}
                                     <button
                                         onClick={() =>
-                                            router.get(
-                                                '/audit-log',
-                                                { search: search || undefined },
-                                                {
-                                                    preserveState: true,
-                                                    replace: true,
-                                                },
-                                            )
+                                            applyFilters({
+                                                module: undefined,
+                                                search: search || undefined,
+                                            })
                                         }
                                         className="ml-0.5 rounded-full p-0.5 hover:bg-ustp-navy/10"
+                                    >
+                                        <X className="size-2.5" />
+                                    </button>
+                                </span>
+                            )}
+
+                            {selectedUser && (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
+                                    User: {selectedUser.name}
+                                    <button
+                                        onClick={() =>
+                                            applyFilters({ user_id: undefined })
+                                        }
+                                        className="ml-0.5 rounded-full p-0.5 hover:bg-emerald-100"
+                                    >
+                                        <X className="size-2.5" />
+                                    </button>
+                                </span>
+                            )}
+
+                            {filters.status && (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-[11px] font-medium text-purple-700">
+                                    Status: {filters.status}
+                                    <button
+                                        onClick={() =>
+                                            applyFilters({ status: undefined })
+                                        }
+                                        className="ml-0.5 rounded-full p-0.5 hover:bg-purple-100"
+                                    >
+                                        <X className="size-2.5" />
+                                    </button>
+                                </span>
+                            )}
+
+                            {(filters.date_from || filters.date_to) && (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                                    Date: {filters.date_from ?? 'Any'} to{' '}
+                                    {filters.date_to ?? 'Any'}
+                                    <button
+                                        onClick={() =>
+                                            applyFilters({
+                                                date_from: undefined,
+                                                date_to: undefined,
+                                            })
+                                        }
+                                        className="ml-0.5 rounded-full p-0.5 hover:bg-slate-200"
                                     >
                                         <X className="size-2.5" />
                                     </button>
@@ -620,18 +839,7 @@ export default function AuditLogIndex({
                                     <button
                                         onClick={() => {
                                             setSearch('');
-                                            router.get(
-                                                '/audit-log',
-                                                {
-                                                    module:
-                                                        filters.module ??
-                                                        undefined,
-                                                },
-                                                {
-                                                    preserveState: true,
-                                                    replace: true,
-                                                },
-                                            );
+                                            applyFilters({ search: undefined });
                                         }}
                                         className="ml-0.5 rounded-full p-0.5 hover:bg-amber-100"
                                     >
@@ -686,7 +894,7 @@ export default function AuditLogIndex({
                                                     Module
                                                 </th>
                                                 <th className="hidden px-4 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase md:table-cell">
-                                                    Admin
+                                                    Performed by
                                                 </th>
                                                 <th className="hidden px-4 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase lg:table-cell">
                                                     Date
@@ -706,8 +914,21 @@ export default function AuditLogIndex({
                                                     ] ?? defaultModuleColor;
                                                 const isExpanded =
                                                     expandedRows.has(log.id);
+                                                const changedFields = Array.from(
+                                                    new Set([
+                                                        ...Object.keys(
+                                                            log.old_values ??
+                                                                {},
+                                                        ),
+                                                        ...Object.keys(
+                                                            log.new_values ??
+                                                                {},
+                                                        ),
+                                                    ]),
+                                                );
                                                 const hasDetails =
-                                                    !!log.details;
+                                                    !!log.details ||
+                                                    changedFields.length > 0;
 
                                                 return (
                                                     <Fragment key={log.id}>
@@ -815,11 +1036,25 @@ export default function AuditLogIndex({
                                                                         log.action_date,
                                                                     )}
                                                                 </span>
+                                                                <p className="mt-0.5 text-[10px] text-slate-400">
+                                                                    {new Date(
+                                                                        log.action_date,
+                                                                    ).toLocaleString(
+                                                                        'en-US',
+                                                                        {
+                                                                            month: 'short',
+                                                                            day: 'numeric',
+                                                                            year: 'numeric',
+                                                                            hour: 'numeric',
+                                                                            minute: '2-digit',
+                                                                        },
+                                                                    )}
+                                                                </p>
                                                             </td>
                                                         </tr>
 
                                                         {isExpanded &&
-                                                            log.details && (
+                                                            hasDetails && (
                                                                 <tr className="border-b border-slate-200 bg-slate-50/80 last:border-0">
                                                                     <td
                                                                         colSpan={
@@ -827,15 +1062,103 @@ export default function AuditLogIndex({
                                                                         }
                                                                         className="px-4 py-4 pl-14"
                                                                     >
-                                                                        <div className="rounded-lg border border-slate-200 bg-white p-3">
-                                                                            <p className="mb-1 text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
-                                                                                Details
-                                                                            </p>
-                                                                            <p className="text-xs leading-5 text-slate-600">
-                                                                                {
-                                                                                    log.details
-                                                                                }
-                                                                            </p>
+                                                                        <div className="space-y-3">
+                                                                            {log.details && (
+                                                                                <div className="rounded-lg border border-slate-200 bg-white p-3">
+                                                                                    <p className="mb-1 text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                                                                        Details
+                                                                                    </p>
+                                                                                    <p className="text-xs leading-5 text-slate-600">
+                                                                                        {
+                                                                                            log.details
+                                                                                        }
+                                                                                    </p>
+                                                                                </div>
+                                                                            )}
+
+                                                                            {changedFields.length >
+                                                                                0 && (
+                                                                                <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                                                                                    <p className="border-b border-slate-100 px-3 py-2 text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                                                                        Previous
+                                                                                        and
+                                                                                        new
+                                                                                        values
+                                                                                    </p>
+
+                                                                                    <table className="w-full text-xs">
+                                                                                        <thead className="bg-slate-50">
+                                                                                            <tr>
+                                                                                                <th className="px-3 py-2 text-left text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                                                                                    Field
+                                                                                                </th>
+                                                                                                <th className="px-3 py-2 text-left text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                                                                                    Previous
+                                                                                                </th>
+                                                                                                <th className="px-3 py-2 text-left text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                                                                                    New
+                                                                                                    value
+                                                                                                </th>
+                                                                                            </tr>
+                                                                                        </thead>
+
+                                                                                        <tbody>
+                                                                                            {changedFields.map(
+                                                                                                (
+                                                                                                    field,
+                                                                                                ) => {
+                                                                                                    const before =
+                                                                                                        formatValue(
+                                                                                                            log
+                                                                                                                .old_values?.[
+                                                                                                                field
+                                                                                                            ],
+                                                                                                        );
+                                                                                                    const after =
+                                                                                                        formatValue(
+                                                                                                            log
+                                                                                                                .new_values?.[
+                                                                                                                field
+                                                                                                            ],
+                                                                                                        );
+                                                                                                    const changed =
+                                                                                                        before !==
+                                                                                                        after;
+
+                                                                                                    return (
+                                                                                                        <tr
+                                                                                                            key={
+                                                                                                                field
+                                                                                                            }
+                                                                                                            className="border-t border-slate-100"
+                                                                                                        >
+                                                                                                            <td className="px-3 py-2 text-slate-600 capitalize">
+                                                                                                                {formatFieldLabel(
+                                                                                                                    field,
+                                                                                                                )}
+                                                                                                            </td>
+                                                                                                            <td
+                                                                                                                className={`px-3 py-2 ${changed ? 'text-rose-600' : 'text-slate-400'}`}
+                                                                                                            >
+                                                                                                                {
+                                                                                                                    before
+                                                                                                                }
+                                                                                                            </td>
+                                                                                                            <td
+                                                                                                                className={`px-3 py-2 ${changed ? 'font-medium text-emerald-700' : 'text-slate-400'}`}
+                                                                                                            >
+                                                                                                                {
+                                                                                                                    after
+                                                                                                                }
+                                                                                                            </td>
+                                                                                                        </tr>
+                                                                                                    );
+                                                                                                },
+                                                                                            )}
+                                                                                        </tbody>
+                                                                                    </table>
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                     </td>
                                                                 </tr>
@@ -863,7 +1186,7 @@ export default function AuditLogIndex({
                                 </p>
 
                                 {logs.last_page > 1 && (
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex flex-wrap items-center justify-center gap-1">
                                         {logs.links.map((link, index) => (
                                             <Link
                                                 key={index}

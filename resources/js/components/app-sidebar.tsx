@@ -1,15 +1,21 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     LayoutGrid,
+    Activity,
+    UserCog,
     FileText,
     ClipboardList,
     Box,
     Calendar,
+    CalendarClock,
+    Building2,
+    CheckCircle2,
     AlertTriangle,
     History,
     BarChart3,
     Users,
     GraduationCap,
+    Wrench,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -33,21 +39,112 @@ export function AppSidebar() {
 
     const adminNavItems: NavItem[] = [
         { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
-        { title: 'Service Requests', href: '/requests', icon: FileText },
-        { title: 'Job Orders', href: '/job-orders', icon: ClipboardList },
-        { title: 'Inventory', href: '/inventory', icon: Box },
-        { title: 'Facility Booking', href: '/bookings', icon: Calendar },
+        {
+            title: 'Service Requests',
+            href: '/requests',
+            icon: FileText,
+            children: [
+                { title: 'All Requests', href: '/requests', icon: FileText },
+                {
+                    title: 'Request Approvals',
+                    href: '/requests/approvals',
+                    icon: CheckCircle2,
+                },
+            ],
+        },
+        {
+            title: 'Job Orders',
+            href: '/job-orders',
+            icon: ClipboardList,
+            children: [
+                {
+                    title: 'All Job Orders',
+                    href: '/job-orders',
+                    icon: ClipboardList,
+                },
+                {
+                    title: 'Assignments',
+                    href: '/job-orders/assignments',
+                    icon: UserCog,
+                },
+                {
+                    title: 'Work Progress',
+                    href: '/job-orders/progress',
+                    icon: Activity,
+                },
+            ],
+        },
+        {
+            title: 'Inventory',
+            href: '/inventory',
+            icon: Box,
+            children: [
+                {
+                    title: 'All Items',
+                    href: '/inventory',
+                    icon: Box,
+                },
+                {
+                    title: 'Expiration Monitor',
+                    href: '/inventory/expirations',
+                    icon: CalendarClock,
+                },
+                {
+                    title: 'Defective',
+                    href: '/inventory/defective',
+                    icon: AlertTriangle,
+                },
+                {
+                    title: 'Under Repair',
+                    href: '/inventory/under-repair',
+                    icon: Wrench,
+                },
+            ],
+        },
+        {
+            title: 'Facility Booking',
+            href: '/bookings',
+            icon: Calendar,
+            children: [
+                {
+                    title: 'Reservations',
+                    href: '/bookings',
+                    icon: ClipboardList,
+                },
+                {
+                    title: 'Facilities',
+                    href: '/facilities',
+                    icon: Building2,
+                },
+                {
+                    title: 'Booking Approvals',
+                    href: '/bookings/approvals',
+                    icon: CheckCircle2,
+                },
+            ],
+        },
         { title: 'Laboratory Incident Reports', href: '/incidents', icon: AlertTriangle },
         { title: 'Audit Log', href: '/audit-log', icon: History },
         { title: 'Reports', href: '/reports', icon: BarChart3 },
-        { title: 'Student Roster', href: '/student-roster', icon: GraduationCap },
+        { title: 'Student List', href: '/student-roster', icon: GraduationCap },
         { title: 'User Management', href: '/users', icon: Users },
     ];
 
     const facultyStaffNavItems: NavItem[] = [
         { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
         { title: 'My Service Requests', href: '/requests', icon: FileText },
-        { title: 'Facility Booking', href: '/bookings', icon: Calendar },
+        {
+            title: 'Facility Booking',
+            href: '/bookings',
+            icon: Calendar,
+            children: [
+                {
+                    title: 'Reservations',
+                    href: '/bookings',
+                    icon: ClipboardList,
+                },
+            ],
+        },
         { title: 'Laboratory Incident Reports', href: '/incidents', icon: AlertTriangle },
     ];
 

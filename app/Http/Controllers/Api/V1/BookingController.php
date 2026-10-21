@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Booking;
 use App\Models\Facility;
+use App\Rules\NotSunday;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -47,13 +48,9 @@ class BookingController extends ApiController
     {
         $this->ensureNotStudent();
 
-        if ($this->roleName() === 'ict_admin') {
-            abort(403, 'Only Faculty/Staff can book facilities.');
-        }
-
         $validated = $request->validate([
             'facility_id' => ['required', 'exists:facilities,id'],
-            'booking_date' => ['required', 'date', 'after_or_equal:today'],
+            'booking_date' => ['required', 'date', 'after_or_equal:today', new NotSunday],
             'start_time' => ['required'],
             'end_time' => ['required', 'after:start_time'],
             'purpose' => ['nullable', 'string'],
@@ -105,20 +102,31 @@ class BookingController extends ApiController
     }
 
     /**
-     * Update a booking (admin approval).
+     * Update a booking (admin approval or owner cancellation).
      */
     public function update(Request $request, string $id): JsonResponse
     {
-        $this->ensureAdmin();
+        $this->ensureNotStudent();
 
         $validated = $request->validate([
             'booking_status' => ['required', 'in:pending,approved,rejected,cancelled'],
         ]);
 
         $booking = Booking::findOrFail($id);
+
+        if (! $this->isAdmin()) {
+            $isOwner = $booking->user_id === $this->user()->id;
+            $isCancellation = $validated['booking_status'] === 'cancelled';
+            $isCancellable = in_array($booking->booking_status, ['pending', 'approved'], true);
+
+            if (! $isOwner || ! $isCancellation || ! $isCancellable) {
+                abort(403, 'Only ICT Admins can approve or reject bookings.');
+            }
+        }
+
         $booking->update([
             ...$validated,
-            'approved_by' => $this->user()->id,
+            'approved_by' => $this->isAdmin() ? $this->user()->id : $booking->approved_by,
         ]);
 
         return response()->json([

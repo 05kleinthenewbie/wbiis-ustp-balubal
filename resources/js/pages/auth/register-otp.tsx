@@ -1,6 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
 import { MailCheck } from 'lucide-react';
-import InputError from '@/components/input-error';
 import StatusAlert from '@/components/status-alert';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -60,7 +59,13 @@ export default function RegisterOtp({ email, status }: Props) {
                                 placeholder="000000"
                                 className="h-12 rounded-lg border-border text-center font-mono text-2xl tracking-[0.4em] transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                             />
-                            <InputError message={errors.code} />
+                            {errors.code ? (
+                                <StatusAlert
+                                    message={errors.code}
+                                    variant="error"
+                                    className="mt-1.5"
+                                />
+                            ) : null}
                         </div>
 
                         <Button
@@ -93,7 +98,13 @@ export default function RegisterOtp({ email, status }: Props) {
                             {processing && <Spinner />}
                             Didn't get it? Resend code
                         </Button>
-                        <InputError message={errors.resend} className="mt-2" />
+                        {errors.resend ? (
+                            <StatusAlert
+                                message={errors.resend}
+                                variant="error"
+                                className="mt-2"
+                            />
+                        ) : null}
                     </>
                 )}
             </Form>

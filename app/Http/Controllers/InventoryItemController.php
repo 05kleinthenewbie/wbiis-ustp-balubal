@@ -45,7 +45,33 @@ class InventoryItemController extends Controller
         }
 
         if ($category = $request->input('category')) {
-            $query->where('category', $category);
+            $storedAliases = [
+                'Desktop Computers' => [
+                    'Desktop Computers',
+                    'Desktop',
+                    'Server',
+                    'Other',
+                    'Monitor',
+                    'Hardware',
+                    'ICT Peripherals',
+                ],
+                'Laptops' => ['Laptops', 'Laptop'],
+                'Printers' => ['Printers', 'Printer'],
+                'Projectors' => ['Projectors', 'Projector'],
+                'Network Devices' => [
+                    'Network Devices',
+                    'Network',
+                    'Network Equipment',
+                ],
+                'UPS Devices' => ['UPS Devices', 'UPS'],
+                'Batteries' => ['Batteries', 'Battery'],
+                'SSL/TLS Certificates' => [
+                    'SSL/TLS Certificates',
+                    'SSL Certificate',
+                ],
+            ];
+
+            $query->whereIn('category', $storedAliases[$category] ?? [$category]);
         }
 
         if ($condition = $request->input('condition')) {
@@ -85,9 +111,14 @@ class InventoryItemController extends Controller
             ->pluck('total', 'status');
 
         $options = [
-            'categories' => InventoryItem::whereNotNull('category')
-                ->distinct()
-                ->pluck('category')
+            'categories' => collect(InventoryItem::CATEGORY_GROUPS)
+                ->flatten()
+                ->merge(
+                    InventoryItem::whereNotNull('category')
+                        ->distinct()
+                        ->pluck('category'),
+                )
+                ->unique()
                 ->sort()
                 ->values(),
             'campuses' => InventoryItem::whereNotNull('campus')
@@ -111,10 +142,65 @@ class InventoryItemController extends Controller
                 'defective' => (int) ($conditionCounts['defective'] ?? 0),
                 'under_repair' => (int) ($conditionCounts['under_repair'] ?? 0),
                 'active' => (int) ($statusCounts['active'] ?? 0),
+                'for_disposal' => (int) ($statusCounts['for_disposal'] ?? 0),
                 'retired' => (int) ($statusCounts['retired'] ?? 0),
                 'disposed' => (int) ($statusCounts['disposed'] ?? 0),
             ],
             'options' => $options,
+        ]);
+    }
+
+    /**
+     * Inventory list preset to defective items.
+     */
+    public function defective(Request $request)
+    {
+        $request->merge(['condition' => 'defective']);
+
+        return $this->index($request);
+    }
+
+    /**
+     * Inventory list preset to items under repair.
+     */
+    public function underRepair(Request $request)
+    {
+        $request->merge(['condition' => 'under_repair']);
+
+        return $this->index($request);
+    }
+
+    /**
+     * Expiration monitoring dashboard (expiring soon / expired / all tracked).
+     */
+    public function expirations()
+    {
+        $this->ensureAdmin();
+
+        $items = InventoryItem::query()
+            ->whereNotNull('expiration_date')
+            ->orderBy('expiration_date')
+            ->get([
+                'id',
+                'property_no',
+                'item_name',
+                'category',
+                'brand',
+                'model',
+                'end_user',
+                'department',
+                'campus',
+                'status',
+                'condition',
+                'purchase_date',
+                'expiration_date',
+                'expiration_type',
+            ]);
+
+        return Inertia::render('inventory/expirations', [
+            'items' => $items,
+            'categoryGroups' => InventoryItem::CATEGORY_GROUPS,
+            'expirationTypes' => InventoryItem::EXPIRATION_TYPES,
         ]);
     }
 
@@ -129,6 +215,8 @@ class InventoryItemController extends Controller
             'users' => User::where('status', 'active')
                 ->orderBy('name')
                 ->get(['id', 'name', 'department']),
+            'categoryGroups' => InventoryItem::CATEGORY_GROUPS,
+            'expirationTypes' => InventoryItem::EXPIRATION_TYPES,
         ]);
     }
 
@@ -178,6 +266,8 @@ class InventoryItemController extends Controller
             'users' => User::where('status', 'active')
                 ->orderBy('name')
                 ->get(['id', 'name', 'department']),
+            'categoryGroups' => InventoryItem::CATEGORY_GROUPS,
+            'expirationTypes' => InventoryItem::EXPIRATION_TYPES,
         ]);
     }
 
@@ -193,7 +283,18 @@ class InventoryItemController extends Controller
         $rules = $this->rules();
         $rules['property_no'] = ['required', 'string', 'max:50', 'unique:inventory_items,property_no,'.$item->id];
 
+        $original = $item->only(array_keys($rules));
+
         $item->update($request->validate($rules));
+
+        AuditLog::record(
+            'Updated inventory item',
+            'inventory_items',
+            $item->id,
+            null,
+            $original,
+            $item->only(array_keys($rules)),
+        );
 
         return redirect()->route('inventory.index')
             ->with('status', 'Inventory item updated successfully.');
@@ -217,6 +318,32 @@ class InventoryItemController extends Controller
     }
 
     /**
+     * Mark an item for disposal (typically after reaching its service life).
+     */
+    public function markDisposal(string $id)
+    {
+        $this->ensureAdmin();
+
+        $item = InventoryItem::findOrFail($id);
+
+        $previousStatus = $item->status;
+
+        $item->update(['status' => 'for_disposal']);
+
+        AuditLog::record(
+            'Marked item for disposal',
+            'inventory_items',
+            $item->id,
+            null,
+            ['status' => $previousStatus],
+            ['status' => $item->status],
+        );
+
+        return redirect()->back()
+            ->with('status', 'Item marked for disposal.');
+    }
+
+    /**
      * Flag an inventory item as defective and create a defect record.
      */
     public function flagDefective(Request $request, string $id)
@@ -236,6 +363,8 @@ class InventoryItemController extends Controller
             'date_reported' => now(),
         ]);
 
+        $previousCondition = $item->condition;
+
         $item->update(['condition' => 'defective']);
 
         AuditLog::record(
@@ -243,6 +372,8 @@ class InventoryItemController extends Controller
             'inventory_items',
             $item->id,
             $validated['damage_description'],
+            ['condition' => $previousCondition],
+            ['condition' => 'defective'],
         );
 
         return redirect()->back()
@@ -263,6 +394,9 @@ class InventoryItemController extends Controller
             'repair_status' => ['required', 'in:pending,in_progress,completed'],
         ]);
 
+        $previousRepairStatus = $record->repair_status;
+        $previousCondition = $item->condition;
+
         $record->update($validated);
 
         if ($validated['repair_status'] === 'completed') {
@@ -273,6 +407,9 @@ class InventoryItemController extends Controller
             'Repair status changed to '.$validated['repair_status'],
             'inventory_items',
             $item->id,
+            null,
+            ['repair_status' => $previousRepairStatus, 'condition' => $previousCondition],
+            ['repair_status' => $record->repair_status, 'condition' => $item->condition],
         );
 
         return redirect()->back()
@@ -323,6 +460,13 @@ class InventoryItemController extends Controller
             'description' => ['nullable', 'string'],
             'location' => ['nullable', 'string', 'max:150'],
             'purchase_date' => ['nullable', 'date'],
+            'expiration_date' => ['nullable', 'date'],
+            'expiration_type' => [
+                'nullable',
+                'string',
+                'max:50',
+                'in:'.implode(',', InventoryItem::EXPIRATION_TYPES),
+            ],
             'unit_cost' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'purchase_order_no' => ['nullable', 'string', 'max:150'],
             'end_user' => ['nullable', 'string', 'max:150'],
@@ -332,7 +476,7 @@ class InventoryItemController extends Controller
             'room' => ['nullable', 'string', 'max:100'],
             'specific_location' => ['nullable', 'string', 'max:150'],
             'condition' => ['required', 'in:working,defective,under_repair'],
-            'status' => ['required', 'in:active,retired,disposed'],
+            'status' => ['required', 'in:active,for_disposal,retired,disposed'],
             'validation' => ['nullable', 'string', 'max:50'],
             'inspection_date' => ['nullable', 'date'],
             'inspection_remarks' => ['nullable', 'string'],

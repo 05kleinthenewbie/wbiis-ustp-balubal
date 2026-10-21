@@ -8,11 +8,13 @@ use App\Mail\TechnicianResponse;
 use App\Models\AuditLog;
 use App\Models\JobOrder;
 use App\Models\Notification;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\SlaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class JobOrderController extends Controller
@@ -45,13 +47,89 @@ class JobOrderController extends Controller
         } elseif ($sort === 'newest') {
             $query->latest();
         } else {
-            $query->orderByRaw("FIELD(status, 'open', 'in_progress', 'completed', 'closed') ASC")
+            $query->orderByRaw("CASE WHEN status = 'open' THEN 1 WHEN status = 'in_progress' THEN 2 WHEN status = 'completed' THEN 3 WHEN status = 'closed' THEN 4 ELSE 5 END ASC")
                 ->latest();
         }
 
         return Inertia::render('job-orders/index', [
             'jobOrders' => $query->paginate(25)->withQueryString(),
             'filters' => $request->only(['search', 'sort']),
+        ]);
+    }
+
+    /**
+     * Display the technician assignment overview.
+     */
+    public function assignments()
+    {
+        abort_unless(Auth::user()->role->role_name === 'ict_admin', 403);
+
+        $jobOrders = JobOrder::with([
+            'serviceRequest.user',
+            'serviceRequest.requestServices.serviceType',
+            'technician',
+        ])
+            ->orderByDesc('date_assigned')
+            ->latest()
+            ->get();
+
+        $technicians = User::query()
+            ->whereHas('role', fn ($query) => $query->where('role_name', 'ict_admin'))
+            ->orderBy('name')
+            ->get(['id', 'name', 'department', 'contact_no']);
+
+        $assigned = $jobOrders->whereNotNull('assigned_to')->groupBy('assigned_to');
+
+        $groups = $technicians->map(fn (User $technician) => [
+            'technician' => [
+                'id' => $technician->id,
+                'name' => $technician->name,
+                'department' => $technician->department,
+            ],
+            'job_orders' => $assigned->get($technician->id, collect())->values(),
+        ]);
+
+        return Inertia::render('job-orders/assignments', [
+            'groups' => $groups,
+            'unassigned' => $jobOrders->whereNull('assigned_to')->values(),
+            'technicians' => $technicians->values(),
+            'stats' => [
+                'technicians' => $technicians->count(),
+                'assigned' => $jobOrders->whereNotNull('assigned_to')->count(),
+                'unassigned' => $jobOrders->whereNull('assigned_to')->count(),
+                'active' => $jobOrders->whereIn('status', ['open', 'in_progress'])->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * Display the work progress of active job orders.
+     */
+    public function progress()
+    {
+        abort_unless(Auth::user()->role->role_name === 'ict_admin', 403);
+
+        $jobOrders = JobOrder::with([
+            'serviceRequest.user',
+            'serviceRequest.requestServices.serviceType',
+            'technician',
+        ])
+            ->whereIn('status', ['open', 'in_progress'])
+            ->orderByRaw("CASE WHEN status = 'in_progress' THEN 1 WHEN status = 'open' THEN 2 ELSE 3 END")
+            ->latest('date_assigned')
+            ->get();
+
+        return Inertia::render('job-orders/progress', [
+            'jobOrders' => $jobOrders,
+            'stats' => [
+                'active' => $jobOrders->count(),
+                'in_progress' => $jobOrders->where('status', 'in_progress')->count(),
+                'open' => $jobOrders->where('status', 'open')->count(),
+                'overdue' => $jobOrders
+                    ->whereNotNull('sla_deadline')
+                    ->filter(fn (JobOrder $jobOrder) => $jobOrder->sla_deadline->isPast())
+                    ->count(),
+            ],
         ]);
     }
 
@@ -166,6 +244,7 @@ class JobOrderController extends Controller
                     'user_id' => $technician->id,
                     'message' => 'You have been assigned to job order #'.$jobOrder->job_order_number.'.',
                     'notification_type' => 'job_order',
+                    'link' => '/job-orders/'.$jobOrder->id,
                     'notification_status' => 'unread',
                 ]);
 
@@ -193,7 +272,10 @@ class JobOrderController extends Controller
             AuditLog::record(
                 "Job order status changed from {$oldStatus} to {$validated['status']}",
                 'job_orders',
-                $jobOrder->id
+                $jobOrder->id,
+                null,
+                ['status' => $oldStatus],
+                ['status' => $validated['status']],
             );
         }
 
@@ -202,6 +284,7 @@ class JobOrderController extends Controller
                 'user_id' => $jobOrder->serviceRequest->user_id,
                 'message' => 'Your job order #'.$jobOrder->job_order_number.' has been completed. Please rate the service.',
                 'notification_type' => 'job_order',
+                'link' => '/job-orders/'.$jobOrder->id,
                 'notification_status' => 'unread',
             ]);
 
@@ -213,6 +296,68 @@ class JobOrderController extends Controller
         $this->updateServiceRequestStatus($jobOrder);
 
         return redirect()->back()->with('status', 'Job order updated successfully.');
+    }
+
+    /**
+     * Assign, change, or remove the technician responsible for a job order.
+     */
+    public function assign(Request $request, JobOrder $jobOrder)
+    {
+        abort_unless(Auth::user()->role->role_name === 'ict_admin', 403);
+
+        $technicianRoleIds = Role::where('role_name', 'ict_admin')->pluck('id');
+
+        $validated = $request->validate([
+            'assigned_to' => ['nullable', Rule::exists('users', 'id')->whereIn('role_id', $technicianRoleIds)],
+        ]);
+
+        $assignedTo = $validated['assigned_to'] ? (int) $validated['assigned_to'] : null;
+        $previous = $jobOrder->assigned_to ? (int) $jobOrder->assigned_to : null;
+
+        if ($assignedTo === $previous) {
+            return redirect()->back()->with('status', 'Technician is already assigned to this job order.');
+        }
+
+        $jobOrder->assigned_to = $assignedTo;
+
+        if ($assignedTo && ! $jobOrder->date_assigned) {
+            $jobOrder->date_assigned = now();
+            $jobOrder->sla_deadline = SlaService::calculateResolutionDeadline($jobOrder);
+            $jobOrder->sla_status = 'on_track';
+        }
+
+        $jobOrder->save();
+
+        AuditLog::record(
+            $assignedTo
+                ? 'Job order technician changed to '.User::whereKey($assignedTo)->value('name')
+                : 'Job order technician removed',
+            'job_orders',
+            $jobOrder->id,
+            null,
+            ['assigned_to' => $previous],
+            ['assigned_to' => $assignedTo],
+        );
+
+        if ($assignedTo) {
+            $technician = User::find($assignedTo);
+
+            Notification::create([
+                'user_id' => $technician->id,
+                'message' => 'You have been assigned to job order #'.$jobOrder->job_order_number.'.',
+                'notification_type' => 'job_order',
+                'link' => '/job-orders/'.$jobOrder->id,
+                'notification_status' => 'unread',
+            ]);
+
+            Mail::to($technician->email)->queue(
+                new TechnicianAssigned($technician->name, $jobOrder->job_order_number, $jobOrder->id)
+            );
+        }
+
+        return redirect()->back()->with('status', $assignedTo
+            ? 'Technician assigned successfully.'
+            : 'Technician removed from the job order.');
     }
 
     /**
@@ -284,6 +429,7 @@ class JobOrderController extends Controller
             'user_id' => $jobOrder->serviceRequest->user_id,
             'message' => 'Technician has added an update to your job order #'.$jobOrder->job_order_number.'.',
             'notification_type' => 'job_order',
+            'link' => '/job-orders/'.$jobOrder->id,
             'notification_status' => 'unread',
         ]);
 
@@ -336,6 +482,7 @@ class JobOrderController extends Controller
                     'user_id' => $jobOrder->assigned_to,
                     'message' => 'Job order #'.$jobOrder->job_order_number.' has been verified and closed by the requester.',
                     'notification_type' => 'job_order',
+                    'link' => '/job-orders/'.$jobOrder->id,
                     'notification_status' => 'unread',
                 ]);
             }
@@ -360,6 +507,7 @@ class JobOrderController extends Controller
                 'user_id' => $jobOrder->assigned_to,
                 'message' => 'Job order #'.$jobOrder->job_order_number.' has been returned by the requester. The issue persists.',
                 'notification_type' => 'job_order',
+                'link' => '/job-orders/'.$jobOrder->id,
                 'notification_status' => 'unread',
             ]);
         }

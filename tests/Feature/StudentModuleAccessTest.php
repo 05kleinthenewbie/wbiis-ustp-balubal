@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Facility;
 use App\Models\IncidentReport;
 use App\Models\Role;
 use App\Models\User;
@@ -77,4 +78,38 @@ test('admins still access booking and incident indexes', function () {
 
     $this->actingAs($admin)->get(route('bookings.index'))->assertOk();
     $this->actingAs($admin)->get(route('incidents.index'))->assertOk();
+});
+
+test('admins can view the facility booking create form', function () {
+    $admin = accessUser('ict_admin');
+
+    $this->actingAs($admin)->get(route('bookings.create'))->assertOk();
+});
+
+test('admins can submit facility bookings', function () {
+    $admin = accessUser('ict_admin');
+    $facility = Facility::create([
+        'facility_name' => 'Computer Laboratory A',
+        'facility_type' => 'computer_lab',
+        'capacity' => 40,
+        'location' => 'Balubal Campus',
+        'availability_status' => 'available',
+    ]);
+
+    $response = $this->actingAs($admin)->post(route('bookings.store'), [
+        'facility_id' => $facility->id,
+        'booking_date' => now()->addDays(2)->toDateString(),
+        'start_time' => '09:00',
+        'end_time' => '11:00',
+        'purpose' => 'ICT staff training',
+    ]);
+
+    $response->assertRedirect(route('bookings.index'));
+    $response->assertSessionHas('status');
+
+    $this->assertDatabaseHas('bookings', [
+        'user_id' => $admin->id,
+        'facility_id' => $facility->id,
+        'booking_status' => 'pending',
+    ]);
 });

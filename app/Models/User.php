@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Notifications\Notifiable;
@@ -109,6 +110,15 @@ class User extends Authenticatable implements JWTSubject
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Get the roster record linked to this user account, when the user is a
+     * student provisioned from the ICT-managed student roster.
+     */
+    public function studentRoster(): HasOne
+    {
+        return $this->hasOne(StudentRoster::class);
     }
 
     /**

@@ -38,6 +38,18 @@ class ReportController extends ApiController
                 'by_condition' => InventoryItem::selectRaw('`condition`, count(*) as total')
                     ->groupBy('condition')
                     ->pluck('total', 'condition'),
+                'by_status' => InventoryItem::selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status'),
+                'past_service_life' => InventoryItem::whereIn('status', ['active', 'for_disposal'])
+                    ->whereNotNull('expiration_date')
+                    ->whereDate('expiration_date', '<', today())
+                    ->count(),
+                'expiring_soon' => InventoryItem::whereIn('status', ['active', 'for_disposal'])
+                    ->whereNotNull('expiration_date')
+                    ->whereDate('expiration_date', '>=', today())
+                    ->whereDate('expiration_date', '<=', today()->addDays(30))
+                    ->count(),
             ],
             'bookingStats' => [
                 'total' => Booking::count(),

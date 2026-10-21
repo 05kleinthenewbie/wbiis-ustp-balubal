@@ -59,6 +59,29 @@ class ServiceRequestController extends Controller
     }
 
     /**
+     * Display the queue of service requests waiting for review.
+     */
+    public function approvals()
+    {
+        abort_unless(Auth::user()->role->role_name === 'ict_admin', 403);
+
+        $requests = ServiceRequestModel::with(['user', 'requestServices.serviceType.category'])
+            ->where('request_status', 'pending')
+            ->latest('date_requested')
+            ->get();
+
+        return Inertia::render('requests/approvals', [
+            'requests' => $requests,
+            'stats' => [
+                'pending' => $requests->count(),
+                'today' => ServiceRequestModel::whereDate('date_requested', today())->count(),
+                'approved' => ServiceRequestModel::where('request_status', 'approved')->count(),
+                'rejected' => ServiceRequestModel::where('request_status', 'rejected')->count(),
+            ],
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()
@@ -194,6 +217,8 @@ class ServiceRequestController extends Controller
             $updateData['date_approved'] = now();
         }
 
+        $original = $serviceRequest->only(['request_status', 'priority_level']);
+
         $serviceRequest->update($updateData);
 
         if ($wasPending && $validated['request_status'] === 'approved') {
@@ -209,6 +234,7 @@ class ServiceRequestController extends Controller
                 'user_id' => $serviceRequest->user_id,
                 'message' => "Your service request #{$serviceRequest->form_number} has been {$validated['request_status']}.",
                 'notification_type' => 'service_request',
+                'link' => '/requests/'.$serviceRequest->id,
                 'notification_status' => 'unread',
             ]);
 
@@ -226,7 +252,10 @@ class ServiceRequestController extends Controller
         AuditLog::record(
             "Set request status to {$validated['request_status']}",
             'service_requests',
-            $serviceRequest->id
+            $serviceRequest->id,
+            null,
+            $original,
+            $serviceRequest->only(array_keys($original)),
         );
 
         return redirect()->back()->with('status', 'Request updated successfully.');

@@ -12,6 +12,7 @@ type NotificationItem = {
     id: number;
     message: string;
     notification_type: string | null;
+    link?: string | null;
     notification_status: 'unread' | 'read';
     created_at: string;
 };
@@ -19,6 +20,17 @@ type NotificationItem = {
 const typeStyles: Record<string, { icon: typeof Bell; color: string }> = {
     service_request: { icon: BellRing, color: 'bg-ustp-light-blue/10 text-ustp-light-blue' },
     job_order: { icon: Bell, color: 'bg-ustp-gold/10 text-ustp-gold-dark' },
+    booking: { icon: Bell, color: 'bg-emerald-500/10 text-emerald-600' },
+    account_approval: { icon: Check, color: 'bg-emerald-500/10 text-emerald-600' },
+    account_rejection: { icon: Bell, color: 'bg-red-500/10 text-red-500' },
+};
+
+const typeFallbackLinks: Record<string, string> = {
+    service_request: '/requests',
+    job_order: '/job-orders',
+    booking: '/bookings',
+    account_approval: '/dashboard',
+    account_rejection: '/dashboard',
 };
 
 export function NotificationBell() {
@@ -36,6 +48,31 @@ export function NotificationBell() {
 
     function markOneRead(id: number) {
         router.post(`/notifications/${id}/read`, {}, { preserveScroll: true });
+    }
+
+    function openNotification(notification: NotificationItem) {
+        const url =
+            notification.link ??
+            typeFallbackLinks[notification.notification_type ?? ''] ??
+            null;
+
+        const navigate = () => {
+            if (url) {
+                router.visit(url);
+            }
+        };
+
+        if (notification.notification_status === 'unread') {
+            router.post(
+                `/notifications/${notification.id}/read`,
+                {},
+                { preserveScroll: true, onFinish: navigate },
+            );
+
+            return;
+        }
+
+        navigate();
     }
 
     function deleteNotification(id: number) {
@@ -65,7 +102,7 @@ export function NotificationBell() {
                     )}
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-96 overflow-hidden rounded-xl border-ustp-gray-medium p-0 shadow-xl">
+            <DropdownMenuContent align="end" className="w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border-ustp-gray-medium p-0 shadow-xl sm:w-96">
                 {/* Header */}
                 <div className="relative overflow-hidden bg-ustp-navy px-5 py-4">
                     <div className="pointer-events-none absolute -top-10 right-0 h-32 w-32 rounded-full bg-ustp-gold/[0.12] blur-2xl" />
@@ -134,9 +171,11 @@ export function NotificationBell() {
 
                                     <div className="min-w-0 flex-1">
                                         <button
-                                            onClick={() => markOneRead(notification.id)}
-                                            className="block w-full text-left"
-                                            title={isUnread ? 'Mark as read' : 'Notification read'}
+                                            onClick={() =>
+                                                openNotification(notification)
+                                            }
+                                            className="block w-full cursor-pointer text-left"
+                                            title="Open"
                                         >
                                             <p
                                                 className={cn(

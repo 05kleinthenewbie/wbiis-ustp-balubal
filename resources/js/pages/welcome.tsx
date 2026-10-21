@@ -20,7 +20,11 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import ustpLogo from '@/assets/ustp-logo.png';
-import { dashboard, login, register } from '@/routes';
+import { Button } from '@/components/tailgrids/core/button';
+import { dashboard, login } from '@/routes';
+import { login as adminLogin } from '@/routes/admin';
+import { login as facultyLogin } from '@/routes/faculty';
+import { login as studentLogin } from '@/routes/student';
 
 const modules = [
     {
@@ -73,6 +77,7 @@ const roles = [
             'Track Status',
             'View Updates',
         ],
+        href: facultyLogin().url,
     },
     {
         icon: Shield,
@@ -85,6 +90,7 @@ const roles = [
             'Monitor Inventory',
             'Record Laboratory Incidents',
         ],
+        href: adminLogin().url,
     },
     {
         icon: Wifi,
@@ -92,6 +98,7 @@ const roles = [
         description:
             'Request email accounts and Office 365 access for academic purposes.',
         features: ['Email Requests', 'Office 365 Access', 'Track Requests'],
+        href: studentLogin().url,
     },
 ];
 
@@ -200,7 +207,10 @@ export default function Welcome() {
         <>
             <Head title="USTP Balubal ICT Portal" />
 
-            <div className="min-h-screen bg-white pt-20">
+            <div
+                id="top"
+                className="min-h-screen scroll-smooth bg-white pt-24 sm:pt-20"
+            >
                 {/* Header */}
                 <header
                     className={`fixed inset-x-0 top-0 z-40 border-b transition-all duration-300 ease-in-out motion-reduce:transition-none ${
@@ -209,8 +219,11 @@ export default function Welcome() {
                             : 'border-ustp-gray-medium bg-white'
                     } ${scrollingDown ? '-translate-y-1 motion-reduce:translate-y-0' : 'translate-y-0'}`}
                 >
-                    <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-                        <div className="flex items-center gap-3">
+                    <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
+                        <a
+                            href="#top"
+                            className="flex items-center gap-3 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold focus-visible:ring-offset-2"
+                        >
                             <div className="flex size-12 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
                                 <img
                                     src={ustpLogo}
@@ -219,17 +232,36 @@ export default function Welcome() {
                                 />
                             </div>
                             <div>
-                                <p className="font-serif text-lg leading-tight font-bold text-ustp-navy">
+                                <p className="font-serif text-base leading-tight font-bold text-ustp-navy sm:text-lg">
                                     University of Science and Technology
                                 </p>
-                                <p className="font-serif text-sm font-bold text-ustp-navy">
+                                <p className="font-serif text-xs font-bold text-ustp-navy sm:text-sm">
                                     of Southern Philippines
                                 </p>
-                                <p className="text-[11px] tracking-[0.12em] text-ustp-navy/60 uppercase">
+                                <p className="hidden text-[11px] tracking-[0.12em] text-ustp-navy/60 uppercase sm:block">
                                     Balubal Campus, Cagayan de Oro City
                                 </p>
                             </div>
-                        </div>
+                        </a>
+
+                        <nav
+                            aria-label="Page sections"
+                            className="hidden items-center gap-1 md:flex"
+                        >
+                            {[
+                                { label: 'Modules', href: '#modules' },
+                                { label: 'How It Works', href: '#how-it-works' },
+                                { label: 'Roles', href: '#roles' },
+                            ].map((link) => (
+                                <a
+                                    key={link.href}
+                                    href={link.href}
+                                    className="rounded-lg px-3 py-2 text-sm font-medium text-ustp-navy/70 transition-colors hover:bg-ustp-gray/70 hover:text-ustp-navy focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold"
+                                >
+                                    {link.label}
+                                </a>
+                            ))}
+                        </nav>
 
                         <div className="flex items-center gap-3">
                             {auth.user ? (
@@ -240,20 +272,14 @@ export default function Welcome() {
                                     Dashboard
                                 </Link>
                             ) : (
-                                <>
-                                    <Link
-                                        href={login()}
-                                        className="rounded-lg px-5 py-2.5 text-sm font-medium text-ustp-navy transition-colors hover:bg-ustp-gray"
-                                    >
-                                        Log in
-                                    </Link>
-                                    <Link
-                                        href={register()}
-                                        className="rounded-lg border-2 border-ustp-gold bg-ustp-gold px-5 py-2.5 text-sm font-bold text-ustp-navy transition-all hover:bg-ustp-gold-dark hover:text-white"
-                                    >
-                                        Register
-                                    </Link>
-                                </>
+                                <Button
+                                    asChild
+                                    variant="primary"
+                                    size="md"
+                                    className="rounded-xl px-5"
+                                >
+                                    <Link href={login()}>Sign in</Link>
+                                </Button>
                             )}
                         </div>
                     </div>
@@ -310,13 +336,13 @@ export default function Welcome() {
                                         System
                                     </span>
                                 </div>
-                                <h1 className="font-serif text-4xl leading-tight font-bold text-white sm:text-5xl">
+                                <h1 className="font-serif text-3xl leading-tight font-bold text-white sm:text-5xl lg:text-[3.4rem]">
                                     USTP Balubal{' '}
                                     <span className="text-ustp-gold">
                                         ICT Portal
                                     </span>
                                 </h1>
-                                <p className="mt-7 max-w-lg text-lg leading-relaxed text-white/70 sm:text-xl sm:leading-relaxed">
+                                <p className="mt-6 max-w-lg text-base leading-relaxed text-white/70 sm:mt-7 sm:text-lg">
                                     A centralized platform for managing ICT
                                     service requests, job orders, inventory,
                                     defective equipment, incident reporting with
@@ -334,22 +360,42 @@ export default function Welcome() {
                                         </Link>
                                     ) : (
                                         <>
-                                            <Link
-                                                href={register()}
-                                                className="group flex items-center gap-2 rounded-lg bg-ustp-gold px-7 py-3.5 text-sm font-bold text-ustp-navy shadow-lg shadow-ustp-gold/20 transition-all hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-xl hover:shadow-ustp-gold/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold focus-visible:ring-offset-2 focus-visible:ring-offset-ustp-navy"
+                                            <Button
+                                                asChild
+                                                variant="secondary"
+                                                size="lg"
+                                                className="px-7"
                                             >
-                                                Get Started
-                                                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                                            </Link>
-                                            <Link
-                                                href={login()}
-                                                className="rounded-lg border-2 border-white/20 px-7 py-3.5 text-sm font-medium text-white/80 transition-all hover:-translate-y-0.5 hover:border-ustp-gold/50 hover:bg-white/5 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold focus-visible:ring-offset-2 focus-visible:ring-offset-ustp-navy"
+                                                <Link href={login()}>
+                                                    Sign in
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="lg"
+                                                className="border-white/20 px-7 text-white/80 hover:border-ustp-gold/50 hover:bg-white/5 hover:text-white"
                                             >
-                                                Log in to your account
-                                            </Link>
+                                                <Link href={facultyLogin()}>
+                                                    Faculty Registration
+                                                </Link>
+                                            </Button>
                                         </>
                                     )}
                                 </div>
+
+                                {!auth.user && (
+                                    <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-white/50">
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <CheckCircle className="size-3.5 text-ustp-gold" />
+                                            Campus-only access
+                                        </span>
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <CheckCircle className="size-3.5 text-ustp-gold" />
+                                            Role-based dashboards
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="hidden lg:block">
@@ -381,7 +427,7 @@ export default function Welcome() {
                                         return (
                                             <div
                                                 key={stat.label}
-                                                className="group/card rounded-xl border border-white/15 bg-white/5 p-5 backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-ustp-gold/60 hover:bg-white/[0.07] hover:shadow-lg"
+                                                className="group/card rounded-xl border border-white/15 bg-gradient-to-br from-white/10 to-white/[0.02] p-5 backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-ustp-gold/60 hover:shadow-lg hover:shadow-black/20"
                                             >
                                                 <div className="mb-3 flex size-9 items-center justify-center rounded-lg bg-ustp-gold/15 text-ustp-gold transition-colors group-hover/card:bg-ustp-gold/25">
                                                     <Icon className="size-4" />
@@ -402,14 +448,17 @@ export default function Welcome() {
                 </section>
 
                 {/* System Modules */}
-                <section className="bg-white">
-                    <div className="mx-auto max-w-7xl px-6 py-16">
+                <section id="modules" className="scroll-mt-24 bg-white">
+                    <div className="mx-auto max-w-7xl px-6 py-20">
                         <div className="mb-12 text-center">
+                            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-ustp-gold/10 px-3 py-1 text-[11px] font-bold tracking-[0.18em] text-ustp-gold-dark uppercase">
+                                Core Modules
+                            </span>
                             <h2 className="font-serif text-2xl font-bold text-ustp-navy sm:text-3xl">
                                 System Modules
                             </h2>
-                            <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-ustp-gold" />
-                            <p className="mx-auto mt-4 max-w-2xl text-sm text-ustp-navy/60">
+                            <div className="mx-auto mt-3 h-1 w-16 rounded-full bg-ustp-gold" />
+                            <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-ustp-navy/60">
                                 The system integrates six core modules to
                                 centralize and streamline ICT management
                                 operations at USTP Balubal Campus.
@@ -417,7 +466,7 @@ export default function Welcome() {
                         </div>
 
                         <div className="relative">
-                            <div className="mx-auto overflow-hidden py-2">
+                            <div className="mx-auto overflow-hidden px-9 py-2 sm:px-0">
                                 <div
                                     className="flex transition-transform duration-500 ease-out"
                                     style={{
@@ -435,7 +484,7 @@ export default function Welcome() {
                                                     flexBasis: `${100 / itemsPerView}%`,
                                                 }}
                                             >
-                                                <div className="group flex h-full flex-col rounded-xl border border-ustp-gray-medium bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-ustp-gold/30 hover:shadow-lg">
+                                                <div className="group flex h-full flex-col rounded-xl border border-ustp-gray-medium bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-ustp-gold/40 hover:shadow-lg">
                                                     <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-ustp-navy/5 text-ustp-navy transition-colors group-hover:bg-ustp-gold/10 group-hover:text-ustp-gold">
                                                         <Icon className="size-6" />
                                                     </div>
@@ -463,7 +512,7 @@ export default function Welcome() {
                                         }
                                         disabled={currentPage === 0}
                                         aria-label="Previous slide"
-                                        className="absolute top-1/2 left-0 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-ustp-gray-medium bg-white text-ustp-navy shadow-md transition-all hover:border-ustp-gold hover:text-ustp-gold disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="absolute top-1/2 left-0 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-ustp-gray-medium bg-white text-ustp-navy shadow-md transition-all hover:border-ustp-gold hover:text-ustp-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <ChevronLeft className="size-5" />
                                     </button>
@@ -481,7 +530,7 @@ export default function Welcome() {
                                             currentPage === totalPages - 1
                                         }
                                         aria-label="Next slide"
-                                        className="absolute top-1/2 right-0 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-ustp-gray-medium bg-white text-ustp-navy shadow-md transition-all hover:border-ustp-gold hover:text-ustp-gold disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="absolute top-1/2 right-0 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-ustp-gray-medium bg-white text-ustp-navy shadow-md transition-all hover:border-ustp-gold hover:text-ustp-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <ChevronRight className="size-5" />
                                     </button>
@@ -512,37 +561,40 @@ export default function Welcome() {
                 </section>
 
                 {/* How It Works */}
-                <section className="bg-ustp-gray/50">
-                    <div className="mx-auto max-w-7xl px-6 py-16">
+                <section id="how-it-works" className="scroll-mt-24 bg-ustp-gray/50">
+                    <div className="mx-auto max-w-7xl px-6 py-20">
                         <div className="mb-12 text-center">
+                            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-bold tracking-[0.18em] text-ustp-gold-dark uppercase shadow-sm">
+                                Workflow
+                            </span>
                             <h2 className="font-serif text-2xl font-bold text-ustp-navy sm:text-3xl">
                                 How It Works
                             </h2>
-                            <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-ustp-gold" />
-                            <p className="mx-auto mt-4 max-w-2xl text-sm text-ustp-navy/60">
+                            <div className="mx-auto mt-3 h-1 w-16 rounded-full bg-ustp-gold" />
+                            <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-ustp-navy/60">
                                 From submission to resolution, the system
                                 streamlines the entire ICT service workflow.
                             </p>
                         </div>
 
-                        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-                            {workflowSteps.map((step, index) => (
+                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                            {workflowSteps.map((step) => (
                                 <div
                                     key={step.step}
-                                    className="relative text-center"
+                                    className="group relative rounded-xl border border-ustp-gray-medium bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-ustp-gold/40 hover:shadow-lg"
                                 >
-                                    <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-ustp-navy text-lg font-bold text-white">
+                                    <span className="text-[11px] font-bold tracking-[0.18em] text-ustp-navy/40 uppercase">
+                                        Step {step.step}
+                                    </span>
+                                    <div className="mt-3 mb-4 flex size-11 items-center justify-center rounded-full bg-ustp-navy text-lg font-bold text-white transition-colors group-hover:bg-ustp-gold group-hover:text-ustp-navy">
                                         {step.step}
                                     </div>
                                     <h3 className="font-serif text-base font-bold text-ustp-navy">
                                         {step.title}
                                     </h3>
-                                    <p className="mt-2 text-sm text-ustp-navy/60">
+                                    <p className="mt-2 text-sm leading-relaxed text-ustp-navy/60">
                                         {step.description}
                                     </p>
-                                    {index < workflowSteps.length - 1 && (
-                                        <div className="absolute top-6 left-[calc(50%+2rem)] hidden h-px w-[calc(100%-4rem)] bg-ustp-gold/30 lg:block" />
-                                    )}
                                 </div>
                             ))}
                         </div>
@@ -550,14 +602,17 @@ export default function Welcome() {
                 </section>
 
                 {/* User Roles */}
-                <section className="bg-white">
-                    <div className="mx-auto max-w-7xl px-6 py-16">
+                <section id="roles" className="scroll-mt-24 bg-white">
+                    <div className="mx-auto max-w-7xl px-6 py-20">
                         <div className="mb-12 text-center">
+                            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-ustp-gold/10 px-3 py-1 text-[11px] font-bold tracking-[0.18em] text-ustp-gold-dark uppercase">
+                                Access Levels
+                            </span>
                             <h2 className="font-serif text-2xl font-bold text-ustp-navy sm:text-3xl">
                                 Built for Every Role
                             </h2>
-                            <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-ustp-gold" />
-                            <p className="mx-auto mt-4 max-w-2xl text-sm text-ustp-navy/60">
+                            <div className="mx-auto mt-3 h-1 w-16 rounded-full bg-ustp-gold" />
+                            <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-ustp-navy/60">
                                 The system provides tailored access and features
                                 for each user type within the campus.
                             </p>
@@ -570,9 +625,9 @@ export default function Welcome() {
                                 return (
                                     <div
                                         key={item.role}
-                                        className="rounded-xl border border-ustp-gray-medium bg-white p-8 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+                                        className="group flex flex-col rounded-xl border border-ustp-gray-medium bg-white p-8 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-ustp-gold/40 hover:shadow-lg"
                                     >
-                                        <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-ustp-gold/10 text-ustp-gold">
+                                        <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-ustp-gold/10 text-ustp-gold transition-colors group-hover:bg-ustp-gold/20">
                                             <Icon className="size-6" />
                                         </div>
                                         <h3 className="font-serif text-lg font-bold text-ustp-navy">
@@ -587,11 +642,17 @@ export default function Welcome() {
                                                     key={feature}
                                                     className="flex items-center gap-2 text-sm text-ustp-navy/70"
                                                 >
-                                                    <CheckCircle className="size-4 text-ustp-gold" />
+                                                    <CheckCircle className="size-4 shrink-0 text-ustp-gold" />
                                                     {feature}
                                                 </li>
                                             ))}
                                         </ul>
+                                        <Link
+                                            href={item.href}
+                                            className="mt-6 inline-flex items-center gap-1.5 border-t border-ustp-gray-medium pt-4 text-sm font-bold text-ustp-navy transition-colors hover:text-ustp-gold-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold"
+                                        >
+                                            Sign in
+                                        </Link>
                                     </div>
                                 );
                             })}
@@ -601,34 +662,48 @@ export default function Welcome() {
 
                 {/* CTA Section */}
                 <section className="bg-ustp-gray/50">
-                    <div className="mx-auto max-w-7xl px-6 py-16">
-                        <div className="rounded-2xl bg-ustp-navy p-10 text-center sm:p-14">
-                            <h2 className="font-serif text-2xl font-bold text-white sm:text-3xl">
-                                Ready to streamline your ICT services?
-                            </h2>
-                            <p className="mx-auto mt-4 max-w-lg text-white/60">
-                                Join the USTP Balubal ICT Portal to submit
-                                requests, book facilities, and manage ICT
-                                operations all in one place.
-                            </p>
-                            <div className="mt-8 flex flex-wrap justify-center gap-4">
-                                {!auth.user && (
-                                    <>
-                                        <Link
-                                            href={register()}
-                                            className="group flex items-center gap-2 rounded-lg bg-ustp-gold px-7 py-3.5 text-sm font-bold text-ustp-navy shadow-lg transition-all hover:bg-ustp-gold-dark hover:text-white hover:shadow-xl"
-                                        >
-                                            Create an Account
-                                            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                                        </Link>
-                                        <Link
-                                            href={login()}
-                                            className="rounded-lg border-2 border-white/20 px-7 py-3.5 text-sm font-medium text-white/80 transition-all hover:border-ustp-gold/50 hover:text-white"
-                                        >
-                                            Already have an account? Log in
-                                        </Link>
-                                    </>
-                                )}
+                    <div className="mx-auto max-w-7xl px-6 py-20">
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-ustp-navy to-ustp-navy-dark p-10 text-center shadow-xl sm:p-14">
+                            <div className="pointer-events-none absolute -top-24 -right-16 size-64 rounded-full bg-ustp-gold/10 blur-3xl" />
+                            <div className="pointer-events-none absolute -bottom-24 -left-16 size-64 rounded-full bg-ustp-light-blue/10 blur-3xl" />
+                            <div className="relative">
+                                <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-ustp-gold/30 bg-ustp-gold/10 px-3 py-1 text-[11px] font-bold tracking-[0.18em] text-ustp-gold uppercase">
+                                    Get Started
+                                </span>
+                                <h2 className="font-serif text-2xl font-bold text-white sm:text-3xl">
+                                    Ready to streamline your ICT services?
+                                </h2>
+                                <p className="mx-auto mt-4 max-w-lg text-white/60">
+                                    Sign in to the USTP Balubal ICT Portal to
+                                    submit requests, book facilities, and manage
+                                    ICT operations all in one place.
+                                </p>
+                                <div className="mt-8 flex flex-wrap justify-center gap-4">
+                                    {!auth.user && (
+                                        <>
+                                            <Button
+                                                asChild
+                                                variant="secondary"
+                                                size="lg"
+                                                className="px-7"
+                                            >
+                                                <Link href={login()}>
+                                                    Sign in
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="lg"
+                                                className="border-white/20 px-7 text-white/80 hover:border-ustp-gold/50 hover:bg-white/5 hover:text-white"
+                                            >
+                                                <Link href={facultyLogin()}>
+                                                    Faculty Registration
+                                                </Link>
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -666,27 +741,17 @@ export default function Welcome() {
                                         href="https://www.facebook.com/USTPBalubal"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold"
+                                        aria-label="USTP Balubal on Facebook"
+                                        className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold"
                                     >
                                         <Facebook className="size-4" />
                                     </a>
                                     <a
                                         href="mailto:balubal@ustp.edu.ph"
-                                        className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold"
+                                        aria-label="Email USTP Balubal"
+                                        className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold"
                                     >
                                         <Mail className="size-4" />
-                                    </a>
-                                    <a
-                                        href="#"
-                                        className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold"
-                                    >
-                                        <Phone className="size-4" />
-                                    </a>
-                                    <a
-                                        href="#"
-                                        className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-white/50 transition-all hover:border-ustp-gold hover:text-ustp-gold"
-                                    >
-                                        <MapPin className="size-4" />
                                     </a>
                                 </div>
                             </div>
@@ -706,8 +771,8 @@ export default function Welcome() {
                                     ].map((link) => (
                                         <li key={link}>
                                             <a
-                                                href="#"
-                                                className="text-sm text-white/50 transition-colors hover:text-ustp-gold"
+                                                href="#modules"
+                                                className="text-sm text-white/50 transition-colors hover:text-ustp-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold"
                                             >
                                                 {link}
                                             </a>
@@ -734,21 +799,20 @@ export default function Welcome() {
                                     </li>
                                     <li className="flex items-center gap-2">
                                         <Mail className="size-4 shrink-0 text-ustp-gold/60" />
-                                        <span>balubal@ustp.edu.ph</span>
+                                        <a
+                                            href="mailto:balubal@ustp.edu.ph"
+                                            className="transition-colors hover:text-ustp-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold"
+                                        >
+                                            balubal@ustp.edu.ph
+                                        </a>
                                     </li>
                                 </ul>
                                 <div className="mt-6 flex gap-3">
                                     <a
-                                        href="#"
-                                        className="rounded-lg border border-ustp-gold/40 px-4 py-2 text-xs font-bold tracking-wider text-ustp-gold uppercase transition-all hover:bg-ustp-gold hover:text-ustp-navy"
+                                        href="mailto:balubal@ustp.edu.ph?subject=ICT%20Portal%20Feedback"
+                                        className="rounded-lg border border-ustp-gold/40 px-4 py-2 text-xs font-bold tracking-wider text-ustp-gold uppercase transition-all hover:bg-ustp-gold hover:text-ustp-navy focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold"
                                     >
                                         Feedback
-                                    </a>
-                                    <a
-                                        href="#"
-                                        className="rounded-lg border border-ustp-gold/40 px-4 py-2 text-xs font-bold tracking-wider text-ustp-gold uppercase transition-all hover:bg-ustp-gold hover:text-ustp-navy"
-                                    >
-                                        Survey
                                     </a>
                                 </div>
                             </div>

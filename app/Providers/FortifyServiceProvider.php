@@ -19,7 +19,6 @@ use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
-use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -60,7 +59,13 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureAuthentication(): void
     {
         Fortify::authenticateUsing(function (Request $request) {
-            $user = User::where('email', $request->email)->first();
+            $login = trim((string) $request->input(Fortify::username()));
+
+            // Students sign in with their university ID number, while
+            // faculty, staff, and administrators continue to use email.
+            $user = preg_match('/^\d{10}$/', $login) === 1
+                ? User::where('id_number', $login)->first()
+                : User::where('email', $login)->first();
 
             if (! $user || ! Hash::check($request->password, $user->password)) {
                 return null;
@@ -87,8 +92,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
-            'canResetPassword' => Features::enabled(Features::resetPasswords()),
+        Fortify::loginView(fn (Request $request) => Inertia::render('auth/login-portal', [
             'status' => $request->session()->get('status'),
         ]));
 

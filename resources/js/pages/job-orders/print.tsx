@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { ArrowLeft, Printer } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import ustpLogo from '@/assets/ustp-logo.png';
 
@@ -64,8 +65,12 @@ const DOC_CODE = 'FM-USTP-ICT-001';
 const REV_NO = '00';
 const EFFECTIVE_DATE = '03.17.26';
 
-const CATEGORY_CONFIG: { title: string; actions: string[]; rows: string[] }[] =
-    [
+const CATEGORY_CONFIG: {
+    title: string;
+    actions: string[];
+    rows: string[];
+    rowAliases?: Record<string, string[]>;
+}[] = [
         {
             title: 'Network Services',
             actions: ['New Connection', 'Troubleshoot'],
@@ -101,7 +106,8 @@ const CATEGORY_CONFIG: { title: string; actions: string[]; rows: string[] }[] =
         {
             title: 'Information System Services',
             actions: ['Create New', 'Troubleshoot', 'Update'],
-            rows: ['E-mail', 'Office 365', 'Others'],
+            rows: ['E-mail', 'Others'],
+            rowAliases: { Others: ['Office 365'] },
         },
     ];
 
@@ -174,24 +180,30 @@ function ServiceCategory({
     title,
     actions,
     rows,
+    rowAliases,
     services,
 }: {
     title: string;
     actions: string[];
     rows: string[];
+    rowAliases?: Record<string, string[]>;
     services: PrintService[];
 }) {
     const normalize = (value?: string | null) =>
         (value ?? '').trim().toLowerCase();
 
-    const rowServices = (name: string) =>
-        services.filter(
+    const rowServices = (name: string) => {
+        const matchedNames = [name, ...(rowAliases?.[name] ?? [])].map(
+            normalize,
+        );
+
+        return services.filter(
             (service) =>
                 normalize(service.service_type?.category?.category_name) ===
                     normalize(title) &&
-                normalize(service.service_type?.service_name) ===
-                    normalize(name),
+                matchedNames.includes(normalize(service.service_type?.service_name)),
         );
+    };
 
     return (
         <div>
@@ -290,14 +302,72 @@ export default function PrintJobRequestForm({
     jobOrder,
     hasAttachment,
 }: PrintProps) {
+    const sheetRef = useRef<HTMLElement>(null);
+
+    // Scale the whole form down (fonts included) so it fits a single
+    // short bond paper: 11in tall minus 0.25in top/bottom margins.
+    // The result is written to --print-scale, which only the print CSS
+    // uses, so the on-screen preview stays full size.
+    useEffect(() => {
+        const printableHeightPx = (11 - 0.5) * 96;
+
+        const applyPrintScale = () => {
+            const element = sheetRef.current;
+
+            if (!element) {
+                return;
+            }
+
+            // Measure using the printed layout (8in printable width, no
+            // vertical padding) so the scale matches what the printer sees.
+            const previousWidth = element.style.width;
+            const previousPadding = element.style.padding;
+
+            element.style.width = '768px';
+            element.style.padding = '0 4.8px';
+
+            const contentHeight = element.scrollHeight;
+
+            element.style.width = previousWidth;
+            element.style.padding = previousPadding;
+
+            if (contentHeight > 0) {
+                const scale = Math.min(
+                    1,
+                    (printableHeightPx * 0.99) / contentHeight,
+                );
+                const rounded = Math.floor(scale * 100) / 100;
+
+                element.style.setProperty(
+                    '--print-scale',
+                    String(Math.max(0.5, rounded)),
+                );
+            }
+        };
+
+        applyPrintScale();
+
+        window.addEventListener('beforeprint', applyPrintScale);
+        window.addEventListener('load', applyPrintScale);
+        document.fonts?.ready.then(applyPrintScale).catch(() => undefined);
+
+        return () => {
+            window.removeEventListener('beforeprint', applyPrintScale);
+            window.removeEventListener('load', applyPrintScale);
+        };
+    }, []);
+
     const services = jobOrder.service_request?.request_services ?? [];
     const serviceRequest = jobOrder.service_request;
     const user = serviceRequest?.user;
     const technician = jobOrder.technician;
 
-    const knownRowNames = CATEGORY_CONFIG.flatMap((config) =>
-        config.rows.map((row) => row.trim().toLowerCase()),
-    );
+    const knownRowNames = CATEGORY_CONFIG.flatMap((config) => [
+        ...config.rows.map((row) => row.trim().toLowerCase()),
+        ...Object.values(config.rowAliases ?? {})
+            .flat()
+            .map((row) => row.trim().toLowerCase()),
+    ]);
     const unmatchedServices = services.filter(
         (service) =>
             !service.service_type ||
@@ -319,13 +389,15 @@ export default function PrintJobRequestForm({
 
             <style>{`
                 @page {
-                    size: A4 portrait;
-                    margin: 0;
+                    size: letter portrait;
+                    margin: 0.25in;
                 }
 
                 @media print {
+                    html,
                     body {
                         background-color: #ffffff !important;
+                        height: auto !important;
                         padding: 0 !important;
                         margin: 0 !important;
                         -webkit-print-color-adjust: exact;
@@ -336,13 +408,34 @@ export default function PrintJobRequestForm({
                         display: none !important;
                     }
 
+                    /* Collapse layout chrome so hidden elements add no pages */
+                    .min-h-screen,
+                    .min-h-svh {
+                        min-height: 0 !important;
+                    }
+
+                    /* Only the form sheet is visible when printing */
+                    body * {
+                        visibility: hidden !important;
+                    }
+
+                    .page-container,
+                    .page-container * {
+                        visibility: visible !important;
+                    }
+
                     .page-container {
-                        box-shadow: none !important;
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        box-sizing: border-box;
                         border: none !important;
-                        padding: 0.2in !important;
+                        box-shadow: none !important;
+                        padding: 0 0.05in !important;
                         width: 100% !important;
                         max-width: 100% !important;
                         margin: 0 !important;
+                        zoom: var(--print-scale, 1);
                     }
                 }
             `}</style>
@@ -368,7 +461,10 @@ export default function PrintJobRequestForm({
                 </div>
 
                 {/* Form sheet */}
-                <main className="page-container mx-auto max-w-[860px] border border-gray-300 bg-white p-6 text-black shadow-md sm:p-8">
+                <main
+                    ref={sheetRef}
+                    className="page-container mx-auto max-w-[860px] border border-gray-300 bg-white p-6 text-black shadow-md sm:p-8"
+                >
                     {/* Document header */}
                     <header
                         className="flex items-start justify-between gap-2 pt-1 pb-4"
@@ -558,6 +654,7 @@ export default function PrintJobRequestForm({
                                     title={config.title}
                                     actions={config.actions}
                                     rows={config.rows}
+                                    rowAliases={config.rowAliases}
                                     services={services}
                                 />
                             ))}
@@ -628,7 +725,7 @@ export default function PrintJobRequestForm({
                                             <p className="text-[9.5px] font-normal">
                                                 Report
                                             </p>
-                                            <div className="mt-1 min-h-[40px] border-b border-dotted border-gray-400 px-0.5 text-[10px] leading-relaxed break-words text-black">
+                                            <div className="mt-1 min-h-[14px] border-b border-dotted border-gray-400 px-0.5 text-[9px] leading-tight break-words text-black">
                                                 {reportText || '\u00A0'}
                                             </div>
                                         </div>

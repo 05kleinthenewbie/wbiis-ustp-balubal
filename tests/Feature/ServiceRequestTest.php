@@ -1,10 +1,13 @@
 <?php
 
+use App\Mail\ServiceRequestApproved;
+use App\Mail\ServiceRequestRejected;
 use App\Models\Role;
 use App\Models\ServiceCategory;
 use App\Models\ServiceRequest;
 use App\Models\ServiceType;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Testing\AssertableInertia as Assert;
 
 function srAdmin(): User
@@ -267,4 +270,57 @@ test('faculty create form still offers every service type', function () {
         ->has('categories', 1)
         ->has('categories.0.service_types', 3),
     );
+});
+
+test('approving a pending request creates a job order and queues the approval email', function () {
+    Mail::fake();
+
+    $admin = srAdmin();
+    $student = srStudent();
+    $serviceRequest = ServiceRequest::create([
+        'user_id' => $student->id,
+        'problem_description' => 'Please create my email account.',
+        'request_status' => 'pending',
+    ]);
+
+    $this->actingAs($admin)
+        ->put(route('requests.update', $serviceRequest), [
+            'request_status' => 'approved',
+            'priority_level' => 'medium',
+        ])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect($serviceRequest->fresh()->request_status)->toBe('approved');
+    expect($serviceRequest->jobOrders()->count())->toBe(1);
+
+    Mail::assertQueued(ServiceRequestApproved::class, function (ServiceRequestApproved $mail) use ($student, $serviceRequest) {
+        return $mail->requesterName === $student->name
+            && $mail->serviceRequestId === $serviceRequest->id;
+    });
+});
+
+test('rejecting a pending request queues the rejection email', function () {
+    Mail::fake();
+
+    $admin = srAdmin();
+    $faculty = srFaculty();
+    $serviceRequest = ServiceRequest::create([
+        'user_id' => $faculty->id,
+        'problem_description' => 'Please replace the projector.',
+        'request_status' => 'pending',
+    ]);
+
+    $this->actingAs($admin)
+        ->put(route('requests.update', $serviceRequest), [
+            'request_status' => 'rejected',
+            'rejection_reason' => 'Budget not available.',
+        ])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    Mail::assertQueued(ServiceRequestRejected::class, function (ServiceRequestRejected $mail) use ($serviceRequest) {
+        return $mail->serviceRequestId === $serviceRequest->id
+            && $mail->rejectionReason === 'Budget not available.';
+    });
 });

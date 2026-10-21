@@ -50,6 +50,7 @@ class UserController extends ApiController
                 'user_id' => $user->id,
                 'message' => 'Your account has been approved. You can now log in.',
                 'notification_type' => 'account_approval',
+                'link' => '/dashboard',
                 'notification_status' => 'unread',
             ]);
 
@@ -61,6 +62,7 @@ class UserController extends ApiController
                 'user_id' => $user->id,
                 'message' => 'Your account registration was not approved. Please contact the ICT office for more information.',
                 'notification_type' => 'account_rejection',
+                'link' => '/dashboard',
                 'notification_status' => 'unread',
             ]);
         }

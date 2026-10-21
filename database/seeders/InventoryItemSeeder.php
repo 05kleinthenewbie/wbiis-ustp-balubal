@@ -13,6 +13,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-DE-0001',
                 'item_name' => 'Desktop - Dell OptiPlex 7090',
+                'category' => 'Hardware',
                 'brand' => 'Dell',
                 'model' => 'OptiPlex 7090',
                 'serial_no' => 'DL8X7K2M',
@@ -24,6 +25,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-HP-0002',
                 'item_name' => 'Laptop - HP ProBook 450 G8',
+                'category' => 'Hardware',
                 'brand' => 'HP',
                 'model' => 'ProBook 450 G8',
                 'serial_no' => 'HP5N9R4T',
@@ -35,6 +37,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-LN-0003',
                 'item_name' => 'Laptop - Lenovo ThinkPad E14',
+                'category' => 'Hardware',
                 'brand' => 'Lenovo',
                 'model' => 'ThinkPad E14',
                 'serial_no' => 'LN3HJ8WQ',
@@ -46,6 +49,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-DL-0004',
                 'item_name' => 'Monitor - Dell P2422H',
+                'category' => 'ICT Peripherals',
                 'brand' => 'Dell',
                 'model' => 'P2422H',
                 'serial_no' => 'DL7TY5VN',
@@ -57,6 +61,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-HP-0005',
                 'item_name' => 'Printer - HP LaserJet Pro M404dn',
+                'category' => 'Hardware',
                 'brand' => 'HP',
                 'model' => 'LaserJet Pro M404dn',
                 'serial_no' => 'HP2KQ9XJ',
@@ -68,6 +73,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-AC-0006',
                 'item_name' => 'Laptop - Acer TravelMate P2',
+                'category' => 'Hardware',
                 'brand' => 'Acer',
                 'model' => 'TravelMate P2',
                 'serial_no' => 'AC6WM3LP',
@@ -79,6 +85,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-EP-0007',
                 'item_name' => 'Printer - Epson EcoTank L3150',
+                'category' => 'Hardware',
                 'brand' => 'Epson',
                 'model' => 'EcoTank L3150',
                 'serial_no' => 'EP4RJ8BN',
@@ -90,6 +97,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-LG-0008',
                 'item_name' => 'Monitor - LG UltraFine 27UL500',
+                'category' => 'ICT Peripherals',
                 'brand' => 'LG',
                 'model' => 'UltraFine 27UL500',
                 'serial_no' => 'LG9PD2KF',
@@ -101,6 +109,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-LN-0009',
                 'item_name' => 'Desktop - Lenovo ThinkCentre M70s',
+                'category' => 'Hardware',
                 'brand' => 'Lenovo',
                 'model' => 'ThinkCentre M70s',
                 'serial_no' => 'LN5VG8HT',
@@ -112,6 +121,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-CN-0010',
                 'item_name' => 'Printer - Canon PIXMA G3010',
+                'category' => 'Hardware',
                 'brand' => 'Canon',
                 'model' => 'PIXMA G3010',
                 'serial_no' => 'CN3FL6WZ',
@@ -123,6 +133,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-AS-0011',
                 'item_name' => 'Laptop - ASUS ZenBook 14',
+                'category' => 'Hardware',
                 'brand' => 'ASUS',
                 'model' => 'ZenBook 14',
                 'serial_no' => 'AS7MQ4RP',
@@ -134,6 +145,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-HP-0012',
                 'item_name' => 'Monitor - HP EliteDisplay E243',
+                'category' => 'ICT Peripherals',
                 'brand' => 'HP',
                 'model' => 'EliteDisplay E243',
                 'serial_no' => 'HP8XN2LT',
@@ -145,6 +157,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-CA-0013',
                 'item_name' => 'Projector - Canon V150H',
+                'category' => 'Hardware',
                 'brand' => 'Canon',
                 'model' => 'V150H',
                 'serial_no' => 'CN4KJ7BG',
@@ -156,6 +169,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-NW-0014',
                 'item_name' => 'Network - Netgear GS308 Switch',
+                'category' => 'Network Equipment',
                 'brand' => 'Netgear',
                 'model' => 'GS308',
                 'serial_no' => 'NG2TW9CV',
@@ -167,6 +181,7 @@ class InventoryItemSeeder extends Seeder
             [
                 'property_no' => 'USTP-ICT-UP-0015',
                 'item_name' => 'UPS - APC Smart-UPS 1500',
+                'category' => 'ICT Peripherals',
                 'brand' => 'APC',
                 'model' => 'Smart-UPS 1500',
                 'serial_no' => 'AP6HN3XQ',
@@ -181,10 +196,8 @@ class InventoryItemSeeder extends Seeder
         $departments = ['College of Engineering', 'College of Education', 'Administration', 'Library', 'Information Technology Services'];
 
         foreach ($items as $index => $item) {
-            $category = ucfirst(strtolower((string) explode(' - ', $item['item_name'])[0]));
             $locationParts = explode(' - ', $item['location'] ?? '');
 
-            $item['category'] = $category;
             $item['campus'] = 'Balubal Campus';
             $item['building'] = $locationParts[0] ?? null;
             $item['room'] = count($locationParts) > 1 ? $locationParts[1] : null;

@@ -1,5 +1,7 @@
 import { Link } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import ustpLogo from '@/assets/ustp-logo.png';
+import { Button } from '@/components/tailgrids/core/button';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -7,10 +9,22 @@ export default function AuthSimpleLayout({
     children,
     title,
     description,
+    wide = false,
+    icon,
+    iconClassName = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400',
+    backHref,
+    backLabel = 'Back',
+    backTestId,
 }: AuthLayoutProps) {
+    const Icon = icon;
+
     return (
         <div className="flex min-h-svh items-center justify-center bg-ustp-gray/50 p-6 dark:bg-neutral-950">
-            <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-ustp-gray-medium bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+            <div
+                className={`w-full overflow-hidden rounded-2xl border border-ustp-gray-medium bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900 ${
+                    wide ? 'max-w-5xl' : 'max-w-lg'
+                }`}
+            >
                 {/* Brand header */}
                 <div className="relative bg-ustp-navy px-6 pt-7 pb-6 text-center">
                     <Link href={home()} className="inline-block">
@@ -41,7 +55,36 @@ export default function AuthSimpleLayout({
                 <div className="h-1 bg-ustp-gold" />
 
                 <div className="bg-white px-6 py-6 dark:bg-neutral-900">
+                    {backHref && (
+                        <div className="mb-4 flex">
+                            <Button
+                                asChild
+                                variant="ghost"
+                                size="sm"
+                                className="-ml-2 size-9 px-0 text-muted-foreground hover:text-ustp-navy dark:hover:text-white"
+                            >
+                                <Link
+                                    href={backHref}
+                                    data-test={backTestId}
+                                    aria-label={backLabel}
+                                    title={backLabel}
+                                >
+                                    <ArrowLeft className="size-4" />
+                                </Link>
+                            </Button>
+                        </div>
+                    )}
+
                     <div className="mb-6 space-y-1 text-center">
+                        {Icon && (
+                            <div className="mb-3 flex justify-center">
+                                <div
+                                    className={`flex size-12 items-center justify-center rounded-xl ${iconClassName}`}
+                                >
+                                    <Icon className="size-6" />
+                                </div>
+                            </div>
+                        )}
                         <h2 className="font-serif text-lg font-bold tracking-tight text-ustp-navy dark:text-white">
                             {title}
                         </h2>

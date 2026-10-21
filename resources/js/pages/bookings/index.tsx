@@ -9,6 +9,8 @@ import {
     XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
+import { BookingCalendar } from '@/components/booking-calendar';
+import type { CalendarBooking } from '@/components/booking-calendar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -25,13 +27,17 @@ type BookingItem = {
 
 type Props = {
     bookings: BookingItem[];
-    isAdmin: boolean;
     stats: {
         total: number;
         pending: number;
         approved: number;
         rejected: number;
     };
+    calendarBookings: CalendarBooking[];
+    facilities: {
+        id: number;
+        facility_name: string;
+    }[];
 };
 
 const statusBadge: Record<string, string> = {
@@ -46,7 +52,12 @@ const facilityTypeLabel: Record<string, string> = {
     av_room: 'AV Room',
 };
 
-export default function BookingsIndex({ bookings, isAdmin, stats }: Props) {
+export default function BookingsIndex({
+    bookings,
+    stats,
+    calendarBookings,
+    facilities,
+}: Props) {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -88,17 +99,15 @@ export default function BookingsIndex({ bookings, isAdmin, stats }: Props) {
                             </p>
                         </div>
 
-                        {!isAdmin && (
-                            <Button
-                                asChild
-                                className="h-10 bg-ustp-gold px-4 text-sm font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
-                            >
-                                <Link href="/bookings/create">
-                                    <Plus className="mr-2 size-4" />
-                                    New Booking
-                                </Link>
-                            </Button>
-                        )}
+                        <Button
+                            asChild
+                            className="h-10 bg-ustp-gold px-4 text-sm font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
+                        >
+                            <Link href="/bookings/create">
+                                <Plus className="mr-2 size-4" />
+                                New Booking
+                            </Link>
+                        </Button>
                     </div>
 
                     {/* Stats Cards */}
@@ -129,6 +138,14 @@ export default function BookingsIndex({ bookings, isAdmin, stats }: Props) {
                             </div>
                         ))}
                     </div>
+
+                    {/* Availability Calendar */}
+                    <BookingCalendar
+                        bookings={calendarBookings}
+                        facilities={facilities}
+                        showFacilityFilter
+                        showRequester
+                    />
 
                     {/* Status Tabs */}
                     <div className="flex flex-wrap items-center gap-2">
@@ -217,7 +234,7 @@ export default function BookingsIndex({ bookings, isAdmin, stats }: Props) {
                                     : 'Facility booking requests will appear here.'}
                             </p>
 
-                            {!search && statusFilter === 'all' && !isAdmin && (
+                            {search || statusFilter !== 'all' ? null : (
                                 <Button
                                     asChild
                                     variant="outline"

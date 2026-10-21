@@ -85,7 +85,7 @@ export default function Appearance() {
                                         type="button"
                                         onClick={() => updateAppearance(value)}
                                         className={cn(
-                                            'flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all',
+                                            'flex cursor-pointer items-center justify-center gap-2 rounded-lg px-2 py-2.5 text-sm transition-all sm:px-4',
                                             active
                                                 ? 'border border-slate-200/60 bg-white font-semibold text-slate-900 shadow-sm'
                                                 : 'font-medium text-slate-600 hover:bg-slate-200/50 hover:text-slate-900',

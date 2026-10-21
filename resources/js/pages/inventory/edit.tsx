@@ -1,14 +1,22 @@
 import { Head, useForm } from '@inertiajs/react';
 import {
     CalendarDays,
+    CalendarClock,
     MapPin,
     Wrench,
-    Monitor,
+    Computer,
+    Keyboard,
+    Wifi,
     Laptop,
     Printer,
     Projector,
-    Wifi,
+    BatteryCharging,
+    Droplets,
+    Sparkles,
     Battery,
+    ShieldCheck,
+    KeyRound,
+    Lock,
     Box,
     CheckCircle2,
     AlertTriangle,
@@ -27,7 +35,9 @@ import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
+    SelectGroup,
     SelectItem,
+    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
@@ -53,6 +63,8 @@ type InventoryItemData = {
     description: string | null;
     location: string | null;
     purchase_date: string | null;
+    expiration_date: string | null;
+    expiration_type: string | null;
     unit_cost: string | null;
     purchase_order_no: string | null;
     end_user: string | null;
@@ -71,74 +83,158 @@ type InventoryItemData = {
 type Props = {
     item: InventoryItemData;
     users: UserOption[];
+    categoryGroups: Record<string, string[]>;
+    expirationTypes: string[];
 };
 
 function getCategoryFromName(name: string): string {
     const lower = name.toLowerCase();
 
-    if (lower.includes('desktop')) {
-        return 'Desktop';
+    if (
+        lower.includes('router') ||
+        lower.includes('switch') ||
+        lower.includes('access point') ||
+        lower.includes('modem') ||
+        lower.includes('firewall') ||
+        lower.includes('network')
+    ) {
+        return 'Network Devices';
     }
 
-    if (lower.includes('laptop')) {
-        return 'Laptop';
+    if (lower.includes('toner')) {
+        return 'Toner Cartridges';
     }
 
-    if (lower.includes('monitor')) {
-        return 'Monitor';
+    if (
+        lower.includes('ink') ||
+        lower.includes('cartridge') ||
+        lower.includes('refill')
+    ) {
+        return 'Printer Ink';
     }
 
-    if (lower.includes('printer')) {
-        return 'Printer';
+    if (lower.includes('laptop') || lower.includes('notebook')) {
+        return 'Laptops';
     }
 
     if (lower.includes('projector')) {
-        return 'Projector';
-    }
-
-    if (lower.includes('network')) {
-        return 'Network';
+        return 'Projectors';
     }
 
     if (lower.includes('ups')) {
-        return 'UPS';
+        return 'UPS Devices';
     }
 
-    return 'Other';
+    if (lower.includes('printer')) {
+        return 'Printers';
+    }
+
+    if (
+        lower.includes('thermal paste') ||
+        lower.includes('thermal compound')
+    ) {
+        return 'Thermal Paste';
+    }
+
+    if (
+        lower.includes('cleaning solution') ||
+        lower.includes('cleaner') ||
+        lower.includes('contact cleaner')
+    ) {
+        return 'Cleaning Supplies';
+    }
+
+    if (lower.includes('antivirus') || lower.includes('security suite')) {
+        return 'Antivirus Licenses';
+    }
+
+    if (
+        lower.includes('ssl') ||
+        lower.includes('tls') ||
+        lower.includes('certificate')
+    ) {
+        return 'SSL/TLS Certificates';
+    }
+
+    return 'Desktop Computers';
 }
 
 const categoryIcons: Record<string, React.ElementType> = {
-    Desktop: Monitor,
-    Laptop: Laptop,
-    Monitor: Monitor,
-    Printer: Printer,
-    Projector: Projector,
-    Network: Wifi,
-    UPS: Battery,
-    Other: Box,
+    'Desktop Computers': Computer,
+    Laptops: Laptop,
+    Printers: Printer,
+    Projectors: Projector,
+    'Network Devices': Wifi,
+    'UPS Devices': BatteryCharging,
+    'Printer Ink': Droplets,
+    'Toner Cartridges': Printer,
+    'Thermal Paste': Wrench,
+    'Cleaning Supplies': Sparkles,
+    Batteries: Battery,
+    'Antivirus Licenses': ShieldCheck,
+    'Software Subscriptions': KeyRound,
+    'SSL/TLS Certificates': Lock,
+    Hardware: Computer,
+    'Network Equipment': Wifi,
+    'ICT Peripherals': Keyboard,
 };
 
 const categoryColors: Record<string, string> = {
-    Desktop: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
-    Laptop: 'bg-purple-400/15 text-purple-400 border-purple-400/20',
-    Monitor: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
-    Printer: 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
-    Projector: 'bg-orange-400/15 text-orange-400 border-orange-400/20',
-    Network: 'bg-cyan-400/15 text-cyan-400 border-cyan-400/20',
-    UPS: 'bg-amber-400/15 text-amber-400 border-amber-400/20',
-    Other: 'bg-slate-50 text-slate-400 border-slate-200',
+    'Desktop Computers': 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
+    Laptops: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
+    Printers: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
+    Projectors: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
+    'Network Devices': 'bg-cyan-400/15 text-cyan-400 border-cyan-400/20',
+    'UPS Devices': 'bg-cyan-400/15 text-cyan-400 border-cyan-400/20',
+    'Printer Ink': 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+    'Toner Cartridges': 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+    'Thermal Paste': 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+    'Cleaning Supplies': 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+    Batteries: 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+    'Antivirus Licenses': 'bg-purple-400/15 text-purple-400 border-purple-400/20',
+    'Software Subscriptions': 'bg-purple-400/15 text-purple-400 border-purple-400/20',
+    'SSL/TLS Certificates': 'bg-purple-400/15 text-purple-400 border-purple-400/20',
+    Hardware: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
+    'Network Equipment': 'bg-cyan-400/15 text-cyan-400 border-cyan-400/20',
+    'ICT Peripherals': 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
 };
 
-const categoryOptions = [
-    'Desktop',
-    'Laptop',
-    'Monitor',
-    'Printer',
-    'Projector',
-    'Network',
-    'UPS',
-    'Other',
-];
+function suggestExpirationType(category: string): string {
+    switch (category) {
+        case 'Printer Ink':
+            return 'Expiration / Use-by Date';
+        case 'Toner Cartridges':
+            return 'Recommended Shelf Life';
+        case 'Thermal Paste':
+            return 'Shelf Life';
+        case 'Cleaning Supplies':
+            return 'Expiration Date';
+        case 'Batteries':
+            return 'Replacement / Service Life';
+        case 'Antivirus Licenses':
+            return 'License Expiration';
+        case 'Software Subscriptions':
+            return 'Subscription Expiration';
+        case 'SSL/TLS Certificates':
+            return 'Certificate Expiration';
+        default:
+            return 'Warranty Expiration';
+    }
+}
+
+const legacyCategoryAliases: Record<string, string> = {
+    Desktop: 'Desktop Computers',
+    Laptop: 'Laptops',
+    Printer: 'Printers',
+    Projector: 'Projectors',
+    Server: 'Desktop Computers',
+    Other: 'Desktop Computers',
+    Network: 'Network Devices',
+    Monitor: 'Desktop Computers',
+    UPS: 'UPS Devices',
+    Battery: 'Batteries',
+    'SSL Certificate': 'SSL/TLS Certificates',
+};
 
 const validationOptions = ['Validated', 'For Inspection', 'Pending'];
 
@@ -162,8 +258,16 @@ const conditionVisuals: Record<
 
 const statusConfig: Record<string, string> = {
     active: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-700',
+    for_disposal: 'border-orange-400/30 bg-orange-400/10 text-orange-700',
     retired: 'border-slate-300 bg-slate-100 text-slate-600',
     disposed: 'border-red-400/30 bg-red-400/10 text-red-700',
+};
+
+const statusLabels: Record<string, string> = {
+    active: 'Active',
+    for_disposal: 'For Disposal',
+    retired: 'Retired',
+    disposed: 'Disposed',
 };
 
 const inputClass =
@@ -198,19 +302,31 @@ function formatCurrency(value: string): string {
     });
 }
 
-export default function InventoryEdit({ item, users }: Props) {
+export default function InventoryEdit({
+    item,
+    users,
+    categoryGroups,
+    expirationTypes,
+}: Props) {
+    const resolvedCategory = item.category
+        ? (legacyCategoryAliases[item.category] ?? item.category)
+        : 'Desktop Computers';
+
     const { data, setData, put, processing, errors } = useForm({
         property_no: item.property_no,
         item_inventory_no: item.item_inventory_no ?? '',
         item_name: item.item_name,
-        category: item.category ?? 'Desktop',
+        category: resolvedCategory,
         brand: item.brand ?? '',
         model: item.model ?? '',
         serial_no: item.serial_no ?? '',
         specification: item.specification ?? '',
         description: item.description ?? '',
         location: item.location ?? '',
-        purchase_date: item.purchase_date ?? '',
+        purchase_date: item.purchase_date?.slice(0, 10) ?? '',
+        expiration_date: item.expiration_date?.slice(0, 10) ?? '',
+        expiration_type:
+            item.expiration_type ?? suggestExpirationType(resolvedCategory),
         unit_cost: item.unit_cost ?? '',
         purchase_order_no: item.purchase_order_no ?? '',
         end_user: item.end_user ?? '',
@@ -222,7 +338,7 @@ export default function InventoryEdit({ item, users }: Props) {
         condition: item.condition,
         status: item.status,
         validation: item.validation ?? 'Pending',
-        inspection_date: item.inspection_date ?? '',
+        inspection_date: item.inspection_date?.slice(0, 10) ?? '',
         inspection_remarks: item.inspection_remarks ?? '',
     });
 
@@ -251,6 +367,12 @@ export default function InventoryEdit({ item, users }: Props) {
     const cv = conditionVisuals[data.condition] ?? conditionVisuals.working;
     const CondIcon = cv.icon;
 
+    const knownCategories = Object.values(categoryGroups).flat();
+    const legacySelected =
+        data.category && !knownCategories.includes(data.category)
+            ? data.category
+            : null;
+
     return (
         <>
             <Head title="Edit Inventory Item" />
@@ -271,7 +393,7 @@ export default function InventoryEdit({ item, users }: Props) {
                             </div>
 
                             <div>
-                                <h1 className="text-3xl font-semibold tracking-tight text-slate-800">
+                                <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
                                     {data.item_name || 'Edit Equipment'}
                                 </h1>
 
@@ -409,9 +531,23 @@ export default function InventoryEdit({ item, users }: Props) {
                                             </Label>
                                             <Select
                                                 value={data.category}
-                                                onValueChange={(value) =>
-                                                    setData('category', value)
-                                                }
+                                                onValueChange={(value) => {
+                                                    setData('category', value);
+
+                                                    if (
+                                                        data.expiration_type ===
+                                                        suggestExpirationType(
+                                                            data.category ?? '',
+                                                        )
+                                                    ) {
+                                                        setData(
+                                                            'expiration_type',
+                                                            suggestExpirationType(
+                                                                value,
+                                                            ),
+                                                        );
+                                                    }
+                                                }}
                                             >
                                                 <SelectTrigger
                                                     id="category"
@@ -420,14 +556,39 @@ export default function InventoryEdit({ item, users }: Props) {
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent className="border-slate-200 bg-white text-slate-800">
-                                                    {categoryOptions.map(
-                                                        (c) => (
-                                                            <SelectItem
-                                                                key={c}
-                                                                value={c}
+                                                    {legacySelected && (
+                                                        <SelectItem value={legacySelected}>
+                                                            {legacySelected}{' '}
+                                                            (legacy)
+                                                        </SelectItem>
+                                                    )}
+                                                    {Object.entries(
+                                                        categoryGroups,
+                                                    ).map(
+                                                        ([group, options]) => (
+                                                            <SelectGroup
+                                                                key={group}
                                                             >
-                                                                {c}
-                                                            </SelectItem>
+                                                                <SelectLabel className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                                                                    {group}
+                                                                </SelectLabel>
+                                                                {options.map(
+                                                                    (c) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                c
+                                                                            }
+                                                                            value={
+                                                                                c
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                c
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
+                                                            </SelectGroup>
                                                         ),
                                                     )}
                                                 </SelectContent>
@@ -591,7 +752,8 @@ export default function InventoryEdit({ item, users }: Props) {
                                                 Acquisition
                                             </p>
                                             <p className="mt-0.5 text-xs text-slate-400">
-                                                Purchase details and reference
+                                                Purchase details, expiration
+                                                tracking, and reference
                                                 documents.
                                             </p>
                                         </div>
@@ -647,7 +809,7 @@ export default function InventoryEdit({ item, users }: Props) {
                                                             e.target.value,
                                                         )
                                                     }
-                                                    placeholder="45000.00"
+                                                    placeholder="0.00"
                                                     className={`${inputClass} pl-10 font-mono`}
                                                 />
                                             </div>
@@ -657,6 +819,103 @@ export default function InventoryEdit({ item, users }: Props) {
                                                 </p>
                                             )}
                                         </div>
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="expiration_date"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Expiration date
+                                            </Label>
+                                            <div className="relative">
+                                                <CalendarClock className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                                                <Input
+                                                    id="expiration_date"
+                                                    type="date"
+                                                    value={
+                                                        data.expiration_date
+                                                    }
+                                                    onChange={(
+                                                        e: React.ChangeEvent<HTMLInputElement>,
+                                                    ) =>
+                                                        setData(
+                                                            'expiration_date',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className={`${inputClass} pl-10 scheme-light`}
+                                                />
+                                            </div>
+                                            {errors.expiration_date && (
+                                                <p className="text-xs text-red-400">
+                                                    {errors.expiration_date}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="expiration_type"
+                                                className="text-xs font-medium text-slate-700"
+                                            >
+                                                Expiration type
+                                            </Label>
+                                            <Select
+                                                value={data.expiration_type}
+                                                onValueChange={(value) =>
+                                                    setData(
+                                                        'expiration_type',
+                                                        value,
+                                                    )
+                                                }
+                                            >
+                                                <SelectTrigger
+                                                    id="expiration_type"
+                                                    className={selectClass}
+                                                >
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent className="border-slate-200 bg-white text-slate-800">
+                                                    {data.expiration_type &&
+                                                        !expirationTypes.includes(
+                                                            data
+                                                                .expiration_type,
+                                                        ) && (
+                                                            <SelectItem
+                                                                value={
+                                                                    data.expiration_type
+                                                                }
+                                                            >
+                                                                {
+                                                                    data.expiration_type
+                                                                }{' '}
+                                                                (legacy)
+                                                            </SelectItem>
+                                                        )}
+                                                    {expirationTypes.map((t) => (
+                                                        <SelectItem
+                                                            key={t}
+                                                            value={t}
+                                                        >
+                                                            {t}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.expiration_type && (
+                                                <p className="text-xs text-red-400">
+                                                    {errors.expiration_type}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <p className="text-[11px] text-slate-400 md:col-span-2">
+                                            Leave the expiration date empty for
+                                            items without a fixed end date. It
+                                            marks when the license, warranty, or
+                                            consumable life ends and is used for
+                                            renewal and disposal review.
+                                        </p>
 
                                         <div className="grid gap-2 md:col-span-2">
                                             <Label
@@ -955,6 +1214,9 @@ export default function InventoryEdit({ item, users }: Props) {
                                                     <SelectItem value="active">
                                                         Active
                                                     </SelectItem>
+                                                    <SelectItem value="for_disposal">
+                                                        For Disposal
+                                                    </SelectItem>
                                                     <SelectItem value="retired">
                                                         Retired
                                                     </SelectItem>
@@ -1219,9 +1481,10 @@ export default function InventoryEdit({ item, users }: Props) {
                                                 : data.condition}
                                         </span>
                                         <span
-                                            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium capitalize ${statusConfig[data.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
+                                            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium ${statusConfig[data.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
                                         >
-                                            {data.status}
+                                            {statusLabels[data.status] ??
+                                                data.status}
                                         </span>
                                         <span className="inline-flex items-center gap-1.5 rounded-full border border-ustp-gold/25 bg-ustp-gold/10 px-2.5 py-1 text-[11px] font-medium text-ustp-gold">
                                             <BadgeCheck className="size-3" />
@@ -1244,6 +1507,20 @@ export default function InventoryEdit({ item, users }: Props) {
                                                 })}
                                             </div>
                                         </>
+                                    )}
+
+                                    {data.expiration_date && (
+                                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                                            <CalendarClock className="size-3.5" />
+                                            {data.expiration_type} · ends{' '}
+                                            {new Date(
+                                                data.expiration_date,
+                                            ).toLocaleDateString('en-US', {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                year: 'numeric',
+                                            })}
+                                        </div>
                                     )}
 
                                     {data.inspection_remarks && (

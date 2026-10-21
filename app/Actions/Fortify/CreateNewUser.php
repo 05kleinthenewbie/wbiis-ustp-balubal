@@ -211,7 +211,7 @@ class CreateNewUser implements CreatesNewUsers
         ], [
             'id_number.regex' => 'ID number must be exactly 10 digits (e.g., 2023303709).',
             'id_number.unique' => 'This ID number is already registered to an account.',
-            'id_number.exists' => 'ID number not found in the student roster. Please visit ICT/Registrar to be enrolled.',
+            'id_number.exists' => 'ID number not found in the student list. Please visit ICT/Registrar to be enrolled.',
         ])->validate();
     }
 
@@ -232,7 +232,7 @@ class CreateNewUser implements CreatesNewUsers
 
         if ($roster === null) {
             throw ValidationException::withMessages([
-                'id_number' => 'ID number not found in the student roster. Please visit ICT/Registrar to be enrolled.',
+                'id_number' => 'ID number not found in the student list. Please visit ICT/Registrar to be enrolled.',
             ]);
         }
 

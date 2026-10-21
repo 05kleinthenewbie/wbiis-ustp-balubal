@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     AlertTriangle,
     ArrowUpRight,
@@ -14,11 +14,17 @@ import {
     Zap,
 } from 'lucide-react';
 
+type Period = 'week' | 'month' | 'year';
+
 type AdminStats = {
     pendingRequests: number;
     openJobOrders: number;
     pendingBookings: number;
     openIncidents: number;
+    technicians: number;
+    unassignedJobOrders: number;
+    overdueJobOrders: number;
+    inventoryExpiryAlerts: number;
 };
 
 type UserStats = {
@@ -58,10 +64,46 @@ type RecentBooking = {
     date: string | null;
 };
 
+type Overview = {
+    serviceRequests: { total: number; pending: number };
+    jobOrders: { total: number; inProgress: number; unassigned: number };
+    inventory: { total: number; defective: number };
+    bookings: { total: number; pending: number };
+    incidents: { total: number; unresolved: number };
+    pendingActions: { total: number };
+};
+
+type PendingActions = {
+    bookingApprovals: number;
+    requestApprovals: number;
+    jobOrdersInProgress: number;
+    overdueJobOrders: number;
+    incidentsUnresolved: number;
+};
+
+type InventoryAlerts = {
+    expiringSoon: number;
+    expired: number;
+    defective: number;
+    underRepair: number;
+};
+
+type ActivitySeries = {
+    labels: string[];
+    bookings: number[];
+    requests: number[];
+    jobOrders: number[];
+};
+
 type Props = {
     stats: AdminStats | UserStats;
     isAdmin: boolean;
     greeting: string;
+    period: Period | null;
+    overview: Overview | null;
+    pendingActions: PendingActions | null;
+    inventoryAlerts: InventoryAlerts | null;
+    activitySeries: ActivitySeries | null;
     requestsByStatus: Record<string, number>;
     requestsByPriority: Record<string, number>;
     jobOrdersByStatus: Record<string, number>;
@@ -119,93 +161,120 @@ function HorizontalBarChart({
     );
 }
 
-function RingChart({
-    data,
-    strokeColors,
-    dotClasses,
-    total,
-    centerLabel,
-}: {
-    data: Record<string, number>;
-    strokeColors: Record<string, string>;
-    dotClasses: Record<string, string>;
-    total: number;
-    centerLabel: string;
-}) {
-    const entries = Object.entries(data).filter(([, v]) => v > 0);
-    const size = 120;
-    const strokeWidth = 10;
-    const radius = (size - strokeWidth) / 2;
-    const circumference = 2 * Math.PI * radius;
+function LineChart({ data }: { data: ActivitySeries }) {
+    const width = 780;
+    const height = 250;
+    const padTop = 14;
+    const padRight = 14;
+    const padBottom = 26;
+    const padLeft = 38;
 
-    let accumulated = 0;
-    const segments = entries.map(([key, count]) => {
-        const pct = total > 0 ? count / total : 0;
-        const dashLength = circumference * pct;
-        const dashOffset = circumference * (1 - accumulated / total);
-        accumulated += count;
+    const max = Math.max(
+        1,
+        ...data.bookings,
+        ...data.requests,
+        ...data.jobOrders,
+    );
+    const step = Math.max(1, Math.ceil(max / 4));
+    const yMax = step * 4;
 
-        return {
-            key,
-            count,
-            pct,
-            dashLength: dashLength - 1,
-            dashOffset,
-            color: strokeColors[key] ?? 'rgba(100,116,139,0.4)',
-        };
-    });
+    const count = data.labels.length;
+    const xFor = (index: number) =>
+        count <= 1
+            ? padLeft
+            : padLeft + (index * (width - padLeft - padRight)) / (count - 1);
+    const yFor = (value: number) =>
+        height - padBottom - (value / yMax) * (height - padTop - padBottom);
+
+    const series = [
+        { label: 'Requests', color: '#f59e0b', values: data.requests },
+        { label: 'Bookings', color: '#10b981', values: data.bookings },
+        { label: 'Job Orders', color: '#1a1851', values: data.jobOrders },
+    ];
+
+    const ticks = [0, step, step * 2, step * 3, step * 4];
 
     return (
-        <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-                <svg width={size} height={size} className="-rotate-90">
-                    <circle
-                        cx={size / 2}
-                        cy={size / 2}
-                        r={radius}
-                        fill="none"
-                        stroke="rgba(15,23,42,0.08)"
-                        strokeWidth={strokeWidth}
-                    />
-                    {segments.map((seg) => (
-                        <circle
-                            key={seg.key}
-                            cx={size / 2}
-                            cy={size / 2}
-                            r={radius}
+        <div>
+            <svg
+                viewBox={`0 0 ${width} ${height}`}
+                className="h-auto w-full"
+                role="img"
+                aria-label="Monthly system activity line chart"
+            >
+                {ticks.map((tick) => (
+                    <g key={tick}>
+                        <line
+                            x1={padLeft}
+                            x2={width - padRight}
+                            y1={yFor(tick)}
+                            y2={yFor(tick)}
+                            stroke="rgba(15,23,42,0.08)"
+                            strokeDasharray={tick === 0 ? undefined : '4 4'}
+                        />
+                        <text
+                            x={padLeft - 8}
+                            y={yFor(tick)}
+                            textAnchor="end"
+                            dominantBaseline="middle"
+                            className="fill-slate-400 text-[10px]"
+                        >
+                            {tick}
+                        </text>
+                    </g>
+                ))}
+                {data.labels.map((label, index) => (
+                    <text
+                        key={`${label}-${index}`}
+                        x={xFor(index)}
+                        y={height - 8}
+                        textAnchor="middle"
+                        className="fill-slate-400 text-[10px]"
+                    >
+                        {label}
+                    </text>
+                ))}
+                {series.map((entry) => (
+                    <g key={entry.label}>
+                        <polyline
                             fill="none"
-                            stroke={seg.color}
-                            strokeWidth={strokeWidth}
-                            strokeDasharray={`${seg.dashLength} ${circumference - seg.dashLength}`}
-                            strokeDashoffset={seg.dashOffset}
+                            stroke={entry.color}
+                            strokeWidth={2.5}
                             strokeLinecap="round"
-                            className="transition-all duration-700"
+                            strokeLinejoin="round"
+                            points={entry.values
+                                .map(
+                                    (value, index) =>
+                                        `${xFor(index)},${yFor(value)}`,
+                                )
+                                .join(' ')}
                         />
-                    ))}
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-bold text-slate-800">
-                        {total}
-                    </span>
-                    <span className="text-[10px] tracking-wider text-slate-400 uppercase">
-                        {centerLabel}
-                    </span>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-                {entries.map(([key, count]) => (
-                    <div key={key} className="flex items-center gap-2">
+                        {entry.values.map((value, index) => (
+                            <circle
+                                key={`${entry.label}-${index}`}
+                                cx={xFor(index)}
+                                cy={yFor(value)}
+                                r={3}
+                                fill="#ffffff"
+                                stroke={entry.color}
+                                strokeWidth={2}
+                            />
+                        ))}
+                    </g>
+                ))}
+            </svg>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+                {series.map((entry) => (
+                    <span
+                        key={entry.label}
+                        className="flex items-center gap-1.5 text-xs text-slate-500"
+                    >
                         <span
-                            className={`size-2.5 rounded-full ${dotClasses[key] ?? 'bg-slate-300'}`}
+                            className="size-2.5 rounded-full"
+                            style={{ backgroundColor: entry.color }}
                         />
-                        <span className="text-xs text-slate-500 capitalize">
-                            {key.replace('_', ' ')}
-                        </span>
-                        <span className="ml-auto text-xs font-semibold text-slate-600">
-                            {count}
-                        </span>
-                    </div>
+                        {entry.label}
+                    </span>
                 ))}
             </div>
         </div>
@@ -378,10 +447,13 @@ export default function Dashboard({
     stats,
     isAdmin,
     greeting,
+    period,
+    overview,
+    pendingActions,
+    inventoryAlerts,
+    activitySeries,
     requestsByStatus,
     requestsByPriority,
-    jobOrdersByStatus,
-    inventorySummary,
     recentRequests,
     recentJobOrders,
     recentIncidents,
@@ -398,8 +470,144 @@ export default function Dashboard({
     });
 
     const reqTotal = Object.values(requestsByStatus).reduce((a, b) => a + b, 0);
-    const joTotal = Object.values(jobOrdersByStatus).reduce((a, b) => a + b, 0);
-    const invTotal = Object.values(inventorySummary).reduce((a, b) => a + b, 0);
+
+    const activePeriod: Period = period ?? 'year';
+
+    const adminCards = overview
+        ? [
+              {
+                  label: 'Service Requests',
+                  value: overview.serviceRequests.total,
+                  sub: `${overview.serviceRequests.pending} pending`,
+                  icon: FileText,
+                  href: '/requests',
+                  color: 'text-ustp-navy',
+                  bg: 'bg-ustp-navy/5',
+              },
+              {
+                  label: 'Job Orders',
+                  value: overview.jobOrders.total,
+                  sub: `${overview.jobOrders.inProgress} in progress · ${overview.jobOrders.unassigned} unassigned`,
+                  icon: ClipboardList,
+                  href: '/job-orders',
+                  color: 'text-amber-600',
+                  bg: 'bg-amber-50',
+              },
+              {
+                  label: 'ICT Inventory',
+                  value: overview.inventory.total,
+                  sub: `${overview.inventory.defective} defective`,
+                  icon: Package,
+                  href: '/inventory',
+                  color: 'text-ustp-light-blue',
+                  bg: 'bg-ustp-light-blue/10',
+              },
+              {
+                  label: 'Facility Bookings',
+                  value: overview.bookings.total,
+                  sub: `${overview.bookings.pending} pending`,
+                  icon: Calendar,
+                  href: '/bookings',
+                  color: 'text-emerald-600',
+                  bg: 'bg-emerald-50',
+              },
+              {
+                  label: 'Lab Incidents',
+                  value: overview.incidents.total,
+                  sub: `${overview.incidents.unresolved} unresolved`,
+                  icon: AlertTriangle,
+                  href: '/incidents',
+                  color: 'text-rose-600',
+                  bg: 'bg-rose-50',
+              },
+              {
+                  label: 'Pending Actions',
+                  value: overview.pendingActions.total,
+                  sub: 'Needs attention',
+                  icon: Clock,
+                  href: '/requests/approvals',
+                  color: 'text-orange-600',
+                  bg: 'bg-orange-50',
+              },
+          ]
+        : [];
+
+    const actionRows = pendingActions
+        ? [
+              {
+                  label: 'Booking approvals',
+                  value: pendingActions.bookingApprovals,
+                  href: '/bookings/approvals',
+                  bar: 'bg-emerald-500',
+              },
+              {
+                  label: 'Service request approvals',
+                  value: pendingActions.requestApprovals,
+                  href: '/requests/approvals',
+                  bar: 'bg-ustp-light-blue',
+              },
+              {
+                  label: 'Job orders in progress',
+                  value: pendingActions.jobOrdersInProgress,
+                  href: '/job-orders/progress',
+                  bar: 'bg-amber-500',
+              },
+              {
+                  label: 'Overdue job orders (SLA)',
+                  value: pendingActions.overdueJobOrders,
+                  href: '/job-orders/progress',
+                  bar: 'bg-red-500',
+              },
+              {
+                  label: 'Unresolved incidents',
+                  value: pendingActions.incidentsUnresolved,
+                  href: '/incidents',
+                  bar: 'bg-rose-500',
+              },
+          ]
+        : [];
+    const maxActionValue = Math.max(1, ...actionRows.map((row) => row.value));
+
+    const alertRows = inventoryAlerts
+        ? [
+              {
+                  label: 'Expiring Soon',
+                  sub: 'Within the next 30 days',
+                  value: inventoryAlerts.expiringSoon,
+                  href: '/inventory/expirations',
+                  icon: Clock,
+                  color: 'text-amber-600',
+                  bg: 'bg-amber-50',
+              },
+              {
+                  label: 'Expired',
+                  sub: 'Past expiration date',
+                  value: inventoryAlerts.expired,
+                  href: '/inventory/expirations',
+                  icon: AlertTriangle,
+                  color: 'text-red-600',
+                  bg: 'bg-red-50',
+              },
+              {
+                  label: 'Defective Equipment',
+                  sub: 'Requires inspection',
+                  value: inventoryAlerts.defective,
+                  href: '/inventory/defective',
+                  icon: Wrench,
+                  color: 'text-rose-600',
+                  bg: 'bg-rose-50',
+              },
+              {
+                  label: 'Under Repair',
+                  sub: 'Currently being serviced',
+                  value: inventoryAlerts.underRepair,
+                  href: '/inventory/under-repair',
+                  icon: Package,
+                  color: 'text-ustp-light-blue',
+                  bg: 'bg-ustp-light-blue/10',
+              },
+          ]
+        : [];
 
     return (
         <>
@@ -410,61 +618,113 @@ export default function Dashboard({
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
-                                {greeting}, {userName}
+                                {isAdmin
+                                    ? 'Dashboard Overview'
+                                    : `${greeting}, ${userName}`}
                             </h1>
 
                             <p className="mt-1.5 max-w-lg text-sm text-slate-500">
                                 {isAdmin
-                                    ? "Here\u2019s what needs your attention today."
+                                    ? `Welcome back, ${userName}. Here\u2019s what needs your attention.`
                                     : 'A quick look at your service requests.'}
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-2 text-sm text-slate-500">
-                            <Clock className="size-4" />
-                            {today}
+                        <div className="flex flex-wrap items-center gap-3">
+                            {isAdmin && (
+                                <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
+                                    {(['week', 'month', 'year'] as const).map(
+                                        (value) => (
+                                            <button
+                                                key={value}
+                                                type="button"
+                                                onClick={() =>
+                                                    router.get(
+                                                        '/dashboard',
+                                                        { period: value },
+                                                        {
+                                                            preserveScroll: true,
+                                                            preserveState: true,
+                                                        },
+                                                    )
+                                                }
+                                                className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                                                    activePeriod === value
+                                                        ? 'bg-ustp-navy text-white'
+                                                        : 'text-slate-500 hover:bg-slate-100'
+                                                }`}
+                                            >
+                                                {value === 'week'
+                                                    ? 'This Week'
+                                                    : value === 'month'
+                                                      ? 'This Month'
+                                                      : 'This Year'}
+                                            </button>
+                                        ),
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="flex items-center gap-2 text-sm text-slate-500">
+                                <Clock className="size-4" />
+                                {today}
+                            </div>
                         </div>
                     </div>
 
                     {/* ── Stat cards ── */}
                     <div
-                        className={`grid grid-cols-2 gap-4 ${isAdmin ? 'lg:grid-cols-4' : 'lg:max-w-xl'}`}
+                        className={`grid grid-cols-2 gap-4 ${isAdmin ? 'lg:grid-cols-3' : 'lg:max-w-xl'}`}
                     >
                         {isAdmin ? (
                             <>
-                                {[
-                                    { label: 'Pending Requests', value: (stats as AdminStats).pendingRequests, icon: FileText, href: '/requests', color: 'text-ustp-navy', bg: 'bg-ustp-navy/5' },
-                                    { label: 'Open Job Orders', value: (stats as AdminStats).openJobOrders, icon: ClipboardList, href: '/job-orders', color: 'text-amber-600', bg: 'bg-amber-50' },
-                                    { label: 'Pending Facility Bookings', value: (stats as AdminStats).pendingBookings, icon: Calendar, href: '/bookings', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                                    { label: 'Open Laboratory Incidents', value: (stats as AdminStats).openIncidents, icon: AlertTriangle, href: '/incidents', color: 'text-rose-600', bg: 'bg-rose-50' },
-                                ].map((card) => (
+                                {adminCards.map((card) => (
                                     <Link
                                         key={card.label}
                                         href={card.href}
                                         className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
                                     >
-                                        <div className="flex items-start justify-between">
-                                            <div className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}>
-                                                <card.icon className={`size-5 ${card.color}`} />
-                                            </div>
-                                            <ChevronRight className="size-4 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
-                                        </div>
-                                        <div className="mt-4">
-                                            <p className="text-[10px] font-medium tracking-[0.14em] text-slate-400 uppercase">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <p className="text-sm font-medium text-slate-600">
                                                 {card.label}
                                             </p>
-                                            <p className="mt-1.5 text-3xl font-semibold tracking-tight text-slate-800">
-                                                {card.value}
-                                            </p>
+                                            <div
+                                                className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${card.bg}`}
+                                            >
+                                                <card.icon
+                                                    className={`size-4 ${card.color}`}
+                                                />
+                                            </div>
                                         </div>
+                                        <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-800">
+                                            {card.value}
+                                        </p>
+                                        <p className="mt-1.5 text-xs text-slate-400 group-hover:text-slate-500">
+                                            {card.sub}
+                                        </p>
                                     </Link>
                                 ))}
                             </>
                         ) : (
                             <>
                                 {[
-                                    { label: 'My Requests', value: (stats as UserStats).myRequests, icon: FileText, href: '/requests', color: 'text-ustp-navy', bg: 'bg-ustp-navy/5' },
-                                    { label: 'Pending', value: (stats as UserStats).pendingRequests, icon: ClipboardList, href: '/requests', color: 'text-amber-600', bg: 'bg-amber-50' },
+                                    {
+                                        label: 'My Requests',
+                                        value: (stats as UserStats).myRequests,
+                                        icon: FileText,
+                                        href: '/requests',
+                                        color: 'text-ustp-navy',
+                                        bg: 'bg-ustp-navy/5',
+                                    },
+                                    {
+                                        label: 'Pending',
+                                        value: (stats as UserStats)
+                                            .pendingRequests,
+                                        icon: ClipboardList,
+                                        href: '/requests',
+                                        color: 'text-amber-600',
+                                        bg: 'bg-amber-50',
+                                    },
                                 ].map((card) => (
                                     <Link
                                         key={card.label}
@@ -472,8 +732,12 @@ export default function Dashboard({
                                         className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
                                     >
                                         <div className="flex items-start justify-between">
-                                            <div className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}>
-                                                <card.icon className={`size-5 ${card.color}`} />
+                                            <div
+                                                className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}
+                                            >
+                                                <card.icon
+                                                    className={`size-5 ${card.color}`}
+                                                />
                                             </div>
                                             <ChevronRight className="size-4 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
                                         </div>
@@ -491,283 +755,351 @@ export default function Dashboard({
                         )}
                     </div>
 
-                    {/* ── Analytics row: Status + Priority side by side ── */}
-                    <div className="grid gap-5 lg:grid-cols-2">
-                        {/* Requests by Status */}
+                    {/* ── Admin: Activity chart + Pending actions ── */}
+                    {isAdmin && activitySeries && actionRows.length > 0 && (
+                        <div className="grid gap-5 lg:grid-cols-3">
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
+                                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
+                                            <TrendingUp className="size-4 text-ustp-light-blue" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-semibold text-slate-800">
+                                                Monthly System Activity
+                                            </h3>
+                                            <p className="text-[11px] text-slate-400">
+                                                Service requests, bookings, and
+                                                job orders
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-5">
+                                    <LineChart data={activitySeries} />
+                                </div>
+                            </div>
+
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex size-9 items-center justify-center rounded-lg bg-orange-50">
+                                            <Clock className="size-4 text-orange-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-semibold text-slate-800">
+                                                Pending Actions
+                                            </h3>
+                                            <p className="text-[11px] text-slate-400">
+                                                Queues that need attention
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-4 p-5">
+                                    {actionRows.map((row) => (
+                                        <Link
+                                            key={row.label}
+                                            href={row.href}
+                                            className="group block"
+                                        >
+                                            <div className="mb-1.5 flex items-center justify-between gap-2">
+                                                <span className="text-xs font-medium text-slate-600 transition-colors group-hover:text-slate-800">
+                                                    {row.label}
+                                                </span>
+                                                <span className="text-xs font-semibold text-slate-800">
+                                                    {row.value}
+                                                </span>
+                                            </div>
+                                            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                                                <div
+                                                    className={`h-full rounded-full transition-all duration-700 ${row.bar}`}
+                                                    style={{
+                                                        width: `${(row.value / maxActionValue) * 100}%`,
+                                                    }}
+                                                />
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── Admin: Inventory alerts ── */}
+                    {isAdmin && alertRows.length > 0 && (
                         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
-                                        <Layers className="size-4 text-ustp-gold" />
+                                    <div className="flex size-9 items-center justify-center rounded-lg bg-rose-50">
+                                        <AlertTriangle className="size-4 text-rose-600" />
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-semibold text-slate-800">
-                                            Requests by Status
+                                            Inventory Alerts
                                         </h3>
                                         <p className="text-[11px] text-slate-400">
-                                            {reqTotal} total requests
+                                            Items requiring action
+                                        </p>
+                                    </div>
+                                </div>
+                                <Link
+                                    href="/inventory"
+                                    className="group flex items-center gap-1 text-xs font-medium text-ustp-light-blue/70 transition-colors hover:text-ustp-light-blue"
+                                >
+                                    View all
+                                    <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                                </Link>
+                            </div>
+                            <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
+                                {alertRows.map((row) => (
+                                    <Link
+                                        key={row.label}
+                                        href={row.href}
+                                        className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4 transition-all hover:border-slate-300 hover:bg-white hover:shadow-sm"
+                                    >
+                                        <div
+                                            className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${row.bg}`}
+                                        >
+                                            <row.icon
+                                                className={`size-4 ${row.color}`}
+                                            />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="truncate text-xs font-semibold text-slate-700 group-hover:text-slate-900">
+                                                {row.label}
+                                            </p>
+                                            <p className="truncate text-[11px] text-slate-400">
+                                                {row.sub}
+                                            </p>
+                                        </div>
+                                        <span className="ml-auto text-lg font-semibold text-slate-800">
+                                            {row.value}
+                                        </span>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── Analytics row: Status + Priority side by side ── */}
+                    {!isAdmin && (
+                        <div className="grid gap-5 lg:grid-cols-2">
+                            {/* Requests by Status */}
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                            <Layers className="size-4 text-ustp-gold" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-semibold text-slate-800">
+                                                Requests by Status
+                                            </h3>
+                                            <p className="text-[11px] text-slate-400">
+                                                {reqTotal} total requests
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Link
+                                        href="/requests"
+                                        className="flex items-center gap-1 text-xs font-medium text-ustp-light-blue/70 transition-colors hover:text-ustp-light-blue"
+                                    >
+                                        View all
+                                        <ArrowUpRight className="size-3.5" />
+                                    </Link>
+                                </div>
+                                <div className="p-5">
+                                    <HorizontalBarChart
+                                        data={requestsByStatus}
+                                        total={reqTotal}
+                                        colors={{
+                                            pending: 'bg-amber-400',
+                                            approved: 'bg-ustp-light-blue',
+                                            rejected: 'bg-red-400',
+                                            completed: 'bg-emerald-400',
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Requests by Priority */}
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                            <Zap className="size-4 text-ustp-gold" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-semibold text-slate-800">
+                                                Requests by Priority
+                                            </h3>
+                                            <p className="text-[11px] text-slate-400">
+                                                Distribution across priority
+                                                levels
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-5">
+                                    <HorizontalBarChart
+                                        data={requestsByPriority}
+                                        total={reqTotal}
+                                        colors={{
+                                            low: 'bg-slate-400',
+                                            medium: 'bg-blue-400',
+                                            high: 'bg-orange-400',
+                                            urgent: 'bg-red-400',
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── Recent Activity ── */}
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-slate-100">
+                                    <Clock className="size-4 text-slate-500" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-semibold text-slate-800">
+                                        Recent Activity
+                                    </h3>
+                                    <p className="text-[11px] text-slate-400">
+                                        Across all modules
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-5">
+                            <ActivityFeed
+                                recentRequests={recentRequests}
+                                recentJobOrders={recentJobOrders}
+                                recentIncidents={recentIncidents}
+                                recentBookings={recentBookings}
+                            />
+                        </div>
+                    </div>
+
+                    {/* ── Recent Service Requests table ── */}
+                    {!isAdmin && (
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
+                                        <TrendingUp className="size-4 text-ustp-light-blue" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-slate-800">
+                                            Recent Requests
+                                        </h3>
+                                        <p className="text-[11px] text-slate-400">
+                                            Latest service requests
                                         </p>
                                     </div>
                                 </div>
                                 <Link
                                     href="/requests"
-                                    className="flex items-center gap-1 text-xs font-medium text-ustp-light-blue/70 transition-colors hover:text-ustp-light-blue"
+                                    className="group flex items-center gap-1 text-xs font-medium text-ustp-light-blue/70 transition-colors hover:text-ustp-light-blue"
                                 >
                                     View all
-                                    <ArrowUpRight className="size-3.5" />
+                                    <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                                 </Link>
                             </div>
-                            <div className="p-5">
-                                <HorizontalBarChart
-                                    data={requestsByStatus}
-                                    total={reqTotal}
-                                    colors={{
-                                        pending: 'bg-amber-400',
-                                        approved: 'bg-ustp-light-blue',
-                                        rejected: 'bg-red-400',
-                                        completed: 'bg-emerald-400',
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Requests by Priority */}
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
-                                        <Zap className="size-4 text-ustp-gold" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-slate-800">
-                                            Requests by Priority
-                                        </h3>
-                                        <p className="text-[11px] text-slate-400">
-                                            Distribution across priority levels
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-5">
-                                <HorizontalBarChart
-                                    data={requestsByPriority}
-                                    total={reqTotal}
-                                    colors={{
-                                        low: 'bg-slate-400',
-                                        medium: 'bg-blue-400',
-                                        high: 'bg-orange-400',
-                                        urgent: 'bg-red-400',
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ── Main content: Activity + Ring charts ── */}
-                    <div className="grid gap-5 lg:grid-cols-3">
-                        {/* Activity Feed — wider */}
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
-                            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex size-9 items-center justify-center rounded-lg bg-slate-100">
-                                        <Clock className="size-4 text-slate-500" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-slate-800">
-                                            Recent Activity
-                                        </h3>
-                                        <p className="text-[11px] text-slate-400">
-                                            Across all modules
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-5">
-                                <ActivityFeed
-                                    recentRequests={recentRequests}
-                                    recentJobOrders={recentJobOrders}
-                                    recentIncidents={recentIncidents}
-                                    recentBookings={recentBookings}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Ring charts — narrower */}
-                        <div className="space-y-5">
-                            {isAdmin && joTotal > 0 && (
-                                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                    <div className="mb-4 flex items-center gap-3">
-                                        <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
-                                            <Wrench className="size-4 text-ustp-gold" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-slate-800">
-                                                Job Orders
-                                            </h3>
-                                            <p className="text-[11px] text-slate-400">
-                                                Status overview
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <RingChart
-                                        data={jobOrdersByStatus}
-                                        total={joTotal}
-                                        centerLabel="orders"
-                                        strokeColors={{
-                                            open: 'rgba(148,163,184,0.9)',
-                                            in_progress: 'rgba(251,191,36,0.9)',
-                                            completed: 'rgba(50,157,234,0.9)',
-                                            closed: 'rgba(52,211,153,0.9)',
-                                        }}
-                                        dotClasses={{
-                                            open: 'bg-slate-400',
-                                            in_progress: 'bg-amber-400',
-                                            completed: 'bg-ustp-light-blue',
-                                            closed: 'bg-emerald-400',
-                                        }}
-                                    />
-                                </div>
-                            )}
-
-                            {isAdmin && invTotal > 0 && (
-                                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                    <div className="mb-4 flex items-center gap-3">
-                                        <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
-                                            <Package className="size-4 text-ustp-gold" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-slate-800">
-                                                Inventory Health
-                                            </h3>
-                                            <p className="text-[11px] text-slate-400">
-                                                Equipment condition
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <RingChart
-                                        data={inventorySummary}
-                                        total={invTotal}
-                                        centerLabel="items"
-                                        strokeColors={{
-                                            working: 'rgba(52,211,153,0.9)',
-                                            defective: 'rgba(248,113,113,0.9)',
-                                            under_repair: 'rgba(251,191,36,0.9)',
-                                        }}
-                                        dotClasses={{
-                                            working: 'bg-emerald-400',
-                                            defective: 'bg-red-400',
-                                            under_repair: 'bg-amber-400',
-                                        }}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* ── Recent Service Requests table ── */}
-                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                            <div className="flex items-center gap-3">
-                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
-                                    <TrendingUp className="size-4 text-ustp-light-blue" />
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-semibold text-slate-800">
-                                        Recent Requests
-                                    </h3>
-                                    <p className="text-[11px] text-slate-400">
-                                        Latest service requests
-                                    </p>
-                                </div>
-                            </div>
-                            <Link
-                                href="/requests"
-                                className="group flex items-center gap-1 text-xs font-medium text-ustp-light-blue/70 transition-colors hover:text-ustp-light-blue"
-                            >
-                                View all
-                                <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                            </Link>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-slate-200 bg-slate-50">
-                                        <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                                            Requester
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                                            Description
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                                            Priority
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                                            Status
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                                            When
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {recentRequests.map((r) => (
-                                        <tr
-                                            key={r.id}
-                                            className="border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
-                                        >
-                                            <td className="px-5 py-3.5 text-sm font-medium text-slate-800">
-                                                {r.user_name}
-                                            </td>
-                                            <td className="max-w-[200px] truncate px-5 py-3.5 text-sm text-slate-500">
-                                                {r.description || '—'}
-                                            </td>
-                                            <td className="px-5 py-3.5">
-                                                <span
-                                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${
-                                                        {
-                                                            low: 'border-slate-200 bg-slate-50 text-slate-600',
-                                                            medium: 'border-blue-200 bg-blue-50 text-blue-600',
-                                                            high: 'border-orange-200 bg-orange-50 text-orange-600',
-                                                            urgent: 'border-red-200 bg-red-50 text-red-600',
-                                                        }[r.priority] ?? 'border-slate-200 bg-slate-50 text-slate-500'
-                                                    }`}
-                                                >
-                                                    {r.priority}
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-3.5">
-                                                <span
-                                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${
-                                                        {
-                                                            pending: 'border-amber-200 bg-amber-50 text-amber-700',
-                                                            approved: 'border-sky-200 bg-sky-50 text-sky-700',
-                                                            rejected: 'border-red-200 bg-red-50 text-red-600',
-                                                            completed: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-                                                        }[r.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'
-                                                    }`}
-                                                >
-                                                    {r.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-3.5 text-xs text-slate-400">
-                                                {r.date ? formatRelativeTime(r.date) : '—'}
-                                            </td>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-slate-200 bg-slate-50">
+                                            <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                Requester
+                                            </th>
+                                            <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                Description
+                                            </th>
+                                            <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                Priority
+                                            </th>
+                                            <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                Status
+                                            </th>
+                                            <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                When
+                                            </th>
                                         </tr>
-                                    ))}
-                                    {recentRequests.length === 0 && (
-                                        <tr>
-                                            <td
-                                                colSpan={5}
-                                                className="px-5 py-10 text-center text-sm text-slate-400"
+                                    </thead>
+                                    <tbody>
+                                        {recentRequests.map((r) => (
+                                            <tr
+                                                key={r.id}
+                                                className="border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
                                             >
-                                                No service requests yet
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                                <td className="px-5 py-3.5 text-sm font-medium text-slate-800">
+                                                    {r.user_name}
+                                                </td>
+                                                <td className="max-w-[200px] truncate px-5 py-3.5 text-sm text-slate-500">
+                                                    {r.description || '—'}
+                                                </td>
+                                                <td className="px-5 py-3.5">
+                                                    <span
+                                                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${
+                                                            {
+                                                                low: 'border-slate-200 bg-slate-50 text-slate-600',
+                                                                medium: 'border-blue-200 bg-blue-50 text-blue-600',
+                                                                high: 'border-orange-200 bg-orange-50 text-orange-600',
+                                                                urgent: 'border-red-200 bg-red-50 text-red-600',
+                                                            }[r.priority] ??
+                                                            'border-slate-200 bg-slate-50 text-slate-500'
+                                                        }`}
+                                                    >
+                                                        {r.priority}
+                                                    </span>
+                                                </td>
+                                                <td className="px-5 py-3.5">
+                                                    <span
+                                                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${
+                                                            {
+                                                                pending:
+                                                                    'border-amber-200 bg-amber-50 text-amber-700',
+                                                                approved:
+                                                                    'border-sky-200 bg-sky-50 text-sky-700',
+                                                                rejected:
+                                                                    'border-red-200 bg-red-50 text-red-600',
+                                                                completed:
+                                                                    'border-emerald-200 bg-emerald-50 text-emerald-700',
+                                                            }[r.status] ??
+                                                            'border-slate-200 bg-slate-50 text-slate-500'
+                                                        }`}
+                                                    >
+                                                        {r.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-5 py-3.5 text-xs text-slate-400">
+                                                    {r.date
+                                                        ? formatRelativeTime(
+                                                              r.date,
+                                                          )
+                                                        : '—'}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {recentRequests.length === 0 && (
+                                            <tr>
+                                                <td
+                                                    colSpan={5}
+                                                    className="px-5 py-10 text-center text-sm text-slate-400"
+                                                >
+                                                    No service requests yet
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </>

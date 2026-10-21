@@ -123,12 +123,14 @@ class SlaService
         $completedRequests = ServiceRequest::where('request_status', 'completed')->count();
 
         $avgResponseTime = ServiceRequest::whereNotNull('date_approved')
-            ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, date_requested, date_approved)) as avg_hours')
-            ->value('avg_hours');
+            ->get(['date_requested', 'date_approved'])
+            ->avg(fn (ServiceRequest $request): float => Carbon::parse($request->date_requested)
+                ->diffInHours(Carbon::parse($request->date_approved)));
 
         $avgResolutionTime = JobOrder::whereNotNull('date_completed')
-            ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, date_assigned, date_completed)) as avg_hours')
-            ->value('avg_hours');
+            ->get(['date_assigned', 'date_completed'])
+            ->avg(fn (JobOrder $jobOrder): float => Carbon::parse($jobOrder->date_assigned)
+                ->diffInHours(Carbon::parse($jobOrder->date_completed)));
 
         $complianceRate = $totalRequests > 0
             ? round(($completedRequests / $totalRequests) * 100, 2)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -23,10 +24,27 @@ class AuditLogController extends Controller
             $query->where('module_name', $module);
         }
 
+        if ($userId = $request->input('user_id')) {
+            $query->where('admin_user_id', $userId);
+        }
+
+        if ($status = $request->input('status')) {
+            $this->filterByActionType($query, $status);
+        }
+
+        if ($dateFrom = $request->input('date_from')) {
+            $query->whereDate('action_date', '>=', $dateFrom);
+        }
+
+        if ($dateTo = $request->input('date_to')) {
+            $query->whereDate('action_date', '<=', $dateTo);
+        }
+
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('action_taken', 'like', "%{$search}%")
-                    ->orWhere('details', 'like', "%{$search}%");
+            $query->where(function (Builder $builder) use ($search) {
+                $builder->where('action_taken', 'like', "%{$search}%")
+                    ->orWhere('details', 'like', "%{$search}%")
+                    ->orWhereHas('adminUser', fn (Builder $user) => $user->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -38,7 +56,11 @@ class AuditLogController extends Controller
         return Inertia::render('audit-log/index', [
             'logs' => $query->paginate(25)->withQueryString(),
             'modules' => AuditLog::distinct()->pluck('module_name'),
-            'filters' => $request->only('module', 'search'),
+            'users' => User::query()
+                ->whereIn('id', AuditLog::query()->select('admin_user_id')->distinct())
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            'filters' => $request->only('module', 'search', 'user_id', 'status', 'date_from', 'date_to'),
             'suggestions' => $this->suggestions(),
             'stats' => [
                 'total' => $total,
@@ -47,6 +69,29 @@ class AuditLogController extends Controller
                 'modules' => $modulesCount,
             ],
         ]);
+    }
+
+    /**
+     * Restrict the query to the action category used by the UI indicators.
+     */
+    private function filterByActionType(Builder $query, string $status): void
+    {
+        $patterns = match ($status) {
+            'created' => ['%creat%', '%add%', '%regist%', '%submit%', '%provision%'],
+            'updated' => ['%updat%', '%edit%', '%modif%', '%chang%', '%set%', '%mark%', '%reset%', '%flag%'],
+            'deleted' => ['%delet%', '%remov%'],
+            default => [],
+        };
+
+        if ($patterns === []) {
+            return;
+        }
+
+        $query->where(function (Builder $builder) use ($patterns) {
+            foreach ($patterns as $pattern) {
+                $builder->orWhere('action_taken', 'like', $pattern);
+            }
+        });
     }
 
     /**

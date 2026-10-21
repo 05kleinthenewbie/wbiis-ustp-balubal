@@ -1,27 +1,34 @@
 import { Form, Head } from '@inertiajs/react';
-import { ArrowRight, Info, Mail } from 'lucide-react';
+import { Mail, ShieldCheck } from 'lucide-react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import StatusAlert, { isAlertMessage } from '@/components/status-alert';
+import { Button } from '@/components/tailgrids/core/button';
 import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { register } from '@/routes';
+import { login as portal, register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
 type Props = {
     status?: string;
     canResetPassword: boolean;
+    showRegister?: boolean;
+    title?: string;
 };
 
-export default function Login({ status, canResetPassword }: Props) {
+export default function Login({
+    status,
+    canResetPassword,
+    showRegister = false,
+    title = 'Sign in',
+}: Props) {
     return (
         <>
-            <Head title="Log in" />
+            <Head title={title} />
 
             <Form
                 {...store.form()}
@@ -36,7 +43,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     htmlFor="email"
                                     className="flex items-center justify-between text-sm font-medium text-foreground"
                                 >
-                                    <span>USTP Email Address</span>
+                                    <span>Email Address</span>
                                     <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
                                         Official
                                     </span>
@@ -50,18 +57,21 @@ export default function Login({ status, canResetPassword }: Props) {
                                         required
                                         autoFocus
                                         tabIndex={1}
-                                        autoComplete="email"
+                                        autoComplete="username"
                                         placeholder="name.id@ustp.edu.ph"
                                         className="h-11 rounded-lg border-border pl-10 text-sm transition-all focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
-                                {isAlertMessage(errors.email ?? '') ? (
+                                {errors.email && (
                                     <StatusAlert
                                         message={errors.email}
+                                        variant={
+                                            isAlertMessage(errors.email)
+                                                ? 'warning'
+                                                : 'error'
+                                        }
                                         className="mt-1.5"
                                     />
-                                ) : (
-                                    <InputError message={errors.email} />
                                 )}
                             </div>
 
@@ -112,51 +122,31 @@ export default function Login({ status, canResetPassword }: Props) {
 
                             <Button
                                 type="submit"
-                                className="mt-1 h-11 w-full rounded-xl bg-ustp-gold font-semibold text-ustp-navy shadow-sm shadow-ustp-gold/30 transition-all hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-md hover:shadow-ustp-gold/30 active:scale-[0.98]"
+                                variant="primary"
+                                size="lg"
+                                className="mt-1 w-full rounded-xl"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Log in to Portal
-                                {!processing && (
-                                    <ArrowRight className="size-[18px]" />
-                                )}
+                                Sign in
                             </Button>
                         </div>
 
-                        <div className="relative my-1 flex items-center justify-center">
-                            <div className="h-px w-full bg-border dark:bg-white/10" />
-                            <span className="absolute bg-white px-3 text-[11px] font-medium tracking-wider text-muted-foreground uppercase dark:bg-neutral-900">
-                                or
-                            </span>
-                        </div>
-
-                        <div className="pt-1 text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink
-                                href={register()}
-                                data-test="register-link"
-                                tabIndex={5}
-                                className="font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
-                            >
-                                Create an account
-                            </TextLink>
-                        </div>
-
-                        <div className="flex flex-col gap-2.5">
-                            <div className="flex items-start gap-2 rounded-lg border border-ustp-gold/40 bg-ustp-gold/10 p-2.5">
-                                <Info className="mt-0.5 size-4 shrink-0 text-ustp-gold-dark dark:text-ustp-gold-light" />
-                                <p className="text-[11px] leading-relaxed text-ustp-navy/70 dark:text-white/60">
-                                    <strong className="font-semibold text-ustp-navy dark:text-white">
-                                        Notice:
-                                    </strong>{' '}
-                                    This system is exclusive to USTP Balubal
-                                    Campus operations. Accounts from other USTP
-                                    campuses cannot be authenticated here.
-                                </p>
+                        {showRegister && (
+                            <div className="text-center text-sm text-muted-foreground">
+                                Don't have an account?{' '}
+                                <TextLink
+                                    href={register()}
+                                    data-test="register-link"
+                                    tabIndex={5}
+                                    className="font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
+                                >
+                                    Create an account
+                                </TextLink>
                             </div>
-                        </div>
+                        )}
                     </>
                 )}
             </Form>
@@ -167,7 +157,12 @@ export default function Login({ status, canResetPassword }: Props) {
 }
 
 Login.layout = {
-    title: 'Welcome Back!',
+    title: 'Administrator Sign In',
     description:
-        'Authorized access for USTP Balubal Campus faculty, staff, and personnel only.',
+        'Authorized access for USTP Balubal Campus administrators, faculty, and staff only.',
+    icon: ShieldCheck,
+    iconClassName:
+        'bg-orange-50 text-orange-500 dark:bg-orange-950/50 dark:text-orange-400',
+    backHref: portal().url,
+    backTestId: 'back-to-portal-button',
 };

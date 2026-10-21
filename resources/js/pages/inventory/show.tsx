@@ -2,14 +2,22 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
     Box,
     Calendar,
+    CalendarClock,
     AlertTriangle,
     MapPin,
-    Monitor,
+    Computer,
+    Keyboard,
+    Wifi,
     Laptop,
     Printer,
     Projector,
-    Wifi,
+    BatteryCharging,
+    Droplets,
+    Sparkles,
     Battery,
+    ShieldCheck,
+    KeyRound,
+    Lock,
     Hash,
     FileText,
     ArrowUpRight,
@@ -91,6 +99,8 @@ type InventoryItemData = {
     description: string | null;
     location: string | null;
     purchase_date: string | null;
+    expiration_date: string | null;
+    expiration_type: string | null;
     unit_cost: string | null;
     purchase_order_no: string | null;
     end_user: string | null;
@@ -119,57 +129,130 @@ type Props = {
 function getCategoryFromName(name: string): string {
     const lower = name.toLowerCase();
 
-    if (lower.includes('desktop')) {
-        return 'Desktop';
+    if (
+        lower.includes('router') ||
+        lower.includes('switch') ||
+        lower.includes('access point') ||
+        lower.includes('modem') ||
+        lower.includes('firewall') ||
+        lower.includes('network')
+    ) {
+        return 'Network Devices';
     }
 
-    if (lower.includes('laptop')) {
-        return 'Laptop';
+    if (lower.includes('toner')) {
+        return 'Toner Cartridges';
     }
 
-    if (lower.includes('monitor')) {
-        return 'Monitor';
+    if (
+        lower.includes('ink') ||
+        lower.includes('cartridge') ||
+        lower.includes('refill')
+    ) {
+        return 'Printer Ink';
     }
 
-    if (lower.includes('printer')) {
-        return 'Printer';
+    if (lower.includes('laptop') || lower.includes('notebook')) {
+        return 'Laptops';
     }
 
     if (lower.includes('projector')) {
-        return 'Projector';
-    }
-
-    if (lower.includes('network')) {
-        return 'Network';
+        return 'Projectors';
     }
 
     if (lower.includes('ups')) {
-        return 'UPS';
+        return 'UPS Devices';
     }
 
-    return 'Other';
+    if (lower.includes('printer')) {
+        return 'Printers';
+    }
+
+    if (
+        lower.includes('thermal paste') ||
+        lower.includes('thermal compound')
+    ) {
+        return 'Thermal Paste';
+    }
+
+    if (
+        lower.includes('cleaning solution') ||
+        lower.includes('cleaner') ||
+        lower.includes('contact cleaner')
+    ) {
+        return 'Cleaning Supplies';
+    }
+
+    if (lower.includes('antivirus') || lower.includes('security suite')) {
+        return 'Antivirus Licenses';
+    }
+
+    if (
+        lower.includes('ssl') ||
+        lower.includes('tls') ||
+        lower.includes('certificate')
+    ) {
+        return 'SSL/TLS Certificates';
+    }
+
+    return 'Desktop Computers';
 }
 
+const legacyCategoryAliases: Record<string, string> = {
+    Desktop: 'Desktop Computers',
+    Laptop: 'Laptops',
+    Printer: 'Printers',
+    Projector: 'Projectors',
+    Server: 'Desktop Computers',
+    Other: 'Desktop Computers',
+    Network: 'Network Devices',
+    Monitor: 'Desktop Computers',
+    UPS: 'UPS Devices',
+    Battery: 'Batteries',
+    'SSL Certificate': 'SSL/TLS Certificates',
+    Hardware: 'Desktop Computers',
+    'Network Equipment': 'Network Devices',
+    'ICT Peripherals': 'Desktop Computers',
+};
+
 const categoryIcons: Record<string, React.ElementType> = {
-    Desktop: Monitor,
-    Laptop: Laptop,
-    Monitor: Monitor,
-    Printer: Printer,
-    Projector: Projector,
-    Network: Wifi,
-    UPS: Battery,
-    Other: Box,
+    'Desktop Computers': Computer,
+    Laptops: Laptop,
+    Printers: Printer,
+    Projectors: Projector,
+    'Network Devices': Wifi,
+    'UPS Devices': BatteryCharging,
+    'Printer Ink': Droplets,
+    'Toner Cartridges': Printer,
+    'Thermal Paste': Wrench,
+    'Cleaning Supplies': Sparkles,
+    Batteries: Battery,
+    'Antivirus Licenses': ShieldCheck,
+    'Software Subscriptions': KeyRound,
+    'SSL/TLS Certificates': Lock,
+    Hardware: Computer,
+    'Network Equipment': Wifi,
+    'ICT Peripherals': Keyboard,
 };
 
 const categoryColors: Record<string, string> = {
-    Desktop: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
-    Laptop: 'bg-purple-400/15 text-purple-400 border-purple-400/20',
-    Monitor: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
-    Printer: 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
-    Projector: 'bg-orange-400/15 text-orange-400 border-orange-400/20',
-    Network: 'bg-cyan-400/15 text-cyan-400 border-cyan-400/20',
-    UPS: 'bg-amber-400/15 text-amber-400 border-amber-400/20',
-    Other: 'bg-slate-50 text-slate-400 border-slate-200',
+    'Desktop Computers': 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
+    Laptops: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
+    Printers: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
+    Projectors: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
+    'Network Devices': 'bg-cyan-400/15 text-cyan-400 border-cyan-400/20',
+    'UPS Devices': 'bg-cyan-400/15 text-cyan-400 border-cyan-400/20',
+    'Printer Ink': 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+    'Toner Cartridges': 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+    'Thermal Paste': 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+    'Cleaning Supplies': 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+    Batteries: 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+    'Antivirus Licenses': 'bg-purple-400/15 text-purple-400 border-purple-400/20',
+    'Software Subscriptions': 'bg-purple-400/15 text-purple-400 border-purple-400/20',
+    'SSL/TLS Certificates': 'bg-purple-400/15 text-purple-400 border-purple-400/20',
+    Hardware: 'bg-ustp-gold/15 text-ustp-gold border-ustp-gold/20',
+    'Network Equipment': 'bg-cyan-400/15 text-cyan-400 border-cyan-400/20',
+    'ICT Peripherals': 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
 };
 
 const conditionConfig: Record<
@@ -195,8 +278,16 @@ const conditionConfig: Record<
 
 const statusConfig: Record<string, string> = {
     active: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    for_disposal: 'border-orange-200 bg-orange-50 text-orange-700',
     retired: 'border-slate-200 bg-slate-50 text-slate-600',
     disposed: 'border-red-200 bg-red-50 text-red-600',
+};
+
+const statusLabels: Record<string, string> = {
+    active: 'Active',
+    for_disposal: 'For Disposal',
+    retired: 'Retired',
+    disposed: 'Disposed',
 };
 
 const repairStatusConfig: Record<string, string> = {
@@ -235,6 +326,46 @@ const jobOrderStatusConfig: Record<string, string> = {
 };
 
 /* ---------- Helpers ---------- */
+
+const expiryConfig: Record<
+    string,
+    { badge: string; dot: string; label: string }
+> = {
+    expired: {
+        badge: 'border-red-200 bg-red-50 text-red-600',
+        dot: 'bg-red-400',
+        label: 'Expired',
+    },
+    soon: {
+        badge: 'border-amber-200 bg-amber-50 text-amber-700',
+        dot: 'bg-amber-400',
+        label: 'Expiring Soon',
+    },
+    valid: {
+        badge: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+        dot: 'bg-emerald-400',
+        label: 'Within Shelf Life',
+    },
+};
+
+function expiryState(dateStr: string | null): keyof typeof expiryConfig | null {
+    if (!dateStr) {
+        return null;
+    }
+
+    const expiry = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (expiry < today) {
+        return 'expired';
+    }
+
+    const soon = new Date(today);
+    soon.setDate(soon.getDate() + 30);
+
+    return expiry <= soon ? 'soon' : 'valid';
+}
 
 function formatDate(dateStr: string | null): string {
     if (!dateStr) {
@@ -307,12 +438,16 @@ function formatCurrency(value: string | null): string {
 /* ---------- Component ---------- */
 
 export default function InventoryShow({ item }: Props) {
-    const category = item.category ?? getCategoryFromName(item.item_name);
+    const storedCategory =
+        item.category ?? getCategoryFromName(item.item_name);
+    const category =
+        legacyCategoryAliases[storedCategory] ?? storedCategory;
     const CatIcon = categoryIcons[category] ?? Box;
     const catColor =
         categoryColors[category] ??
         'bg-slate-50 text-slate-400 border-slate-200';
     const cc = conditionConfig[item.condition] ?? conditionConfig.working;
+    const expiry = expiryState(item.expiration_date);
 
     const requestItems = item.request_items ?? [];
     const defectiveRecords = item.defective_records ?? [];
@@ -413,9 +548,9 @@ export default function InventoryShow({ item }: Props) {
                                     </span>
 
                                     <span
-                                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusConfig[item.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
+                                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${statusConfig[item.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
                                     >
-                                        {item.status}
+                                        {statusLabels[item.status] ?? item.status}
                                     </span>
 
                                     <span
@@ -430,6 +565,17 @@ export default function InventoryShow({ item }: Props) {
                                         >
                                             <BadgeCheck className="size-3" />
                                             {item.validation}
+                                        </span>
+                                    )}
+
+                                    {expiry && (
+                                        <span
+                                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${expiryConfig[expiry].badge}`}
+                                        >
+                                            <span
+                                                className={`size-1.5 rounded-full ${expiryConfig[expiry].dot}`}
+                                            />
+                                            {expiryConfig[expiry].label}
                                         </span>
                                     )}
 
@@ -608,7 +754,7 @@ export default function InventoryShow({ item }: Props) {
                                     </div>
                                 </div>
 
-                                <div className="grid gap-4 p-5 sm:grid-cols-3 md:p-6">
+                                <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4 md:p-6">
                                     <div>
                                         <p className="text-[10px] font-semibold tracking-[0.15em] text-slate-400 uppercase">
                                             Date Acquired
@@ -617,6 +763,20 @@ export default function InventoryShow({ item }: Props) {
                                             <Calendar className="size-3.5 text-slate-400" />
                                             {formatDate(item.purchase_date)}
                                         </div>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-semibold tracking-[0.15em] text-slate-400 uppercase">
+                                            Expiration Date
+                                        </p>
+                                        <div className="mt-1 flex items-center gap-2 text-sm text-slate-800">
+                                            <CalendarClock className="size-3.5 text-slate-400" />
+                                            {formatDate(item.expiration_date)}
+                                        </div>
+                                        {item.expiration_type && (
+                                            <p className="mt-0.5 text-xs text-slate-500">
+                                                {item.expiration_type}
+                                            </p>
+                                        )}
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-semibold tracking-[0.15em] text-slate-400 uppercase">
@@ -934,7 +1094,7 @@ export default function InventoryShow({ item }: Props) {
 
                             {/* Defective Records */}
                             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-red-50/50 px-5 py-4 md:px-6">
+                                <div className="flex flex-col items-start gap-3 border-b border-slate-200 bg-red-50/50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
                                     <div className="flex items-center gap-3">
                                         <div className="flex size-9 items-center justify-center rounded-lg bg-red-400/10">
                                             <AlertTriangle className="size-4 text-red-400" />
@@ -1291,9 +1451,9 @@ export default function InventoryShow({ item }: Props) {
                                             Status
                                         </p>
                                         <span
-                                            className={`mt-1.5 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusConfig[item.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
+                                            className={`mt-1.5 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${statusConfig[item.status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
                                         >
-                                            {item.status}
+                                            {statusLabels[item.status] ?? item.status}
                                         </span>
                                     </div>
 
@@ -1397,6 +1557,42 @@ export default function InventoryShow({ item }: Props) {
                                             </span>
                                         </div>
                                     </div>
+
+                                    {item.expiration_date && (
+                                        <>
+                                            <div className="h-px bg-slate-200" />
+
+                                            <div>
+                                                <p className="text-[10px] font-semibold tracking-[0.15em] text-slate-400 uppercase">
+                                                    Expiration Date
+                                                </p>
+                                                <div className="mt-1.5 flex items-center gap-2">
+                                                    <CalendarClock className="size-3.5 text-slate-400" />
+                                                    <span className="text-sm text-slate-800">
+                                                        {formatDate(
+                                                            item.expiration_date,
+                                                        )}
+                                                    </span>
+                                                    {expiry && (
+                                                        <span
+                                                            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${expiryConfig[expiry].badge}`}
+                                                        >
+                                                            {
+                                                                expiryConfig[
+                                                                    expiry
+                                                                ].label
+                                                            }
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {item.expiration_type && (
+                                                    <p className="mt-1 text-xs text-slate-500">
+                                                        {item.expiration_type}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
 
                                     <div className="h-px bg-slate-200" />
 

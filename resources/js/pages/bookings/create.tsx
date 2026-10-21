@@ -1,6 +1,15 @@
 import { Head, useForm } from '@inertiajs/react';
-import { CalendarDays, Clock3, MapPin, Users, Building2 } from 'lucide-react';
+import {
+    AlertTriangle,
+    CalendarDays,
+    Clock3,
+    MapPin,
+    Users,
+    Building2,
+} from 'lucide-react';
 import { BackButton } from '@/components/back-button';
+import { BookingCalendar } from '@/components/booking-calendar';
+import type { CalendarBooking } from '@/components/booking-calendar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,8 +31,11 @@ type Facility = {
     location: string | null;
 };
 
+type UpcomingBooking = CalendarBooking;
+
 type Props = {
     facilities: Facility[];
+    upcomingBookings: UpcomingBooking[];
 };
 
 const facilityTypeLabel: Record<string, string> = {
@@ -31,7 +43,15 @@ const facilityTypeLabel: Record<string, string> = {
     av_room: 'AV Room',
 };
 
-export default function BookingsCreate({ facilities }: Props) {
+function toTime(value: string): string {
+    return value.slice(0, 5);
+}
+
+function overlaps(aStart: string, aEnd: string, bStart: string, bEnd: string): boolean {
+    return aStart < bEnd && bStart < aEnd;
+}
+
+export default function BookingsCreate({ facilities, upcomingBookings }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         facility_id: '',
         booking_date: '',
@@ -44,8 +64,36 @@ export default function BookingsCreate({ facilities }: Props) {
         (f) => String(f.id) === data.facility_id,
     );
 
+    const dayBookings = upcomingBookings.filter(
+        (booking) =>
+            String(booking.facility_id) === data.facility_id &&
+            booking.booking_date.slice(0, 10) === data.booking_date,
+    );
+
+    const hasConflict =
+        data.start_time !== '' &&
+        data.end_time !== '' &&
+        data.start_time < data.end_time &&
+        dayBookings.some((booking) =>
+            overlaps(
+                data.start_time,
+                data.end_time,
+                toTime(booking.start_time),
+                toTime(booking.end_time),
+            ),
+        );
+
+    const selectedDayIsSunday =
+        data.booking_date !== '' &&
+        new Date(`${data.booking_date}T00:00:00`).getDay() === 0;
+
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+
+        if (selectedDayIsSunday) {
+            return;
+        }
+
         post('/bookings');
     }
 
@@ -207,6 +255,14 @@ export default function BookingsCreate({ facilities }: Props) {
                                                 {errors.booking_date}
                                             </p>
                                         )}
+
+                                        {selectedDayIsSunday && (
+                                            <p className="text-xs text-red-600">
+                                                Bookings are not available on
+                                                Sundays. Please choose another
+                                                date.
+                                            </p>
+                                        )}
                                     </div>
 
                                     {/* Time */}
@@ -275,6 +331,39 @@ export default function BookingsCreate({ facilities }: Props) {
                                         )}
                                     </div>
 
+                                    {/* Availability calendar */}
+                                    <div>
+                                        <div className="mb-3 flex items-center gap-2">
+                                            <CalendarDays className="size-3.5 text-ustp-gold" />
+                                            <span className="text-xs font-medium text-slate-600">
+                                                Check availability
+                                            </span>
+                                        </div>
+
+                                        <BookingCalendar
+                                            key={data.booking_date || 'calendar'}
+                                            bookings={upcomingBookings}
+                                            selectedDate={data.booking_date}
+                                            onSelectDate={(date) =>
+                                                setData('booking_date', date)
+                                            }
+                                            facilityId={data.facility_id}
+                                            showRequester
+                                        />
+
+                                        {hasConflict && (
+                                            <div className="mt-3 flex gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2">
+                                                <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-rose-600" />
+                                                <p className="text-xs leading-5 text-rose-600">
+                                                    The schedule you selected
+                                                    overlaps with an existing
+                                                    booking. Please pick a
+                                                    different time slot.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+
                                     {/* Purpose */}
                                     <div className="grid gap-2">
                                         <Label
@@ -326,7 +415,7 @@ export default function BookingsCreate({ facilities }: Props) {
 
                                     <Button
                                         type="submit"
-                                        disabled={processing}
+                                        disabled={processing || selectedDayIsSunday}
                                         className="bg-ustp-gold px-5 font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
                                     >
                                         {processing && <Spinner />}

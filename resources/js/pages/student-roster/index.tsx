@@ -1,5 +1,13 @@
 import { Form, Head, router } from '@inertiajs/react';
-import { GraduationCap, Plus, Search, Trash2, Upload, Users } from 'lucide-react';
+import {
+    GraduationCap,
+    KeyRound,
+    Plus,
+    Search,
+    Trash2,
+    Upload,
+    Users,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,19 +21,56 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { destroy, importMethod, store } from '@/routes/student-roster';
+import {
+    destroy,
+    importMethod,
+    resetPassword,
+    store,
+} from '@/routes/student-roster';
+
+type AccountStatus =
+    | 'active'
+    | 'disabled'
+    | 'no_account';
 
 type StudentRow = {
     id: number;
     id_number: string;
     name: string;
     program: string;
+    email: string | null;
     registered_user_id: number | null;
+    account_status: AccountStatus;
+};
+
+type CredentialRow = {
+    id_number: string;
+    name: string;
+    password: string;
 };
 
 type Props = {
     students: StudentRow[];
+    credentials?: CredentialRow[] | null;
     status?: string | null;
+};
+
+const accountStatusConfig: Record<
+    AccountStatus,
+    { label: string; className: string }
+> = {
+    active: {
+        label: 'Active',
+        className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    },
+    disabled: {
+        label: 'Disabled',
+        className: 'border-rose-200 bg-rose-50 text-rose-600',
+    },
+    no_account: {
+        label: 'No account',
+        className: 'border-slate-200 bg-slate-50 text-slate-500',
+    },
 };
 
 const programs = [
@@ -34,7 +79,11 @@ const programs = [
     { value: 'BTLED', label: 'BTLED' },
 ];
 
-export default function StudentRosterIndex({ students, status }: Props) {
+export default function StudentRosterIndex({
+    students,
+    credentials,
+    status,
+}: Props) {
     const [search, setSearch] = useState('');
     const [program, setProgram] = useState('');
 
@@ -44,36 +93,100 @@ export default function StudentRosterIndex({ students, status }: Props) {
         return (
             student.id_number.includes(q) ||
             student.name.toLowerCase().includes(q) ||
-            student.program.toLowerCase().includes(q)
+            student.program.toLowerCase().includes(q) ||
+            (student.email ?? '').toLowerCase().includes(q)
         );
     });
 
     function removeStudent(id: number) {
-        if (confirm('Remove this student from the roster?')) {
+        if (confirm('Remove this student from the list?')) {
             router.delete(destroy.url(id));
+        }
+    }
+
+    function resetStudentPassword(id: number) {
+        if (
+            confirm(
+                'Reset this student\'s password back to their ID number? They can change it anytime from their profile.',
+            )
+        ) {
+            router.post(resetPassword.url(id));
         }
     }
 
     return (
         <>
-            <Head title="Student Roster" />
+            <Head title="Student List" />
 
             <div className="min-h-full flex-1 bg-slate-50 text-slate-800">
                 <div className="relative flex flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6 lg:p-8">
                     <div className="relative">
                         <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
-                            Student Roster
+                            Student List
                         </h1>
 
                         <p className="mt-1.5 max-w-2xl text-sm text-slate-400">
-                            Only students on this roster can register with
-                            their university ID number.
+                            Adding a student here automatically creates their
+                            portal account. Students sign in with their ID
+                            number as both the username and the initial
+                            password, then choose a private one.
                         </p>
                     </div>
 
                     {status && (
                         <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                             {status}
+                        </div>
+                    )}
+
+                    {credentials && credentials.length > 0 && (
+                        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-amber-800">
+                                <KeyRound className="size-4" />
+                                Temporary credentials — shown once
+                            </div>
+                            <p className="mt-1 text-xs text-amber-700">
+                                Share these with the student through a secure
+                                channel. The password is their ID number, which
+                                they can change anytime from their profile.
+                            </p>
+                            <div className="mt-3 overflow-hidden rounded-lg border border-amber-200 bg-white">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-xs">
+                                        <thead>
+                                            <tr className="border-b border-amber-100 bg-amber-50/60">
+                                                <th className="px-4 py-2.5 text-left text-[10px] font-semibold tracking-[0.1em] text-amber-700 uppercase">
+                                                    ID number
+                                                </th>
+                                                <th className="px-4 py-2.5 text-left text-[10px] font-semibold tracking-[0.1em] text-amber-700 uppercase">
+                                                    Student
+                                                </th>
+                                                <th className="px-4 py-2.5 text-left text-[10px] font-semibold tracking-[0.1em] text-amber-700 uppercase">
+                                                    Password
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {credentials.map((credential) => (
+                                                <tr
+                                                    key={credential.id_number}
+                                                    className="border-b border-amber-50 last:border-0"
+                                                >
+                                                    <td className="px-4 py-2.5 font-mono font-medium text-slate-700">
+                                                        {credential.id_number}
+                                                    </td>
+                                                    <td className="px-4 py-2.5 text-slate-600">
+                                                        {credential.name}
+                                                    </td>
+                                                    <td className="px-4 py-2.5 font-mono font-semibold text-slate-800 select-all">
+                                                        {credential.password}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -88,14 +201,14 @@ export default function StudentRosterIndex({ students, status }: Props) {
                                         Add student
                                     </p>
                                     <p className="text-xs text-slate-400">
-                                        Register one ID number manually
+                                        Provision one account manually
                                     </p>
                                 </div>
                             </div>
 
                             <Form
                                 {...store.form()}
-                                resetOnSuccess={['id_number', 'name', 'program']}
+                                resetOnSuccess={['id_number', 'name', 'program', 'email']}
                                 disableWhileProcessing
                                 className="grid gap-4"
                             >
@@ -169,13 +282,32 @@ export default function StudentRosterIndex({ students, status }: Props) {
                                             </p>
                                         </div>
 
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="roster_email"
+                                                className="text-xs font-medium text-slate-500"
+                                            >
+                                                Gmail address
+                                            </Label>
+                                            <Input
+                                                id="roster_email"
+                                                type="email"
+                                                name="email"
+                                                placeholder="juan.delacruz@gmail.com"
+                                                className="h-10 border-slate-300 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-navy focus-visible:ring-1 focus-visible:ring-ustp-navy/25"
+                                            />
+                                            <p className="text-xs text-destructive">
+                                                {errors.email}
+                                            </p>
+                                        </div>
+
                                         <Button
                                             type="submit"
                                             disabled={processing}
                                             className="h-10 bg-ustp-navy text-xs text-white shadow-lg shadow-ustp-navy/20 hover:bg-ustp-navy-dark"
                                         >
                                             {processing && <Spinner />}
-                                            Add to roster
+                                            Add &amp; create account
                                         </Button>
                                     </>
                                 )}
@@ -193,7 +325,7 @@ export default function StudentRosterIndex({ students, status }: Props) {
                                     </p>
                                     <p className="text-xs text-slate-400">
                                         Upload a CSV with an
-                                        id_number,name,program header row
+                                        id_number,name,program,email header row
                                     </p>
                                 </div>
                             </div>
@@ -226,9 +358,9 @@ export default function StudentRosterIndex({ students, status }: Props) {
                                         </div>
 
                                         <div className="rounded-lg bg-slate-50 p-3 font-mono text-[11px] leading-relaxed text-slate-500">
-                                            id_number,name,program
+                                            id_number,name,program,email
                                             <br />
-                                            2023303709,Juan Dela Cruz,BSIT
+                                            2023303709,Juan Dela Cruz,BSIT,juan.delacruz@gmail.com
                                         </div>
 
                                         <Button
@@ -246,7 +378,7 @@ export default function StudentRosterIndex({ students, status }: Props) {
                     </div>
 
                     <section className="relative">
-                        <div className="mb-4 flex items-center justify-between">
+                        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-center gap-2">
                                 <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
                                     <GraduationCap className="size-4" />
@@ -254,12 +386,12 @@ export default function StudentRosterIndex({ students, status }: Props) {
 
                                 <div>
                                     <p className="text-sm font-medium text-slate-600">
-                                        Roster
+                                        Student List
                                     </p>
                                     <p className="text-xs text-slate-500">
                                         {students.length} student
-                                        {students.length !== 1 ? 's' : ''} can
-                                        register
+                                        {students.length !== 1 ? 's' : ''} on
+                                        the list
                                     </p>
                                 </div>
                             </div>
@@ -282,7 +414,7 @@ export default function StudentRosterIndex({ students, status }: Props) {
                                 <p className="text-sm text-slate-400">
                                     {search
                                         ? 'No matching students'
-                                        : 'No students on the roster yet.'}
+                                        : 'No students on the list yet.'}
                                 </p>
                             </div>
                         ) : (
@@ -299,6 +431,9 @@ export default function StudentRosterIndex({ students, status }: Props) {
                                                 </th>
                                                 <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Program
+                                                </th>
+                                                <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                    Gmail
                                                 </th>
                                                 <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                     Status
@@ -322,34 +457,54 @@ export default function StudentRosterIndex({ students, status }: Props) {
                                                     <td className="px-5 py-4 text-xs text-slate-400">
                                                         {student.program}
                                                     </td>
+                                                    <td className="px-5 py-4 text-xs text-slate-400">
+                                                        {student.email ?? '—'}
+                                                    </td>
                                                     <td className="px-5 py-4">
                                                         <Badge
                                                             variant="outline"
-                                                            className={
-                                                                student.registered_user_id
-                                                                    ? 'rounded-md border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'
-                                                                    : 'rounded-md border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-500'
-                                                            }
+                                                            className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${accountStatusConfig[student.account_status].className}`}
                                                         >
-                                                            {student.registered_user_id
-                                                                ? 'Registered'
-                                                                : 'Not registered'}
+                                                            {
+                                                                accountStatusConfig[
+                                                                    student
+                                                                        .account_status
+                                                                ].label
+                                                            }
                                                         </Badge>
                                                     </td>
                                                     <td className="px-5 py-4 text-right">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() =>
-                                                                removeStudent(
-                                                                    student.id,
-                                                                )
-                                                            }
-                                                            className="h-8 border-rose-200 bg-white px-3 text-xs text-rose-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"
-                                                        >
-                                                            <Trash2 className="mr-1 size-3" />
-                                                            Remove
-                                                        </Button>
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    resetStudentPassword(
+                                                                        student.id,
+                                                                    )
+                                                                }
+                                                                className="h-8 border-slate-200 bg-white px-3 text-xs text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
+                                                            >
+                                                                <KeyRound className="mr-1 size-3" />
+                                                                {student.account_status ===
+                                                                'no_account'
+                                                                    ? 'Create account'
+                                                                    : 'Reset password'}
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    removeStudent(
+                                                                        student.id,
+                                                                    )
+                                                                }
+                                                                className="h-8 border-rose-200 bg-white px-3 text-xs text-rose-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"
+                                                            >
+                                                                <Trash2 className="mr-1 size-3" />
+                                                                Remove
+                                                            </Button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))}

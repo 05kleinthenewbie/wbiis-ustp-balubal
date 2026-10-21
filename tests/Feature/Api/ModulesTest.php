@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Booking;
+use App\Models\Facility;
 use App\Models\JobOrder;
 use App\Models\Notification;
 use App\Models\Role;
@@ -196,27 +198,113 @@ it('allows admins to create inventory items', function () {
     $this->assertDatabaseHas('inventory_items', ['property_no' => 'PROP-0001']);
 });
 
-it('only allows faculty and staff to book facilities', function () {
+it('allows faculty, staff, and admins to book facilities', function () {
     $faculty = apiUser($this->facultyRole);
     $facultyToken = auth('api')->login($faculty);
 
     $admin = apiUser($this->adminRole);
     $adminToken = auth('api')->login($admin);
 
+    $facility = Facility::create([
+        'facility_name' => 'Computer Laboratory',
+        'facility_type' => 'computer_lab',
+        'capacity' => 40,
+        'location' => 'Balubal Campus',
+        'availability_status' => 'available',
+    ]);
+
     $this->withHeader('Authorization', "Bearer {$facultyToken}")
         ->getJson('/api/v1/facilities')
         ->assertOk()
         ->assertJsonStructure(['data']);
 
-    $this->withHeader('Authorization', "Bearer {$adminToken}")
+    $this->withHeader('Authorization', "Bearer {$facultyToken}")
         ->postJson('/api/v1/bookings', [
-            'facility_id' => 1,
+            'facility_id' => $facility->id,
             'booking_date' => '2099-01-15',
             'start_time' => '08:00',
             'end_time' => '09:00',
             'purpose' => 'Orientation',
         ])
+        ->assertCreated();
+
+    $this->withHeader('Authorization', "Bearer {$adminToken}")
+        ->postJson('/api/v1/bookings', [
+            'facility_id' => $facility->id,
+            'booking_date' => '2099-01-15',
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'purpose' => 'Staff training',
+        ])
+        ->assertCreated();
+
+    $this->assertDatabaseHas('bookings', [
+        'user_id' => $admin->id,
+        'facility_id' => $facility->id,
+        'booking_status' => 'pending',
+    ]);
+});
+
+it('allows booking owners to cancel their own approved bookings via the api', function () {
+    $faculty = apiUser($this->facultyRole);
+    $token = auth('api')->login($faculty);
+
+    $facility = Facility::create([
+        'facility_name' => 'AV Room',
+        'facility_type' => 'av_room',
+        'capacity' => 30,
+        'location' => 'Balubal Campus',
+        'availability_status' => 'available',
+    ]);
+
+    $booking = Booking::create([
+        'user_id' => $faculty->id,
+        'facility_id' => $facility->id,
+        'booking_date' => '2020-01-15',
+        'start_time' => '08:00',
+        'end_time' => '09:00',
+        'booking_status' => 'approved',
+    ]);
+
+    $this->withHeader('Authorization', "Bearer {$token}")
+        ->putJson("/api/v1/bookings/{$booking->id}", ['booking_status' => 'cancelled'])
+        ->assertOk();
+
+    $this->assertDatabaseHas('bookings', [
+        'id' => $booking->id,
+        'booking_status' => 'cancelled',
+    ]);
+});
+
+it('prevents booking owners from approving their own bookings via the api', function () {
+    $faculty = apiUser($this->facultyRole);
+    $token = auth('api')->login($faculty);
+
+    $facility = Facility::create([
+        'facility_name' => 'Computer Laboratory B',
+        'facility_type' => 'computer_lab',
+        'capacity' => 40,
+        'location' => 'Balubal Campus',
+        'availability_status' => 'available',
+    ]);
+
+    $booking = Booking::create([
+        'user_id' => $faculty->id,
+        'facility_id' => $facility->id,
+        'booking_date' => '2099-02-14',
+        'start_time' => '08:00',
+        'end_time' => '09:00',
+        'booking_status' => 'pending',
+    ]);
+
+    $this->withHeader('Authorization', "Bearer {$token}")
+        ->putJson("/api/v1/bookings/{$booking->id}", ['booking_status' => 'approved'])
         ->assertForbidden();
+
+    $this->assertDatabaseHas('bookings', [
+        'id' => $booking->id,
+        'booking_status' => 'pending',
+    ]);
 });
 
 it('creates incident reports for any authenticated user', function () {

@@ -1,7 +1,29 @@
 <?php
 
 use App\Models\Notification;
+use App\Models\Role;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia as Assert;
+
+test('notifications are shared with a deep link for the bell', function () {
+    $role = Role::firstOrCreate(['role_name' => 'faculty_staff']);
+    $user = User::factory()->create(['role_id' => $role->id]);
+
+    Notification::create([
+        'user_id' => $user->id,
+        'message' => 'Your booking has been approved.',
+        'notification_type' => 'booking',
+        'link' => '/bookings/7',
+        'notification_status' => 'unread',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('dashboard')
+            ->where('notifications.0.link', '/bookings/7'));
+});
 
 test('guests cannot mark a notification as read', function () {
     $user = User::factory()->create();

@@ -13,6 +13,52 @@ class InventoryItem extends Model
     /** @use HasFactory<InventoryItemFactory> */
     use HasFactory;
 
+    /**
+     * Recommended inventory taxonomy grouped by record family.
+     *
+     * @var array<string, array<int, string>>
+     */
+    public const CATEGORY_GROUPS = [
+        'ICT Equipment' => [
+            'Desktop Computers',
+            'Laptops',
+            'Printers',
+            'Projectors',
+            'Network Devices',
+            'UPS Devices',
+        ],
+        'ICT Consumables' => [
+            'Printer Ink',
+            'Toner Cartridges',
+            'Thermal Paste',
+            'Cleaning Supplies',
+            'Batteries',
+        ],
+        'Software & Licenses' => [
+            'Antivirus Licenses',
+            'Software Subscriptions',
+            'SSL/TLS Certificates',
+        ],
+    ];
+
+    /**
+     * Expiration meanings used to interpret the expiration date field.
+     *
+     * @var array<int, string>
+     */
+    public const EXPIRATION_TYPES = [
+        'Expiration / Use-by Date',
+        'Recommended Shelf Life',
+        'Replacement / Service Life',
+        'Shelf Life',
+        'Expiration Date',
+        'License Expiration',
+        'Subscription Expiration',
+        'Certificate Expiration',
+        'Registration Expiration',
+        'Warranty Expiration',
+    ];
+
     protected $fillable = [
         'property_no',
         'item_inventory_no',
@@ -25,6 +71,8 @@ class InventoryItem extends Model
         'description',
         'location',
         'purchase_date',
+        'expiration_date',
+        'expiration_type',
         'unit_cost',
         'purchase_order_no',
         'end_user',
@@ -42,6 +90,7 @@ class InventoryItem extends Model
 
     protected $casts = [
         'purchase_date' => 'date',
+        'expiration_date' => 'date',
         'unit_cost' => 'decimal:2',
         'inspection_date' => 'date',
     ];

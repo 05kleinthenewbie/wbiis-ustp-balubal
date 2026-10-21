@@ -61,7 +61,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     data-test="login-link"
                     className="font-medium text-ustp-navy underline-offset-4 hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
                 >
-                    Log in
+                    Sign in
                 </TextLink>
             </div>
         </>

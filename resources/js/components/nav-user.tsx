@@ -30,8 +30,8 @@ export function NavUser() {
                             className="group rounded-lg border border-ustp-gold/15 bg-ustp-navy-light/40 text-white data-[state=open]:border-ustp-gold/40 data-[state=open]:bg-ustp-navy-light hover:bg-ustp-navy-light hover:border-ustp-gold/40"
                             data-test="sidebar-menu-button"
                         >
-                            <UserInfo user={auth.user} showRole />
-                            <ChevronsUpDown className="ml-auto size-4 text-ustp-gold transition-transform group-data-[state=open]:rotate-180" />
+                            <UserInfo user={auth.user} showRole hideDetailsOnMobile />
+                            <ChevronsUpDown className="ml-auto hidden size-4 text-ustp-gold transition-transform group-data-[state=open]:rotate-180 md:block" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent

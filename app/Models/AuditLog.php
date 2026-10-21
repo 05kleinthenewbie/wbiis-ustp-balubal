@@ -15,10 +15,14 @@ class AuditLog extends Model
         'record_id',
         'action_date',
         'details',
+        'old_values',
+        'new_values',
     ];
 
     protected $casts = [
         'action_date' => 'datetime',
+        'old_values' => 'array',
+        'new_values' => 'array',
     ];
 
     /**
@@ -31,9 +35,18 @@ class AuditLog extends Model
 
     /**
      * Convenience helper to record an audit log entry.
+     *
+     * @param  array<string, mixed>|null  $oldValues
+     * @param  array<string, mixed>|null  $newValues
      */
-    public static function record(string $action, string $module, int $recordId, ?string $details = null): void
-    {
+    public static function record(
+        string $action,
+        string $module,
+        int $recordId,
+        ?string $details = null,
+        ?array $oldValues = null,
+        ?array $newValues = null,
+    ): void {
         static::create([
             'admin_user_id' => Auth::id() ?? Auth::guard('api')->id(),
             'action_taken' => $action,
@@ -41,6 +54,8 @@ class AuditLog extends Model
             'record_id' => $recordId,
             'action_date' => now(),
             'details' => $details,
+            'old_values' => $oldValues,
+            'new_values' => $newValues,
         ]);
     }
 }
