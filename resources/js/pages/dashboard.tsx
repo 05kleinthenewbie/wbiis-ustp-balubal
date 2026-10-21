@@ -3,7 +3,6 @@ import {
     AlertTriangle,
     ArrowUpRight,
     Calendar,
-    ChevronRight,
     Clock,
     ClipboardList,
     FileText,
@@ -11,26 +10,9 @@ import {
     Package,
     TrendingUp,
     Wrench,
-    Zap,
 } from 'lucide-react';
 
 type Period = 'week' | 'month' | 'year';
-
-type AdminStats = {
-    pendingRequests: number;
-    openJobOrders: number;
-    pendingBookings: number;
-    openIncidents: number;
-    technicians: number;
-    unassignedJobOrders: number;
-    overdueJobOrders: number;
-    inventoryExpiryAlerts: number;
-};
-
-type UserStats = {
-    myRequests: number;
-    pendingRequests: number;
-};
 
 type RecentRequest = {
     id: number;
@@ -65,20 +47,26 @@ type RecentBooking = {
 };
 
 type Overview = {
-    serviceRequests: { total: number; pending: number };
-    jobOrders: { total: number; inProgress: number; unassigned: number };
-    inventory: { total: number; defective: number };
-    bookings: { total: number; pending: number };
-    incidents: { total: number; unresolved: number };
+    serviceRequests: {
+        total: number;
+        pending: number;
+        approved?: number;
+        completed?: number;
+    };
+    jobOrders?: { total: number; inProgress: number; unassigned?: number };
+    inventory?: { total: number; defective: number };
+    bookings?: { total: number; pending: number };
+    incidents?: { total: number; unresolved: number };
     pendingActions: { total: number };
 };
 
 type PendingActions = {
-    bookingApprovals: number;
     requestApprovals: number;
-    jobOrdersInProgress: number;
-    overdueJobOrders: number;
-    incidentsUnresolved: number;
+    jobOrdersInProgress?: number;
+    rejectedRequests?: number;
+    bookingApprovals?: number;
+    overdueJobOrders?: number;
+    incidentsUnresolved?: number;
 };
 
 type InventoryAlerts = {
@@ -90,76 +78,34 @@ type InventoryAlerts = {
 
 type ActivitySeries = {
     labels: string[];
-    bookings: number[];
-    requests: number[];
-    jobOrders: number[];
+    requests?: number[];
+    bookings?: number[];
+    jobOrders?: number[];
+    incidents?: number[];
 };
 
 type Props = {
-    stats: AdminStats | UserStats;
     isAdmin: boolean;
-    greeting: string;
     period: Period | null;
     overview: Overview | null;
     pendingActions: PendingActions | null;
     inventoryAlerts: InventoryAlerts | null;
     activitySeries: ActivitySeries | null;
-    requestsByStatus: Record<string, number>;
-    requestsByPriority: Record<string, number>;
-    jobOrdersByStatus: Record<string, number>;
-    inventorySummary: Record<string, number>;
     recentRequests: RecentRequest[];
     recentJobOrders: RecentJobOrder[];
     recentIncidents: RecentIncident[];
     recentBookings: RecentBooking[];
 };
 
-function HorizontalBarChart({
-    data,
-    colors,
-    total,
-}: {
-    data: Record<string, number>;
-    colors: Record<string, string>;
-    total: number;
-}) {
-    const entries = Object.entries(data).filter(([, v]) => v > 0);
+type SeriesKey = 'requests' | 'bookings' | 'jobOrders' | 'incidents';
 
-    return (
-        <div className="space-y-3">
-            {entries.map(([key, count]) => {
-                const pct = total > 0 ? (count / total) * 100 : 0;
-
-                return (
-                    <div key={key}>
-                        <div className="mb-1.5 flex items-center justify-between">
-                            <span className="text-xs font-medium text-slate-600 capitalize">
-                                {key.replace('_', ' ')}
-                            </span>
-                            <span className="text-xs font-semibold text-slate-800">
-                                {count}
-                                <span className="ml-1 text-slate-400">
-                                    ({Math.round(pct)}%)
-                                </span>
-                            </span>
-                        </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                            <div
-                                className={`h-full rounded-full transition-all duration-700 ${colors[key] ?? 'bg-slate-300'}`}
-                                style={{ width: `${pct}%` }}
-                            />
-                        </div>
-                    </div>
-                );
-            })}
-            {entries.length === 0 && (
-                <p className="py-4 text-center text-xs text-slate-400">
-                    No data yet
-                </p>
-            )}
-        </div>
-    );
-}
+const SERIES_META: readonly { key: SeriesKey; label: string; color: string }[] =
+    [
+        { key: 'requests', label: 'Requests', color: '#f59e0b' },
+        { key: 'bookings', label: 'Bookings', color: '#10b981' },
+        { key: 'jobOrders', label: 'Job Orders', color: '#1a1851' },
+        { key: 'incidents', label: 'Incidents', color: '#f43f5e' },
+    ];
 
 function LineChart({ data }: { data: ActivitySeries }) {
     const width = 780;
@@ -169,12 +115,12 @@ function LineChart({ data }: { data: ActivitySeries }) {
     const padBottom = 26;
     const padLeft = 38;
 
-    const max = Math.max(
-        1,
-        ...data.bookings,
-        ...data.requests,
-        ...data.jobOrders,
-    );
+    const series = SERIES_META.map((meta) => ({
+        ...meta,
+        values: data[meta.key] ?? [],
+    })).filter((entry) => entry.values.length > 0);
+
+    const max = Math.max(1, ...series.flatMap((entry) => entry.values));
     const step = Math.max(1, Math.ceil(max / 4));
     const yMax = step * 4;
 
@@ -185,12 +131,6 @@ function LineChart({ data }: { data: ActivitySeries }) {
             : padLeft + (index * (width - padLeft - padRight)) / (count - 1);
     const yFor = (value: number) =>
         height - padBottom - (value / yMax) * (height - padTop - padBottom);
-
-    const series = [
-        { label: 'Requests', color: '#f59e0b', values: data.requests },
-        { label: 'Bookings', color: '#10b981', values: data.bookings },
-        { label: 'Job Orders', color: '#1a1851', values: data.jobOrders },
-    ];
 
     const ticks = [0, step, step * 2, step * 3, step * 4];
 
@@ -444,16 +384,12 @@ function formatRelativeTime(dateStr: string): string {
 }
 
 export default function Dashboard({
-    stats,
     isAdmin,
-    greeting,
     period,
     overview,
     pendingActions,
     inventoryAlerts,
     activitySeries,
-    requestsByStatus,
-    requestsByPriority,
     recentRequests,
     recentJobOrders,
     recentIncidents,
@@ -469,11 +405,73 @@ export default function Dashboard({
         day: 'numeric',
     });
 
-    const reqTotal = Object.values(requestsByStatus).reduce((a, b) => a + b, 0);
-
     const activePeriod: Period = period ?? 'year';
 
-    const adminCards = overview
+    const adminCards =
+        overview &&
+        overview.jobOrders &&
+        overview.inventory &&
+        overview.bookings &&
+        overview.incidents
+            ? [
+                  {
+                      label: 'Service Requests',
+                      value: overview.serviceRequests.total,
+                      sub: `${overview.serviceRequests.pending} pending`,
+                      icon: FileText,
+                      href: '/requests',
+                      color: 'text-ustp-navy',
+                      bg: 'bg-ustp-navy/5',
+                  },
+                  {
+                      label: 'Job Orders',
+                      value: overview.jobOrders.total,
+                      sub: `${overview.jobOrders.inProgress} in progress · ${overview.jobOrders.unassigned} unassigned`,
+                      icon: ClipboardList,
+                      href: '/job-orders',
+                      color: 'text-amber-600',
+                      bg: 'bg-amber-50',
+                  },
+                  {
+                      label: 'ICT Inventory',
+                      value: overview.inventory.total,
+                      sub: `${overview.inventory.defective} defective`,
+                      icon: Package,
+                      href: '/inventory',
+                      color: 'text-ustp-light-blue',
+                      bg: 'bg-ustp-light-blue/10',
+                  },
+                  {
+                      label: 'Facility Bookings',
+                      value: overview.bookings.total,
+                      sub: `${overview.bookings.pending} pending`,
+                      icon: Calendar,
+                      href: '/bookings',
+                      color: 'text-emerald-600',
+                      bg: 'bg-emerald-50',
+                  },
+                  {
+                      label: 'Lab Incidents',
+                      value: overview.incidents.total,
+                      sub: `${overview.incidents.unresolved} unresolved`,
+                      icon: AlertTriangle,
+                      href: '/incidents',
+                      color: 'text-rose-600',
+                      bg: 'bg-rose-50',
+                  },
+                  {
+                      label: 'Pending Actions',
+                      value: overview.pendingActions.total,
+                      sub: 'Needs attention',
+                      icon: Clock,
+                      href: '/requests/approvals',
+                      color: 'text-orange-600',
+                      bg: 'bg-orange-50',
+                  },
+              ]
+            : [];
+
+    const userCards = overview
         ? [
               {
                   label: 'Service Requests',
@@ -484,88 +482,145 @@ export default function Dashboard({
                   color: 'text-ustp-navy',
                   bg: 'bg-ustp-navy/5',
               },
-              {
-                  label: 'Job Orders',
-                  value: overview.jobOrders.total,
-                  sub: `${overview.jobOrders.inProgress} in progress · ${overview.jobOrders.unassigned} unassigned`,
-                  icon: ClipboardList,
-                  href: '/job-orders',
-                  color: 'text-amber-600',
-                  bg: 'bg-amber-50',
-              },
-              {
-                  label: 'ICT Inventory',
-                  value: overview.inventory.total,
-                  sub: `${overview.inventory.defective} defective`,
-                  icon: Package,
-                  href: '/inventory',
-                  color: 'text-ustp-light-blue',
-                  bg: 'bg-ustp-light-blue/10',
-              },
-              {
-                  label: 'Facility Bookings',
-                  value: overview.bookings.total,
-                  sub: `${overview.bookings.pending} pending`,
-                  icon: Calendar,
-                  href: '/bookings',
-                  color: 'text-emerald-600',
-                  bg: 'bg-emerald-50',
-              },
-              {
-                  label: 'Lab Incidents',
-                  value: overview.incidents.total,
-                  sub: `${overview.incidents.unresolved} unresolved`,
-                  icon: AlertTriangle,
-                  href: '/incidents',
-                  color: 'text-rose-600',
-                  bg: 'bg-rose-50',
-              },
+              ...(overview.bookings
+                  ? [
+                        {
+                            label: 'Facility Bookings',
+                            value: overview.bookings.total,
+                            sub: `${overview.bookings.pending} pending`,
+                            icon: Calendar,
+                            href: '/bookings',
+                            color: 'text-emerald-600',
+                            bg: 'bg-emerald-50',
+                        },
+                    ]
+                  : []),
+              ...(overview.incidents
+                  ? [
+                        {
+                            label: 'Lab Incidents',
+                            value: overview.incidents.total,
+                            sub: `${overview.incidents.unresolved} unresolved`,
+                            icon: AlertTriangle,
+                            href: '/incidents',
+                            color: 'text-rose-600',
+                            bg: 'bg-rose-50',
+                        },
+                    ]
+                  : []),
+              ...(overview.serviceRequests.approved !== undefined
+                  ? [
+                        {
+                            label: 'Approved Requests',
+                            value: overview.serviceRequests.approved,
+                            sub: 'awaiting completion',
+                            icon: Layers,
+                            href: '/requests',
+                            color: 'text-ustp-light-blue',
+                            bg: 'bg-ustp-light-blue/10',
+                        },
+                    ]
+                  : []),
+              ...(overview.serviceRequests.completed !== undefined
+                  ? [
+                        {
+                            label: 'Completed Requests',
+                            value: overview.serviceRequests.completed,
+                            sub: 'resolved successfully',
+                            icon: ClipboardList,
+                            href: '/requests',
+                            color: 'text-teal-600',
+                            bg: 'bg-teal-50',
+                        },
+                    ]
+                  : []),
               {
                   label: 'Pending Actions',
                   value: overview.pendingActions.total,
                   sub: 'Needs attention',
                   icon: Clock,
-                  href: '/requests/approvals',
+                  href: '/requests',
                   color: 'text-orange-600',
                   bg: 'bg-orange-50',
               },
           ]
         : [];
 
-    const actionRows = pendingActions
-        ? [
-              {
-                  label: 'Booking approvals',
-                  value: pendingActions.bookingApprovals,
-                  href: '/bookings/approvals',
-                  bar: 'bg-emerald-500',
-              },
-              {
-                  label: 'Service request approvals',
-                  value: pendingActions.requestApprovals,
-                  href: '/requests/approvals',
-                  bar: 'bg-ustp-light-blue',
-              },
-              {
-                  label: 'Job orders in progress',
-                  value: pendingActions.jobOrdersInProgress,
-                  href: '/job-orders/progress',
-                  bar: 'bg-amber-500',
-              },
-              {
-                  label: 'Overdue job orders (SLA)',
-                  value: pendingActions.overdueJobOrders,
-                  href: '/job-orders/progress',
-                  bar: 'bg-red-500',
-              },
-              {
-                  label: 'Unresolved incidents',
-                  value: pendingActions.incidentsUnresolved,
-                  href: '/incidents',
-                  bar: 'bg-rose-500',
-              },
-          ]
-        : [];
+    const cards = isAdmin ? adminCards : userCards;
+
+    const actionRows = !pendingActions
+        ? []
+        : isAdmin
+          ? [
+                {
+                    label: 'Booking approvals',
+                    value: pendingActions.bookingApprovals ?? 0,
+                    href: '/bookings/approvals',
+                    bar: 'bg-emerald-500',
+                },
+                {
+                    label: 'Service request approvals',
+                    value: pendingActions.requestApprovals,
+                    href: '/requests/approvals',
+                    bar: 'bg-ustp-light-blue',
+                },
+                {
+                    label: 'Job orders in progress',
+                    value: pendingActions.jobOrdersInProgress ?? 0,
+                    href: '/job-orders/progress',
+                    bar: 'bg-amber-500',
+                },
+                {
+                    label: 'Overdue job orders (SLA)',
+                    value: pendingActions.overdueJobOrders ?? 0,
+                    href: '/job-orders/progress',
+                    bar: 'bg-red-500',
+                },
+                {
+                    label: 'Unresolved incidents',
+                    value: pendingActions.incidentsUnresolved ?? 0,
+                    href: '/incidents',
+                    bar: 'bg-rose-500',
+                },
+            ]
+          : [
+                {
+                    label: 'Requests awaiting approval',
+                    value: pendingActions.requestApprovals,
+                    href: '/requests',
+                    bar: 'bg-ustp-light-blue',
+                },
+                ...(pendingActions.bookingApprovals !== undefined
+                    ? [
+                          {
+                              label: 'Bookings awaiting approval',
+                              value: pendingActions.bookingApprovals,
+                              href: '/bookings',
+                              bar: 'bg-emerald-500',
+                          },
+                      ]
+                    : []),
+                ...(pendingActions.incidentsUnresolved !== undefined
+                    ? [
+                          {
+                              label: 'Open incidents',
+                              value: pendingActions.incidentsUnresolved,
+                              href: '/incidents',
+                              bar: 'bg-rose-500',
+                          },
+                      ]
+                    : []),
+                ...(pendingActions.rejectedRequests !== undefined
+                    ? [
+                          {
+                              label: 'Rejected requests',
+                              value: pendingActions.rejectedRequests,
+                              href: '/requests',
+                              bar: 'bg-red-500',
+                          },
+                      ]
+                    : []),
+            ];
     const maxActionValue = Math.max(1, ...actionRows.map((row) => row.value));
 
     const alertRows = inventoryAlerts
@@ -618,52 +673,46 @@ export default function Dashboard({
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <h1 className="text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
-                                {isAdmin
-                                    ? 'Dashboard Overview'
-                                    : `${greeting}, ${userName}`}
+                                Dashboard Overview
                             </h1>
 
                             <p className="mt-1.5 max-w-lg text-sm text-slate-500">
-                                {isAdmin
-                                    ? `Welcome back, ${userName}. Here\u2019s what needs your attention.`
-                                    : 'A quick look at your service requests.'}
+                                {`Welcome back, ${userName}. Here\u2019s what needs your attention.`}
                             </p>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
-                            {isAdmin && (
-                                <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
-                                    {(['week', 'month', 'year'] as const).map(
-                                        (value) => (
-                                            <button
-                                                key={value}
-                                                type="button"
-                                                onClick={() =>
-                                                    router.get(
-                                                        '/dashboard',
-                                                        { period: value },
-                                                        {
-                                                            preserveScroll: true,
-                                                            preserveState: true,
-                                                        },
-                                                    )
-                                                }
-                                                className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-                                                    activePeriod === value
-                                                        ? 'bg-ustp-navy text-white'
-                                                        : 'text-slate-500 hover:bg-slate-100'
-                                                }`}
-                                            >
-                                                {value === 'week'
-                                                    ? 'This Week'
-                                                    : value === 'month'
-                                                      ? 'This Month'
-                                                      : 'This Year'}
-                                            </button>
-                                        ),
-                                    )}
-                                </div>
-                            )}
+                            <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
+                                {(['week', 'month', 'year'] as const).map(
+                                    (value) => (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            onClick={() =>
+                                                router.get(
+                                                    '/dashboard',
+                                                    { period: value },
+                                                    {
+                                                        preserveScroll: true,
+                                                        preserveState: true,
+                                                    },
+                                                )
+                                            }
+                                            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                                                activePeriod === value
+                                                    ? 'bg-ustp-navy text-white'
+                                                    : 'text-slate-500 hover:bg-slate-100'
+                                            }`}
+                                        >
+                                            {value === 'week'
+                                                ? 'This Week'
+                                                : value === 'month'
+                                                  ? 'This Month'
+                                                  : 'This Year'}
+                                        </button>
+                                    ),
+                                )}
+                            </div>
 
                             <div className="flex items-center gap-2 text-sm text-slate-500">
                                 <Clock className="size-4" />
@@ -674,111 +723,68 @@ export default function Dashboard({
 
                     {/* ── Stat cards ── */}
                     <div
-                        className={`grid grid-cols-2 gap-4 ${isAdmin ? 'lg:grid-cols-3' : 'lg:max-w-xl'}`}
+                        className={`grid grid-cols-2 gap-4 ${cards.length >= 5 ? 'lg:grid-cols-3' : 'lg:max-w-2xl'}`}
                     >
-                        {isAdmin ? (
-                            <>
-                                {adminCards.map((card) => (
-                                    <Link
-                                        key={card.label}
-                                        href={card.href}
-                                        className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+                        {cards.map((card) => (
+                            <Link
+                                key={card.label}
+                                href={card.href}
+                                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <p className="text-sm font-medium text-slate-600">
+                                        {card.label}
+                                    </p>
+                                    <div
+                                        className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${card.bg}`}
                                     >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <p className="text-sm font-medium text-slate-600">
-                                                {card.label}
-                                            </p>
-                                            <div
-                                                className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${card.bg}`}
-                                            >
-                                                <card.icon
-                                                    className={`size-4 ${card.color}`}
-                                                />
-                                            </div>
-                                        </div>
-                                        <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-800">
-                                            {card.value}
-                                        </p>
-                                        <p className="mt-1.5 text-xs text-slate-400 group-hover:text-slate-500">
-                                            {card.sub}
-                                        </p>
-                                    </Link>
-                                ))}
-                            </>
-                        ) : (
-                            <>
-                                {[
-                                    {
-                                        label: 'My Requests',
-                                        value: (stats as UserStats).myRequests,
-                                        icon: FileText,
-                                        href: '/requests',
-                                        color: 'text-ustp-navy',
-                                        bg: 'bg-ustp-navy/5',
-                                    },
-                                    {
-                                        label: 'Pending',
-                                        value: (stats as UserStats)
-                                            .pendingRequests,
-                                        icon: ClipboardList,
-                                        href: '/requests',
-                                        color: 'text-amber-600',
-                                        bg: 'bg-amber-50',
-                                    },
-                                ].map((card) => (
-                                    <Link
-                                        key={card.label}
-                                        href={card.href}
-                                        className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
-                                    >
-                                        <div className="flex items-start justify-between">
-                                            <div
-                                                className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}
-                                            >
-                                                <card.icon
-                                                    className={`size-5 ${card.color}`}
-                                                />
-                                            </div>
-                                            <ChevronRight className="size-4 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-slate-500" />
-                                        </div>
-                                        <div className="mt-4">
-                                            <p className="text-[10px] font-medium tracking-[0.14em] text-slate-400 uppercase">
-                                                {card.label}
-                                            </p>
-                                            <p className="mt-1.5 text-3xl font-semibold tracking-tight text-slate-800">
-                                                {card.value}
-                                            </p>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </>
-                        )}
-                    </div>
-
-                    {/* ── Admin: Activity chart + Pending actions ── */}
-                    {isAdmin && activitySeries && actionRows.length > 0 && (
-                        <div className="grid gap-5 lg:grid-cols-3">
-                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
-                                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
-                                            <TrendingUp className="size-4 text-ustp-light-blue" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-slate-800">
-                                                Monthly System Activity
-                                            </h3>
-                                            <p className="text-[11px] text-slate-400">
-                                                Service requests, bookings, and
-                                                job orders
-                                            </p>
-                                        </div>
+                                        <card.icon
+                                            className={`size-4 ${card.color}`}
+                                        />
                                     </div>
                                 </div>
-                                <div className="p-5">
-                                    <LineChart data={activitySeries} />
+                                <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-800">
+                                    {card.value}
+                                </p>
+                                <p className="mt-1.5 text-xs text-slate-400 group-hover:text-slate-500">
+                                    {card.sub}
+                                </p>
+                            </Link>
+                        ))}
+                    </div>
+
+                    {/* ── Activity chart + Pending actions ── */}
+                    {actionRows.length > 0 && (
+                        <div
+                            className={
+                                activitySeries
+                                    ? 'grid gap-5 lg:grid-cols-3'
+                                    : ''
+                            }
+                        >
+                            {activitySeries && (
+                                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
+                                    <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
+                                                <TrendingUp className="size-4 text-ustp-light-blue" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-semibold text-slate-800">
+                                                    Monthly System Activity
+                                                </h3>
+                                                <p className="text-[11px] text-slate-400">
+                                                    Activity by operational
+                                                    module
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="p-5">
+                                        <LineChart data={activitySeries} />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                                 <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
@@ -882,81 +888,6 @@ export default function Dashboard({
                         </div>
                     )}
 
-                    {/* ── Analytics row: Status + Priority side by side ── */}
-                    {!isAdmin && (
-                        <div className="grid gap-5 lg:grid-cols-2">
-                            {/* Requests by Status */}
-                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
-                                            <Layers className="size-4 text-ustp-gold" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-slate-800">
-                                                Requests by Status
-                                            </h3>
-                                            <p className="text-[11px] text-slate-400">
-                                                {reqTotal} total requests
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <Link
-                                        href="/requests"
-                                        className="flex items-center gap-1 text-xs font-medium text-ustp-light-blue/70 transition-colors hover:text-ustp-light-blue"
-                                    >
-                                        View all
-                                        <ArrowUpRight className="size-3.5" />
-                                    </Link>
-                                </div>
-                                <div className="p-5">
-                                    <HorizontalBarChart
-                                        data={requestsByStatus}
-                                        total={reqTotal}
-                                        colors={{
-                                            pending: 'bg-amber-400',
-                                            approved: 'bg-ustp-light-blue',
-                                            rejected: 'bg-red-400',
-                                            completed: 'bg-emerald-400',
-                                        }}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Requests by Priority */}
-                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
-                                            <Zap className="size-4 text-ustp-gold" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-slate-800">
-                                                Requests by Priority
-                                            </h3>
-                                            <p className="text-[11px] text-slate-400">
-                                                Distribution across priority
-                                                levels
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="p-5">
-                                    <HorizontalBarChart
-                                        data={requestsByPriority}
-                                        total={reqTotal}
-                                        colors={{
-                                            low: 'bg-slate-400',
-                                            medium: 'bg-blue-400',
-                                            high: 'bg-orange-400',
-                                            urgent: 'bg-red-400',
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     {/* ── Recent Activity ── */}
                     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
@@ -983,123 +914,6 @@ export default function Dashboard({
                             />
                         </div>
                     </div>
-
-                    {/* ── Recent Service Requests table ── */}
-                    {!isAdmin && (
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-light-blue/10">
-                                        <TrendingUp className="size-4 text-ustp-light-blue" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-slate-800">
-                                            Recent Requests
-                                        </h3>
-                                        <p className="text-[11px] text-slate-400">
-                                            Latest service requests
-                                        </p>
-                                    </div>
-                                </div>
-                                <Link
-                                    href="/requests"
-                                    className="group flex items-center gap-1 text-xs font-medium text-ustp-light-blue/70 transition-colors hover:text-ustp-light-blue"
-                                >
-                                    View all
-                                    <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                </Link>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="border-b border-slate-200 bg-slate-50">
-                                            <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                                                Requester
-                                            </th>
-                                            <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                                                Description
-                                            </th>
-                                            <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                                                Priority
-                                            </th>
-                                            <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                                                Status
-                                            </th>
-                                            <th className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                                                When
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {recentRequests.map((r) => (
-                                            <tr
-                                                key={r.id}
-                                                className="border-b border-slate-200 transition-colors last:border-0 hover:bg-slate-50"
-                                            >
-                                                <td className="px-5 py-3.5 text-sm font-medium text-slate-800">
-                                                    {r.user_name}
-                                                </td>
-                                                <td className="max-w-[200px] truncate px-5 py-3.5 text-sm text-slate-500">
-                                                    {r.description || '—'}
-                                                </td>
-                                                <td className="px-5 py-3.5">
-                                                    <span
-                                                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${
-                                                            {
-                                                                low: 'border-slate-200 bg-slate-50 text-slate-600',
-                                                                medium: 'border-blue-200 bg-blue-50 text-blue-600',
-                                                                high: 'border-orange-200 bg-orange-50 text-orange-600',
-                                                                urgent: 'border-red-200 bg-red-50 text-red-600',
-                                                            }[r.priority] ??
-                                                            'border-slate-200 bg-slate-50 text-slate-500'
-                                                        }`}
-                                                    >
-                                                        {r.priority}
-                                                    </span>
-                                                </td>
-                                                <td className="px-5 py-3.5">
-                                                    <span
-                                                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${
-                                                            {
-                                                                pending:
-                                                                    'border-amber-200 bg-amber-50 text-amber-700',
-                                                                approved:
-                                                                    'border-sky-200 bg-sky-50 text-sky-700',
-                                                                rejected:
-                                                                    'border-red-200 bg-red-50 text-red-600',
-                                                                completed:
-                                                                    'border-emerald-200 bg-emerald-50 text-emerald-700',
-                                                            }[r.status] ??
-                                                            'border-slate-200 bg-slate-50 text-slate-500'
-                                                        }`}
-                                                    >
-                                                        {r.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-5 py-3.5 text-xs text-slate-400">
-                                                    {r.date
-                                                        ? formatRelativeTime(
-                                                              r.date,
-                                                          )
-                                                        : '—'}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {recentRequests.length === 0 && (
-                                            <tr>
-                                                <td
-                                                    colSpan={5}
-                                                    className="px-5 py-10 text-center text-sm text-slate-400"
-                                                >
-                                                    No service requests yet
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
         </>

@@ -9,6 +9,7 @@ use App\Models\JobOrder;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -22,8 +23,19 @@ class DashboardController extends Controller
         $user = $request->user()->load('role');
 
         $isAdmin = $user->role->role_name === 'ict_admin';
+        $isStudent = $user->role->role_name === 'student';
 
-        $greeting = 'Welcome';
+        $period = $request->query('period');
+
+        if (! in_array($period, ['week', 'month', 'year'], true)) {
+            $period = 'year';
+        }
+
+        $periodRange = match ($period) {
+            'week' => [now()->subDays(6)->startOfDay(), now()->endOfDay()],
+            'month' => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
+            default => [now()->subDays(364)->startOfDay(), now()->endOfDay()],
+        };
 
         if ($isAdmin) {
             $stats = [
@@ -45,44 +57,11 @@ class DashboardController extends Controller
                     ->count(),
             ];
 
-            $requestsByStatus = [
-                'pending' => ServiceRequest::where('request_status', 'pending')->count(),
-                'approved' => ServiceRequest::where('request_status', 'approved')->count(),
-                'rejected' => ServiceRequest::where('request_status', 'rejected')->count(),
-                'completed' => ServiceRequest::where('request_status', 'completed')->count(),
-            ];
-
-            $requestsByPriority = [
-                'low' => ServiceRequest::where('priority_level', 'low')->count(),
-                'medium' => ServiceRequest::where('priority_level', 'medium')->count(),
-                'high' => ServiceRequest::where('priority_level', 'high')->count(),
-                'urgent' => ServiceRequest::where('priority_level', 'urgent')->count(),
-            ];
-
-            $jobOrdersByStatus = [
-                'open' => JobOrder::where('status', 'open')->count(),
-                'in_progress' => JobOrder::where('status', 'in_progress')->count(),
-                'completed' => JobOrder::where('status', 'completed')->count(),
-                'closed' => JobOrder::where('status', 'closed')->count(),
-            ];
-
             $inventorySummary = [
                 'working' => InventoryItem::where('condition', 'working')->count(),
                 'defective' => InventoryItem::where('condition', 'defective')->count(),
                 'under_repair' => InventoryItem::where('condition', 'under_repair')->count(),
             ];
-
-            $period = $request->query('period');
-
-            if (! in_array($period, ['week', 'month', 'year'], true)) {
-                $period = 'year';
-            }
-
-            $periodRange = match ($period) {
-                'week' => [now()->subDays(6)->startOfDay(), now()->endOfDay()],
-                'month' => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
-                default => [now()->subDays(364)->startOfDay(), now()->endOfDay()],
-            };
 
             $overview = [
                 'serviceRequests' => [
@@ -129,7 +108,11 @@ class DashboardController extends Controller
                 'underRepair' => $inventorySummary['under_repair'],
             ];
 
-            $activitySeries = $this->buildActivitySeries($period);
+            $activitySeries = $this->buildActivitySeries($period, [
+                'requests' => ServiceRequest::query(),
+                'bookings' => Booking::query(),
+                'jobOrders' => JobOrder::query(),
+            ]);
 
             $recentRequests = ServiceRequest::with('user')
                 ->latest()
@@ -185,19 +168,63 @@ class DashboardController extends Controller
                     ->where('request_status', 'pending')->count(),
             ];
 
-            $requestsByStatus = [
-                'pending' => ServiceRequest::where('user_id', $user->id)->where('request_status', 'pending')->count(),
-                'approved' => ServiceRequest::where('user_id', $user->id)->where('request_status', 'approved')->count(),
-                'rejected' => ServiceRequest::where('user_id', $user->id)->where('request_status', 'rejected')->count(),
-                'completed' => ServiceRequest::where('user_id', $user->id)->where('request_status', 'completed')->count(),
+            $approvedRequests = ServiceRequest::where('user_id', $user->id)
+                ->where('request_status', 'approved')->count();
+            $completedRequests = ServiceRequest::where('user_id', $user->id)
+                ->where('request_status', 'completed')->count();
+            $rejectedRequests = ServiceRequest::where('user_id', $user->id)
+                ->where('request_status', 'rejected')->count();
+
+            $overview = [
+                'serviceRequests' => [
+                    'total' => ServiceRequest::where('user_id', $user->id)
+                        ->whereBetween('created_at', $periodRange)->count(),
+                    'pending' => $stats['pendingRequests'],
+                    'approved' => $approvedRequests,
+                    'completed' => $completedRequests,
+                ],
             ];
 
-            $requestsByPriority = [
-                'low' => ServiceRequest::where('user_id', $user->id)->where('priority_level', 'low')->count(),
-                'medium' => ServiceRequest::where('user_id', $user->id)->where('priority_level', 'medium')->count(),
-                'high' => ServiceRequest::where('user_id', $user->id)->where('priority_level', 'high')->count(),
-                'urgent' => ServiceRequest::where('user_id', $user->id)->where('priority_level', 'urgent')->count(),
+            $pendingActions = [
+                'requestApprovals' => $stats['pendingRequests'],
+                'rejectedRequests' => $rejectedRequests,
             ];
+
+            $activitySources = [
+                'requests' => ServiceRequest::where('user_id', $user->id),
+            ];
+
+            if (! $isStudent) {
+                $pendingBookings = Booking::where('user_id', $user->id)
+                    ->where('booking_status', 'pending')->count();
+                $unresolvedIncidents = IncidentReport::where('reported_by', $user->id)
+                    ->whereIn('status', ['open', 'under_review'])->count();
+
+                $overview['bookings'] = [
+                    'total' => Booking::where('user_id', $user->id)
+                        ->whereBetween('created_at', $periodRange)->count(),
+                    'pending' => $pendingBookings,
+                ];
+
+                $overview['incidents'] = [
+                    'total' => IncidentReport::where('reported_by', $user->id)
+                        ->whereBetween('created_at', $periodRange)->count(),
+                    'unresolved' => $unresolvedIncidents,
+                ];
+
+                $pendingActions['bookingApprovals'] = $pendingBookings;
+                $pendingActions['incidentsUnresolved'] = $unresolvedIncidents;
+
+                $activitySources['bookings'] = Booking::where('user_id', $user->id);
+                $activitySources['incidents'] = IncidentReport::where('reported_by', $user->id);
+            }
+
+            $overview['pendingActions'] = ['total' => array_sum($pendingActions)];
+
+            $inventoryAlerts = null;
+            $activitySeries = $isStudent
+                ? null
+                : $this->buildActivitySeries($period, $activitySources);
 
             $recentRequests = ServiceRequest::where('user_id', $user->id)
                 ->latest()
@@ -212,31 +239,19 @@ class DashboardController extends Controller
                     'date' => $r->date_requested?->toIso8601String(),
                 ]);
 
-            $jobOrdersByStatus = [];
-            $inventorySummary = [];
             $recentJobOrders = [];
             $recentIncidents = [];
             $recentBookings = [];
-            $period = null;
-            $overview = null;
-            $pendingActions = null;
-            $inventoryAlerts = null;
-            $activitySeries = null;
         }
 
         return Inertia::render('dashboard', [
             'stats' => $stats,
             'isAdmin' => $isAdmin,
-            'greeting' => $greeting,
             'period' => $period,
             'overview' => $overview,
             'pendingActions' => $pendingActions,
             'inventoryAlerts' => $inventoryAlerts,
             'activitySeries' => $activitySeries,
-            'requestsByStatus' => $requestsByStatus,
-            'requestsByPriority' => $requestsByPriority,
-            'jobOrdersByStatus' => $jobOrdersByStatus,
-            'inventorySummary' => $inventorySummary,
             'recentRequests' => $recentRequests ?? collect(),
             'recentJobOrders' => $recentJobOrders ?? collect(),
             'recentIncidents' => $recentIncidents ?? collect(),
@@ -245,11 +260,12 @@ class DashboardController extends Controller
     }
 
     /**
-     * Build the monthly system activity chart data for the selected period.
+     * Build the system activity chart buckets for the selected period.
      *
-     * @return array{labels: string[], bookings: int[], requests: int[], jobOrders: int[]}
+     * @param  array<string, EloquentBuilder>  $sources
+     * @return array{labels: string[]} & array<string, int[]>
      */
-    private function buildActivitySeries(string $period): array
+    private function buildActivitySeries(string $period, array $sources): array
     {
         $driver = DB::connection()->getDriverName();
 
@@ -261,98 +277,80 @@ class DashboardController extends Controller
             ? "strftime('%Y-%m', created_at)"
             : 'DATE_FORMAT(created_at, "%Y-%m")';
 
-        $labels = [];
-        $bookings = [];
-        $requests = [];
-        $jobOrders = [];
-
         if ($period === 'week') {
             $start = now()->subDays(6)->startOfDay();
-
-            $bookingCounts = $this->countByDate(Booking::class, $dayExpression, $start);
-            $requestCounts = $this->countByDate(ServiceRequest::class, $dayExpression, $start);
-            $jobOrderCounts = $this->countByDate(JobOrder::class, $dayExpression, $start);
+            $expression = $dayExpression;
+            $buckets = [];
 
             for ($i = 6; $i >= 0; $i--) {
                 $day = now()->subDays($i);
-                $key = $day->format('Y-m-d');
-
-                $labels[] = $day->format('D');
-                $bookings[] = (int) $bookingCounts->get($key, 0);
-                $requests[] = (int) $requestCounts->get($key, 0);
-                $jobOrders[] = (int) $jobOrderCounts->get($key, 0);
+                $buckets[] = ['label' => $day->format('D'), 'keys' => [$day->format('Y-m-d')]];
             }
-
-            return compact('labels', 'bookings', 'requests', 'jobOrders');
-        }
-
-        if ($period === 'month') {
+        } elseif ($period === 'month') {
             $start = now()->subDays(29)->startOfDay();
-
-            $bookingCounts = $this->countByDate(Booking::class, $dayExpression, $start);
-            $requestCounts = $this->countByDate(ServiceRequest::class, $dayExpression, $start);
-            $jobOrderCounts = $this->countByDate(JobOrder::class, $dayExpression, $start);
+            $expression = $dayExpression;
+            $buckets = [];
 
             for ($i = 5; $i >= 0; $i--) {
                 $bucketEnd = now()->subDays($i * 5);
                 $bucketStart = $bucketEnd->copy()->subDays(4);
+                $keys = [];
 
-                $labels[] = $bucketStart->format('M j');
-                $bookings[] = $this->sumBucket($bookingCounts, $bucketStart, $bucketEnd);
-                $requests[] = $this->sumBucket($requestCounts, $bucketStart, $bucketEnd);
-                $jobOrders[] = $this->sumBucket($jobOrderCounts, $bucketStart, $bucketEnd);
+                for ($day = $bucketStart->copy(); $day->lte($bucketEnd); $day = $day->addDay()) {
+                    $keys[] = $day->format('Y-m-d');
+                }
+
+                $buckets[] = ['label' => $bucketStart->format('M j'), 'keys' => $keys];
             }
+        } else {
+            $start = now()->subMonths(11)->startOfMonth();
+            $expression = $monthExpression;
+            $buckets = [];
 
-            return compact('labels', 'bookings', 'requests', 'jobOrders');
+            for ($i = 11; $i >= 0; $i--) {
+                $month = now()->subMonths($i);
+                $buckets[] = ['label' => $month->format('M'), 'keys' => [$month->format('Y-m')]];
+            }
         }
 
-        $start = now()->subMonths(11)->startOfMonth();
+        $counts = [];
 
-        $bookingCounts = $this->countByDate(Booking::class, $monthExpression, $start);
-        $requestCounts = $this->countByDate(ServiceRequest::class, $monthExpression, $start);
-        $jobOrderCounts = $this->countByDate(JobOrder::class, $monthExpression, $start);
-
-        for ($i = 11; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
-            $key = $month->format('Y-m');
-
-            $labels[] = $month->format('M');
-            $bookings[] = (int) $bookingCounts->get($key, 0);
-            $requests[] = (int) $requestCounts->get($key, 0);
-            $jobOrders[] = (int) $jobOrderCounts->get($key, 0);
+        foreach ($sources as $key => $builder) {
+            $counts[$key] = $this->countBy($builder, $expression, $start);
         }
 
-        return compact('labels', 'bookings', 'requests', 'jobOrders');
+        $labels = [];
+        $series = array_fill_keys(array_keys($sources), []);
+
+        foreach ($buckets as $bucket) {
+            $labels[] = $bucket['label'];
+
+            foreach (array_keys($sources) as $key) {
+                $total = 0;
+
+                foreach ($bucket['keys'] as $bucketKey) {
+                    $total += (int) $counts[$key]->get($bucketKey, 0);
+                }
+
+                $series[$key][] = $total;
+            }
+        }
+
+        return ['labels' => $labels] + $series;
     }
 
     /**
-     * Count model rows grouped by a driver-specific date expression.
+     * Count builder rows grouped by a driver-specific date expression.
      *
      * @return Collection<string, int>
      */
-    private function countByDate(string $model, string $dateExpression, CarbonInterface $start): Collection
+    private function countBy(EloquentBuilder $builder, string $dateExpression, CarbonInterface $start): Collection
     {
-        return $model::query()
+        return $builder
             ->where('created_at', '>=', $start)
             ->toBase()
             ->selectRaw("{$dateExpression} as bucket, COUNT(*) as total")
             ->groupBy('bucket')
             ->pluck('total', 'bucket');
-    }
-
-    /**
-     * Sum per-day counts across a bucket range.
-     *
-     * @param  Collection<string, int>  $counts
-     */
-    private function sumBucket(Collection $counts, CarbonInterface $start, CarbonInterface $end): int
-    {
-        $total = 0;
-
-        for ($day = $start->copy(); $day->lte($end); $day = $day->addDay()) {
-            $total += (int) $counts->get($day->format('Y-m-d'), 0);
-        }
-
-        return $total;
     }
 }
