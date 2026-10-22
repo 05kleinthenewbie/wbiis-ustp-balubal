@@ -192,14 +192,14 @@ test('admin can create an item with an expiration type', function () {
             inventoryItemPayload([
                 'property_no' => 'PROP-EXP-TYPE-1',
                 'category' => 'Antivirus Licenses',
-                'expiration_type' => 'License Expiration',
+                'expiration_type' => 'Expiration Date',
             ]),
         )
         ->assertRedirect(route('inventory.index'));
 
     $this->assertDatabaseHas('inventory_items', [
         'property_no' => 'PROP-EXP-TYPE-1',
-        'expiration_type' => 'License Expiration',
+        'expiration_type' => 'Expiration Date',
     ]);
 });
 
@@ -217,13 +217,27 @@ test('expiration type must be a supported value', function () {
         ->assertSessionHasErrors('expiration_type');
 });
 
+test('removed expiration types are rejected', function () {
+    $admin = inventoryItemAdmin();
+
+    $this->actingAs($admin)
+        ->post(
+            route('inventory.store'),
+            inventoryItemPayload([
+                'property_no' => 'PROP-EXP-TYPE-3',
+                'expiration_type' => 'License Expiration',
+            ]),
+        )
+        ->assertSessionHasErrors('expiration_type');
+});
+
 test('admin can view the expiration monitor', function () {
     $admin = inventoryItemAdmin();
 
     InventoryItem::factory()->create([
         'property_no' => 'PROP-EXP-MON-1',
         'expiration_date' => now()->addDays(10)->toDateString(),
-        'expiration_type' => 'License Expiration',
+        'expiration_type' => 'Shelf Life',
     ]);
 
     $this->actingAs($admin)
@@ -232,7 +246,7 @@ test('admin can view the expiration monitor', function () {
         ->assertInertia(fn ($page) => $page
             ->component('inventory/expirations')
             ->has('items')
-            ->where('items.0.expiration_type', 'License Expiration'));
+            ->where('items.0.expiration_type', 'Shelf Life'));
 });
 
 test('non admins cannot view the expiration monitor', function () {

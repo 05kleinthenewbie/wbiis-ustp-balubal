@@ -19,6 +19,8 @@ type UserRow = {
 };
 
 type Props = {
+    status?: string | null;
+    error?: string | null;
     pendingUsers: UserRow[];
     activeUsers: UserRow[];
     deactivatedUsers: UserRow[];
@@ -31,6 +33,8 @@ const roleLabels: Record<string, string> = {
 };
 
 export default function UsersIndex({
+    status,
+    error,
     pendingUsers,
     activeUsers,
     deactivatedUsers,
@@ -120,6 +124,18 @@ export default function UsersIndex({
                             Review and approve new account registrations.
                         </p>
                     </div>
+
+                    {status && (
+                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                            {status}
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            {error}
+                        </div>
+                    )}
 
                     {/* Active Users */}
                     <section className="relative">

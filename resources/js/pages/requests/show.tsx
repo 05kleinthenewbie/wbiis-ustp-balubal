@@ -527,7 +527,14 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                                     </Button>
 
                                     <Button
-                                        disabled={processing}
+                                        disabled={
+                                            processing || priority === ''
+                                        }
+                                        title={
+                                            priority === ''
+                                                ? 'Select a priority level first'
+                                                : undefined
+                                        }
                                         onClick={() => updateStatus('approved')}
                                         className="bg-ustp-gold text-ustp-navy hover:bg-ustp-gold-dark hover:text-white"
                                     >

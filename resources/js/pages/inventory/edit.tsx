@@ -201,24 +201,12 @@ const categoryColors: Record<string, string> = {
 
 function suggestExpirationType(category: string): string {
     switch (category) {
-        case 'Printer Ink':
-            return 'Expiration / Use-by Date';
         case 'Toner Cartridges':
-            return 'Recommended Shelf Life';
         case 'Thermal Paste':
-            return 'Shelf Life';
-        case 'Cleaning Supplies':
-            return 'Expiration Date';
         case 'Batteries':
-            return 'Replacement / Service Life';
-        case 'Antivirus Licenses':
-            return 'License Expiration';
-        case 'Software Subscriptions':
-            return 'Subscription Expiration';
-        case 'SSL/TLS Certificates':
-            return 'Certificate Expiration';
+            return 'Shelf Life';
         default:
-            return 'Warranty Expiration';
+            return 'Expiration Date';
     }
 }
 

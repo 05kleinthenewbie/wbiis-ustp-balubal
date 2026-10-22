@@ -33,6 +33,8 @@ class UserController extends Controller
         $this->ensureAdmin();
 
         return Inertia::render('users/index', [
+            'status' => session('status'),
+            'error' => session('error'),
             'pendingUsers' => User::with('role')
                 ->where('status', 'pending')
                 ->latest()
@@ -171,13 +173,5 @@ class UserController extends Controller
         );
 
         return redirect()->back()->with('status', 'User account updated successfully.');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

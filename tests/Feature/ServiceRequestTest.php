@@ -300,6 +300,34 @@ test('approving a pending request creates a job order and queues the approval em
     });
 });
 
+test('approving a pending request requires a priority level', function () {
+    $admin = srAdmin();
+    $student = srStudent();
+    $serviceRequest = ServiceRequest::create([
+        'user_id' => $student->id,
+        'problem_description' => 'Please create my email account.',
+        'request_status' => 'pending',
+    ]);
+
+    $this->actingAs($admin)
+        ->put(route('requests.update', $serviceRequest), [
+            'request_status' => 'approved',
+        ])
+        ->assertSessionHasErrors('priority_level');
+
+    expect($serviceRequest->fresh()->request_status)->toBe('pending');
+
+    $this->actingAs($admin)
+        ->put(route('requests.update', $serviceRequest), [
+            'request_status' => 'approved',
+            'priority_level' => 'urgent',
+        ])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect($serviceRequest->fresh()->priority_level)->toBe('urgent');
+});
+
 test('rejecting a pending request queues the rejection email', function () {
     Mail::fake();
 

@@ -196,7 +196,7 @@ class ServiceRequestController extends Controller
 
         $validated = $request->validate([
             'request_status' => ['required', 'in:pending,approved,rejected,completed'],
-            'priority_level' => ['nullable', 'in:low,medium,high,urgent'],
+            'priority_level' => ['nullable', 'required_if:request_status,approved', 'in:low,medium,high,urgent'],
             'rejection_reason' => ['nullable', 'string'],
         ]);
 

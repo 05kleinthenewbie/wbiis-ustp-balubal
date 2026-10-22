@@ -4,23 +4,20 @@ import {
     CalendarDays,
     Check,
     Circle,
+    FileQuestion,
     Monitor,
     Package,
+    Search,
     Send,
     ShieldAlert,
     UserMinus,
+    X,
 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { BackButton } from '@/components/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -36,6 +33,31 @@ type Props = {
 
 const fieldClass =
     'border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20';
+
+function equipmentLabel(item: InventoryItemOption): string {
+    return `${item.item_name} (${item.property_no})`;
+}
+
+function highlightMatch(value: string, query: string) {
+    const trimmed = query.trim();
+    const index = trimmed
+        ? value.toLowerCase().indexOf(trimmed.toLowerCase())
+        : -1;
+
+    if (index < 0) {
+        return value;
+    }
+
+    return (
+        <>
+            {value.slice(0, index)}
+            <mark className="bg-transparent font-semibold text-ustp-navy">
+                {value.slice(index, index + trimmed.length)}
+            </mark>
+            {value.slice(index + trimmed.length)}
+        </>
+    );
+}
 
 const incidentTypes = [
     {
@@ -58,23 +80,68 @@ const incidentTypes = [
         icon: ShieldAlert,
         hint: 'Hazards around ICT gear',
     },
+    {
+        value: 'Others',
+        icon: FileQuestion,
+        hint: 'Anything not listed above',
+    },
 ];
 
-const NONE_VALUE = '__none__';
-
 export default function IncidentsCreate({ inventoryItems }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, transform } = useForm({
         incident_type: '',
+        incident_type_other: '',
         item_id: '',
         incident_description: '',
         incident_date: '',
     });
 
+    const [equipmentQuery, setEquipmentQuery] = useState('');
+    const [equipmentOpen, setEquipmentOpen] = useState(false);
+    const [activeEquipment, setActiveEquipment] = useState(0);
+    const equipmentRef = useRef<HTMLDivElement>(null);
+
+    const selectedEquipment =
+        inventoryItems.find((item) => String(item.id) === data.item_id) ?? null;
+
+    const equipmentMatches = useMemo(() => {
+        const query = equipmentQuery.trim().toLowerCase();
+        const list = query
+            ? inventoryItems.filter(
+                  (item) =>
+                      item.item_name.toLowerCase().includes(query) ||
+                      item.property_no.toLowerCase().includes(query),
+              )
+            : inventoryItems;
+
+        return list.slice(0, 8);
+    }, [equipmentQuery, inventoryItems]);
+
+    const showEquipmentSuggestions =
+        equipmentOpen && equipmentMatches.length > 0;
+
+    useEffect(() => {
+        function handleOutsideClick(event: MouseEvent) {
+            if (!equipmentRef.current?.contains(event.target as Node)) {
+                setEquipmentOpen(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleOutsideClick);
+
+        return () =>
+            document.removeEventListener('mousedown', handleOutsideClick);
+    }, []);
+
+    const isOthers = data.incident_type === 'Others';
     const descriptionLength = data.incident_description.trim().length;
-    const canSubmit = data.incident_type !== '' && descriptionLength > 0;
+    const otherLength = data.incident_type_other.trim().length;
+    const typeDone =
+        data.incident_type !== '' && (!isOthers || otherLength > 0);
+    const canSubmit = typeDone && descriptionLength > 0;
 
     const checklist = [
-        { label: 'Incident type selected', done: data.incident_type !== '' },
+        { label: 'Incident type selected', done: typeDone },
         {
             label: 'Description provided',
             done: descriptionLength > 0,
@@ -83,7 +150,81 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        transform((formData) => ({
+            ...formData,
+            incident_type:
+                formData.incident_type === 'Others'
+                    ? formData.incident_type_other.trim()
+                    : formData.incident_type,
+        }));
         post('/incidents');
+    }
+
+    function chooseEquipment(item: InventoryItemOption) {
+        setData('item_id', String(item.id));
+        setEquipmentQuery(equipmentLabel(item));
+        setEquipmentOpen(false);
+        setActiveEquipment(0);
+    }
+
+    function clearEquipment() {
+        setData('item_id', '');
+        setEquipmentQuery('');
+        setEquipmentOpen(false);
+        setActiveEquipment(0);
+    }
+
+    function handleEquipmentChange(value: string) {
+        setEquipmentQuery(value);
+        setEquipmentOpen(true);
+        setActiveEquipment(0);
+
+        if (selectedEquipment && equipmentLabel(selectedEquipment) !== value) {
+            setData('item_id', '');
+        }
+    }
+
+    function handleEquipmentKeyDown(
+        event: React.KeyboardEvent<HTMLInputElement>,
+    ) {
+        if (event.key === 'Escape') {
+            setEquipmentOpen(false);
+
+            return;
+        }
+
+        if (!showEquipmentSuggestions) {
+            return;
+        }
+
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            setActiveEquipment(
+                (index) => (index + 1) % equipmentMatches.length,
+            );
+
+            return;
+        }
+
+        if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            setActiveEquipment(
+                (index) =>
+                    (index - 1 + equipmentMatches.length) %
+                    equipmentMatches.length,
+            );
+
+            return;
+        }
+
+        if (event.key === 'Enter' && equipmentQuery.trim()) {
+            event.preventDefault();
+            const picked = equipmentMatches[activeEquipment];
+
+            if (picked) {
+                chooseEquipment(picked);
+            }
+        }
     }
 
     return (
@@ -198,6 +339,40 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
                                 })}
                             </div>
 
+                            {isOthers && (
+                                <div className="mt-3 grid gap-2">
+                                    <label
+                                        htmlFor="incident_type_other"
+                                        className="text-xs font-medium text-slate-600"
+                                    >
+                                        Specify incident type{' '}
+                                        <span className="text-red-500">*</span>
+                                    </label>
+
+                                    <Input
+                                        id="incident_type_other"
+                                        type="text"
+                                        maxLength={100}
+                                        placeholder="e.g., Water spill, Power outage"
+                                        value={data.incident_type_other}
+                                        onChange={(
+                                            e: React.ChangeEvent<HTMLInputElement>,
+                                        ) =>
+                                            setData(
+                                                'incident_type_other',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className={`h-10 text-sm ${fieldClass}`}
+                                    />
+
+                                    <p className="text-[11px] text-slate-400">
+                                        This will be saved as the incident type
+                                        of your report.
+                                    </p>
+                                </div>
+                            )}
+
                             {errors.incident_type && (
                                 <p className="mt-3 text-xs text-red-600">
                                     {errors.incident_type}
@@ -271,39 +446,138 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
                                         </span>
                                     </label>
 
-                                    <Select
-                                        value={data.item_id || NONE_VALUE}
-                                        onValueChange={(value) =>
-                                            setData(
-                                                'item_id',
-                                                value === NONE_VALUE
-                                                    ? ''
-                                                    : value,
-                                            )
-                                        }
+                                    <div
+                                        ref={equipmentRef}
+                                        className="relative"
                                     >
-                                        <SelectTrigger
-                                            id="item_id"
-                                            className={`h-10 w-full text-sm ${fieldClass} ${errors.item_id ? 'border-red-300 focus-visible:border-red-400 focus-visible:ring-red-200' : ''}`}
-                                        >
-                                            <SelectValue placeholder="Select equipment" />
-                                        </SelectTrigger>
+                                        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
 
-                                        <SelectContent className="max-h-64 border-slate-200 bg-white text-slate-800">
-                                            <SelectItem value={NONE_VALUE}>
-                                                None — no linked equipment
-                                            </SelectItem>
-                                            {inventoryItems.map((item) => (
-                                                <SelectItem
-                                                    key={item.id}
-                                                    value={String(item.id)}
-                                                >
-                                                    {item.item_name} (
-                                                    {item.property_no})
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        <Input
+                                            id="item_id"
+                                            type="text"
+                                            role="combobox"
+                                            aria-expanded={
+                                                showEquipmentSuggestions
+                                            }
+                                            aria-controls="equipment-suggestions"
+                                            aria-autocomplete="list"
+                                            aria-activedescendant={
+                                                showEquipmentSuggestions
+                                                    ? `equipment-suggestion-${activeEquipment}`
+                                                    : undefined
+                                            }
+                                            autoComplete="off"
+                                            placeholder="Type to search by name or property no..."
+                                            value={equipmentQuery}
+                                            onChange={(e) =>
+                                                handleEquipmentChange(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            onFocus={() =>
+                                                setEquipmentOpen(true)
+                                            }
+                                            onKeyDown={handleEquipmentKeyDown}
+                                            className={`h-10 w-full pr-9 pl-9 text-sm ${fieldClass} ${errors.item_id ? 'border-red-300 focus-visible:border-red-400 focus-visible:ring-red-200' : ''}`}
+                                        />
+
+                                        {equipmentQuery && (
+                                            <button
+                                                type="button"
+                                                onClick={clearEquipment}
+                                                aria-label="Clear equipment"
+                                                className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600"
+                                            >
+                                                <X className="size-3.5" />
+                                            </button>
+                                        )}
+
+                                        {showEquipmentSuggestions && (
+                                            <ul
+                                                id="equipment-suggestions"
+                                                role="listbox"
+                                                className="absolute top-full right-0 left-0 z-20 mt-1.5 max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-200/70"
+                                            >
+                                                {!equipmentQuery.trim() && (
+                                                    <li
+                                                        role="option"
+                                                        aria-selected={false}
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            onMouseDown={(
+                                                                event,
+                                                            ) =>
+                                                                event.preventDefault()
+                                                            }
+                                                            onClick={
+                                                                clearEquipment
+                                                            }
+                                                            className="flex w-full items-center gap-2 border-b border-slate-100 px-3 py-2 text-left text-xs text-slate-500 hover:bg-slate-50"
+                                                        >
+                                                            <X className="size-3.5 shrink-0 text-slate-400" />
+                                                            None — no linked
+                                                            equipment
+                                                        </button>
+                                                    </li>
+                                                )}
+
+                                                {equipmentMatches.map(
+                                                    (item, index) => (
+                                                        <li
+                                                            key={item.id}
+                                                            id={`equipment-suggestion-${index}`}
+                                                            role="option"
+                                                            aria-selected={
+                                                                index ===
+                                                                activeEquipment
+                                                            }
+                                                        >
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={(
+                                                                    event,
+                                                                ) =>
+                                                                    event.preventDefault()
+                                                                }
+                                                                onMouseEnter={() =>
+                                                                    setActiveEquipment(
+                                                                        index,
+                                                                    )
+                                                                }
+                                                                onClick={() =>
+                                                                    chooseEquipment(
+                                                                        item,
+                                                                    )
+                                                                }
+                                                                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs ${
+                                                                    index ===
+                                                                    activeEquipment
+                                                                        ? 'bg-slate-100'
+                                                                        : 'bg-white'
+                                                                }`}
+                                                            >
+                                                                <Package className="size-3.5 shrink-0 text-slate-400" />
+
+                                                                <span className="min-w-0 flex-1 truncate text-slate-700">
+                                                                    {highlightMatch(
+                                                                        item.item_name,
+                                                                        equipmentQuery,
+                                                                    )}
+                                                                </span>
+
+                                                                <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-400">
+                                                                    {
+                                                                        item.property_no
+                                                                    }
+                                                                </span>
+                                                            </button>
+                                                        </li>
+                                                    ),
+                                                )}
+                                            </ul>
+                                        )}
+                                    </div>
 
                                     {errors.item_id && (
                                         <p className="text-xs text-red-600">

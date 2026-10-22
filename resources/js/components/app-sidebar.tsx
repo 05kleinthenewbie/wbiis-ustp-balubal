@@ -85,7 +85,7 @@ export function AppSidebar() {
                     icon: Box,
                 },
                 {
-                    title: 'Expiration Monitor',
+                    title: 'Monitor Expiration',
                     href: '/inventory/expirations',
                     icon: CalendarClock,
                 },

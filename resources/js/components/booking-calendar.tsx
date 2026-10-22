@@ -61,11 +61,6 @@ const MONTHS = [
     'December',
 ];
 
-const statusDot: Record<string, string> = {
-    approved: 'bg-emerald-500',
-    pending: 'bg-amber-500',
-};
-
 const statusBadge: Record<string, string> = {
     approved: 'border-emerald-200 bg-emerald-50 text-emerald-700',
     pending: 'border-amber-200 bg-amber-50 text-amber-700',
@@ -357,6 +352,9 @@ export default function BookingCalendar({
                                         isToday &&
                                             !isSelected &&
                                             'border-ustp-gold/60 bg-ustp-gold/5',
+                                        dayItems.length > 0 &&
+                                            !isSelected &&
+                                            'border-emerald-300 bg-emerald-50 hover:border-emerald-400 hover:bg-emerald-100',
                                     )}
                                 >
                                     <span
@@ -371,36 +369,16 @@ export default function BookingCalendar({
                                     </span>
 
                                     {dayItems.length > 0 ? (
-                                        <div className="mt-auto flex items-center gap-1">
-                                            {dayItems
-                                                .slice(0, 3)
-                                                .map((booking) => (
-                                                    <span
-                                                        key={booking.id}
-                                                        className={cn(
-                                                            'size-1.5 rounded-full',
-                                                            statusDot[
-                                                                booking
-                                                                    .booking_status
-                                                            ] ??
-                                                                'bg-slate-400',
-                                                        )}
-                                                    />
-                                                ))}
-
-                                            {dayItems.length > 3 && (
-                                                <span
-                                                    className={cn(
-                                                        'text-[9px] font-medium',
-                                                        isSelected
-                                                            ? 'text-white/70'
-                                                            : 'text-slate-400',
-                                                    )}
-                                                >
-                                                    +{dayItems.length - 3}
-                                                </span>
+                                        <span
+                                            className={cn(
+                                                'mt-auto text-[10px] font-semibold',
+                                                isSelected
+                                                    ? 'text-white/80'
+                                                    : 'text-emerald-700',
                                             )}
-                                        </div>
+                                        >
+                                            Booked
+                                        </span>
                                     ) : (
                                         <span
                                             className={cn(
@@ -419,14 +397,10 @@ export default function BookingCalendar({
                     </div>
 
                     <div className="mt-3 flex flex-wrap items-center gap-4 text-[11px] text-slate-400">
-                        <span className="flex items-center gap-1.5">
-                            <span className="size-2 rounded-full bg-amber-500" />
-                            Pending
+                        <span className="rounded-md border border-emerald-300 bg-emerald-50 px-1.5 py-0.5 font-semibold text-emerald-700">
+                            Booked
                         </span>
-                        <span className="flex items-center gap-1.5">
-                            <span className="size-2 rounded-full bg-emerald-500" />
-                            Approved
-                        </span>
+                        <span className="text-emerald-600">Free</span>
                         <span className="flex items-center gap-1.5">
                             <span className="size-2 rounded-full border border-ustp-gold/60 bg-ustp-gold/10" />
                             Today

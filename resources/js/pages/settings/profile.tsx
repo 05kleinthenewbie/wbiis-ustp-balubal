@@ -44,6 +44,9 @@ export default function Profile({
     const getInitials = useInitials();
     const role = (auth.user.role as { role_name?: string } | undefined)
         ?.role_name;
+    const isStudent = role === 'student';
+    const department =
+        typeof auth.user.department === 'string' ? auth.user.department : null;
     const isVerified = auth.user.email_verified_at !== null;
 
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -311,7 +314,7 @@ export default function Profile({
                                     <p className="text-sm text-slate-500">
                                         {editing
                                             ? 'Update your name and email address'
-                                            : 'Your name and email address on file'}
+                                            : 'Your account details on file'}
                                     </p>
                                 </div>
                             </div>
@@ -355,7 +358,7 @@ export default function Profile({
                                     </div>
                                 )}
 
-                                <div className="grid gap-5 sm:grid-cols-2">
+                                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                                     <div className="grid gap-2">
                                         <Label
                                             htmlFor="name"
@@ -415,6 +418,31 @@ export default function Profile({
                                             className="mt-1"
                                             message={errors.email}
                                         />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label
+                                            htmlFor="department"
+                                            className="text-slate-700"
+                                        >
+                                            {isStudent
+                                                ? 'Program'
+                                                : 'Department'}
+                                        </Label>
+
+                                        <Input
+                                            id="department"
+                                            className="mt-1 block w-full"
+                                            value={department ?? '—'}
+                                            readOnly
+                                            disabled
+                                        />
+
+                                        <p className="text-xs text-slate-400">
+                                            {isStudent
+                                                ? 'From the ICT student list'
+                                                : 'Assigned by the ICT office'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>

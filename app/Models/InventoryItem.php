@@ -47,16 +47,8 @@ class InventoryItem extends Model
      * @var array<int, string>
      */
     public const EXPIRATION_TYPES = [
-        'Expiration / Use-by Date',
-        'Recommended Shelf Life',
-        'Replacement / Service Life',
-        'Shelf Life',
         'Expiration Date',
-        'License Expiration',
-        'Subscription Expiration',
-        'Certificate Expiration',
-        'Registration Expiration',
-        'Warranty Expiration',
+        'Shelf Life',
     ];
 
     protected $fillable = [

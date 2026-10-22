@@ -534,7 +534,7 @@ export default function InventoryIndex({
                             >
                                 <Link href="/inventory/expirations">
                                     <CalendarClock className="size-4" />
-                                    Expiration Monitor
+                                    Monitor Expiration
                                 </Link>
                             </Button>
 

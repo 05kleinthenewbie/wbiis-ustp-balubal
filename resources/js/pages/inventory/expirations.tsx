@@ -206,7 +206,7 @@ export default function InventoryExpirations({
 
     return (
         <>
-            <Head title="Expiration Monitor" />
+            <Head title="Monitor Expiration" />
 
             <div className="relative min-h-full flex-1 overflow-hidden bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-7xl space-y-6">
@@ -215,12 +215,11 @@ export default function InventoryExpirations({
                             <BackButton href="/inventory" />
 
                             <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-800 md:text-3xl">
-                                Expiration Monitor
+                                Monitor Expiration
                             </h1>
 
                             <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">
-                                Track expiring and expired ICT items — consumables,
-                                licenses, certificates, batteries, and warranties.
+                                Track expiring and expired ICT items
                             </p>
                         </div>
 

@@ -8,6 +8,13 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 type RequestService = {
     id: number;
@@ -39,15 +46,53 @@ type Props = {
     };
 };
 
-const priorityBadge: Record<string, string> = {
-    low: 'border-slate-200 bg-slate-50 text-slate-600',
-    medium: 'border-sky-200 bg-sky-50 text-sky-700',
-    high: 'border-orange-200 bg-orange-50 text-orange-600',
-    urgent: 'border-red-200 bg-red-50 text-red-600',
-};
+const priorityOptions = [
+    { value: 'low', label: 'Low' },
+    { value: 'medium', label: 'Medium' },
+    { value: 'high', label: 'High' },
+    { value: 'urgent', label: 'Urgent' },
+];
+
+function PrioritySelect({
+    value,
+    onChange,
+    disabled,
+    className,
+}: {
+    value: string;
+    onChange: (value: string) => void;
+    disabled?: boolean;
+    className?: string;
+}) {
+    return (
+        <Select value={value} onValueChange={onChange} disabled={disabled}>
+            <SelectTrigger
+                className={`h-9 border-slate-300 bg-white text-xs text-slate-700 ${className ?? ''}`}
+            >
+                <SelectValue placeholder="Select priority" />
+            </SelectTrigger>
+
+            <SelectContent className="border-slate-200 bg-white text-slate-800">
+                {priorityOptions.map((option) => (
+                    <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="text-xs"
+                    >
+                        {option.label}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    );
+}
 
 export default function RequestApprovals({ requests, stats }: Props) {
     const [processingId, setProcessingId] = useState<number | null>(null);
+    const [priorities, setPriorities] = useState<Record<number, string>>({});
+
+    const selectedPriority = (request: PendingRequest): string =>
+        priorities[request.id] ?? request.priority_level ?? '';
 
     const decide = (
         request: PendingRequest,
@@ -65,10 +110,17 @@ export default function RequestApprovals({ requests, stats }: Props) {
             }
         }
 
+        const priority = selectedPriority(request);
+
+        if (status === 'approved' && priority === '') {
+            return;
+        }
+
         router.put(
             `/requests/${request.id}`,
             {
                 request_status: status,
+                ...(status === 'approved' ? { priority_level: priority } : {}),
                 ...(rejectionReason
                     ? { rejection_reason: rejectionReason }
                     : {}),
@@ -94,8 +146,8 @@ export default function RequestApprovals({ requests, stats }: Props) {
                         </h1>
 
                         <p className="mt-1.5 max-w-xl text-sm text-slate-500">
-                            Review pending ICT service requests and approve or
-                            reject them.
+                            Review pending ICT service requests, set a priority
+                            level, then approve or reject them.
                         </p>
                     </div>
 
@@ -249,19 +301,25 @@ export default function RequestApprovals({ requests, stats }: Props) {
                                                 </td>
 
                                                 <td className="px-5 py-4">
-                                                    <span
-                                                        className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium capitalize ${
-                                                            priorityBadge[
-                                                                request
-                                                                    .priority_level ??
-                                                                    ''
-                                                            ] ??
-                                                            'border-slate-200 bg-slate-50 text-slate-500'
-                                                        }`}
-                                                    >
-                                                        {request.priority_level ??
-                                                            'Not set'}
-                                                    </span>
+                                                    <PrioritySelect
+                                                        value={selectedPriority(
+                                                            request,
+                                                        )}
+                                                        onChange={(value) =>
+                                                            setPriorities(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [request.id]:
+                                                                        value,
+                                                                }),
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            processingId ===
+                                                            request.id
+                                                        }
+                                                        className="w-36"
+                                                    />
                                                 </td>
 
                                                 <td className="px-5 py-4">
@@ -271,7 +329,17 @@ export default function RequestApprovals({ requests, stats }: Props) {
                                                             size="sm"
                                                             disabled={
                                                                 processingId ===
-                                                                request.id
+                                                                    request.id ||
+                                                                selectedPriority(
+                                                                    request,
+                                                                ) === ''
+                                                            }
+                                                            title={
+                                                                selectedPriority(
+                                                                    request,
+                                                                ) === ''
+                                                                    ? 'Select a priority level first'
+                                                                    : undefined
                                                             }
                                                             onClick={() =>
                                                                 decide(
@@ -341,19 +409,6 @@ export default function RequestApprovals({ requests, stats }: Props) {
                                                     )}
                                                 </p>
                                             </div>
-                                            <span
-                                                className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${
-                                                    priorityBadge[
-                                                        request
-                                                            .priority_level ??
-                                                            ''
-                                                    ] ??
-                                                    'border-slate-200 bg-slate-50 text-slate-500'
-                                                }`}
-                                            >
-                                                {request.priority_level ??
-                                                    'Not set'}
-                                            </span>
                                         </div>
 
                                         <p className="mt-3 text-sm text-slate-700">
@@ -376,12 +431,37 @@ export default function RequestApprovals({ requests, stats }: Props) {
                                             )}
                                         </div>
 
-                                        <div className="mt-4 flex items-center gap-2">
+                                        <PrioritySelect
+                                            value={selectedPriority(request)}
+                                            onChange={(value) =>
+                                                setPriorities((prev) => ({
+                                                    ...prev,
+                                                    [request.id]: value,
+                                                }))
+                                            }
+                                            disabled={
+                                                processingId === request.id
+                                            }
+                                            className="mt-4 w-full"
+                                        />
+
+                                        <div className="mt-3 flex items-center gap-2">
                                             <Button
                                                 type="button"
                                                 size="sm"
                                                 disabled={
-                                                    processingId === request.id
+                                                    processingId ===
+                                                        request.id ||
+                                                    selectedPriority(
+                                                        request,
+                                                    ) === ''
+                                                }
+                                                title={
+                                                    selectedPriority(
+                                                        request,
+                                                    ) === ''
+                                                        ? 'Select a priority level first'
+                                                        : undefined
                                                 }
                                                 onClick={() =>
                                                     decide(request, 'approved')
