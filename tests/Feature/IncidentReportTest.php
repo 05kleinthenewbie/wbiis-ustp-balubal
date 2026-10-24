@@ -135,6 +135,7 @@ test('admin can update an incident status and assign liability', function () {
         'status' => 'under_review',
         'liability_user_id' => $liable->id,
         'liability_description' => 'Admitted unauthorised use.',
+        'liability_amount' => '1500.50',
     ]);
 
     $response->assertRedirect();
@@ -149,6 +150,7 @@ test('admin can update an incident status and assign liability', function () {
         'incident_id' => $incident->id,
         'user_id' => $liable->id,
         'liability_status' => 'pending',
+        'liability_amount' => 1500.50,
     ]);
 });
 
@@ -157,10 +159,56 @@ test('incident update validates the status value', function () {
     $incident = makeIncident(incidentFaculty());
 
     $response = $this->actingAs($admin)->put(route('incidents.update', $incident), [
-        'status' => 'closed',
+        'status' => 'archived',
     ]);
 
     $response->assertSessionHasErrors('status');
+});
+
+test('admin can close an incident', function () {
+    $admin = incidentAdmin();
+    $incident = makeIncident(incidentFaculty());
+
+    $this->actingAs($admin)
+        ->put(route('incidents.update', $incident), ['status' => 'closed'])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('incident_reports', [
+        'id' => $incident->id,
+        'status' => 'closed',
+    ]);
+});
+
+test('liability amount is required when assigning a liability', function () {
+    $admin = incidentAdmin();
+    $liable = incidentFaculty();
+    $incident = makeIncident(incidentFaculty());
+
+    $this->actingAs($admin)
+        ->put(route('incidents.update', $incident), [
+            'status' => 'under_review',
+            'liability_user_id' => $liable->id,
+        ])
+        ->assertSessionHasErrors('liability_amount');
+});
+
+test('faculty cannot view an incident reported by someone else', function () {
+    $faculty = incidentFaculty();
+    $incident = makeIncident(incidentFaculty());
+
+    $this->actingAs($faculty)
+        ->get(route('incidents.show', $incident))
+        ->assertForbidden();
+});
+
+test('admins can view any incident', function () {
+    $admin = incidentAdmin();
+    $incident = makeIncident(incidentFaculty());
+
+    $this->actingAs($admin)
+        ->get(route('incidents.show', $incident))
+        ->assertOk();
 });
 
 test('admin show page includes selectable users', function () {

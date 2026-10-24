@@ -65,3 +65,75 @@ test('faculty and students cannot view the booking approvals queue', function ()
     $this->actingAs($faculty)->get('/bookings/approvals')->assertForbidden();
     $this->actingAs($student)->get('/bookings/approvals')->assertForbidden();
 });
+
+test('booking stats include completed bookings', function () {
+    $admin = bookingPagesUser('ict_admin');
+    $faculty = bookingPagesUser('faculty_staff');
+    $facility = bookingPagesFacility();
+    bookingPagesBooking($faculty, $facility, 'completed', '2020-01-10');
+
+    $this->actingAs($admin)
+        ->get('/bookings')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('bookings/index')
+            ->where('stats.completed', 1));
+});
+
+test('the complete past bookings command only completes past approved bookings', function () {
+    $faculty = bookingPagesUser('faculty_staff');
+    $facility = bookingPagesFacility();
+    $pastApproved = bookingPagesBooking($faculty, $facility, 'approved', '2020-01-10');
+    $pastPending = bookingPagesBooking($faculty, $facility, 'pending', '2020-01-11');
+    $futureApproved = Booking::create([
+        'user_id' => $faculty->id,
+        'facility_id' => $facility->id,
+        'booking_date' => '2099-03-14',
+        'start_time' => '08:00',
+        'end_time' => '10:00',
+        'purpose' => 'Future lab session',
+        'booking_status' => 'approved',
+    ]);
+
+    $this->artisan('bookings:complete-past')->assertSuccessful();
+
+    expect($pastApproved->fresh()->booking_status)->toBe('completed')
+        ->and($pastPending->fresh()->booking_status)->toBe('pending')
+        ->and($futureApproved->fresh()->booking_status)->toBe('approved');
+});
+
+test('admins can mark an approved booking as completed', function () {
+    $admin = bookingPagesUser('ict_admin');
+    $faculty = bookingPagesUser('faculty_staff');
+    $facility = bookingPagesFacility();
+    $booking = bookingPagesBooking($faculty, $facility, 'approved');
+
+    $this->actingAs($admin)
+        ->put("/bookings/{$booking->id}", ['booking_status' => 'completed'])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect($booking->fresh()->booking_status)->toBe('completed');
+});
+
+test('faculty cannot view another users booking', function () {
+    $faculty = bookingPagesUser('faculty_staff');
+    $other = bookingPagesUser('faculty_staff');
+    $facility = bookingPagesFacility();
+    $booking = bookingPagesBooking($other, $facility, 'approved');
+
+    $this->actingAs($faculty)
+        ->get("/bookings/{$booking->id}")
+        ->assertForbidden();
+});
+
+test('admins can view any booking', function () {
+    $admin = bookingPagesUser('ict_admin');
+    $faculty = bookingPagesUser('faculty_staff');
+    $facility = bookingPagesFacility();
+    $booking = bookingPagesBooking($faculty, $facility, 'approved');
+
+    $this->actingAs($admin)
+        ->get("/bookings/{$booking->id}")
+        ->assertOk();
+});

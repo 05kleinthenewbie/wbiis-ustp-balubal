@@ -37,6 +37,41 @@ function makeAssignableJobOrder(): JobOrder
     ]);
 }
 
+test('only requesters assigned technicians and admins can view a job order', function () {
+    $requester = assignTechUser('faculty_staff');
+    $other = assignTechUser('faculty_staff');
+    $technician = assignTechUser('ict_admin');
+    $admin = assignTechUser('ict_admin');
+
+    $serviceRequest = ServiceRequest::create([
+        'user_id' => $requester->id,
+        'problem_description' => 'Network cable is damaged.',
+        'request_status' => 'approved',
+    ]);
+
+    $jobOrder = JobOrder::create([
+        'request_id' => $serviceRequest->id,
+        'status' => 'open',
+        'assigned_to' => $technician->id,
+    ]);
+
+    $this->actingAs($requester)
+        ->get(route('job-orders.show', $jobOrder))
+        ->assertOk();
+
+    $this->actingAs($technician)
+        ->get(route('job-orders.show', $jobOrder))
+        ->assertOk();
+
+    $this->actingAs($admin)
+        ->get(route('job-orders.show', $jobOrder))
+        ->assertOk();
+
+    $this->actingAs($other)
+        ->get(route('job-orders.show', $jobOrder))
+        ->assertForbidden();
+});
+
 test('admins can add a technician to a job order from the assignments board', function () {
     Mail::fake();
 

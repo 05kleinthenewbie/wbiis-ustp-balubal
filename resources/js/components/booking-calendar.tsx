@@ -64,6 +64,7 @@ const MONTHS = [
 const statusBadge: Record<string, string> = {
     approved: 'border-emerald-200 bg-emerald-50 text-emerald-700',
     pending: 'border-amber-200 bg-amber-50 text-amber-700',
+    completed: 'border-sky-200 bg-sky-50 text-sky-700',
 };
 
 function pad(value: number): string {

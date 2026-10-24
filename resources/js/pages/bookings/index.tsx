@@ -22,7 +22,11 @@ type BookingItem = {
     booking_status: string;
     purpose: string | null;
     user: { name: string };
-    facility: { facility_name: string; facility_type: string; location: string | null };
+    facility: {
+        facility_name: string;
+        facility_type: string;
+        location: string | null;
+    };
 };
 
 type Props = {
@@ -32,6 +36,7 @@ type Props = {
         pending: number;
         approved: number;
         rejected: number;
+        completed: number;
     };
     calendarBookings: CalendarBooking[];
     facilities: {
@@ -45,6 +50,7 @@ const statusBadge: Record<string, string> = {
     approved: 'border-emerald-200 bg-emerald-50 text-emerald-700',
     rejected: 'border-rose-200 bg-rose-50 text-rose-600',
     cancelled: 'border-slate-200 bg-slate-50 text-slate-600',
+    completed: 'border-sky-200 bg-sky-50 text-sky-700',
 };
 
 const facilityTypeLabel: Record<string, string> = {
@@ -75,9 +81,34 @@ export default function BookingsIndex({
 
     const statusTabs = [
         { key: 'all', label: 'All', count: stats.total },
-        { key: 'pending', label: 'Pending', count: stats.pending, icon: Clock3, color: 'text-amber-600' },
-        { key: 'approved', label: 'Approved', count: stats.approved, icon: CheckCircle2, color: 'text-emerald-600' },
-        { key: 'rejected', label: 'Rejected', count: stats.rejected, icon: XCircle, color: 'text-rose-600' },
+        {
+            key: 'pending',
+            label: 'Pending',
+            count: stats.pending,
+            icon: Clock3,
+            color: 'text-amber-600',
+        },
+        {
+            key: 'approved',
+            label: 'Approved',
+            count: stats.approved,
+            icon: CheckCircle2,
+            color: 'text-emerald-600',
+        },
+        {
+            key: 'completed',
+            label: 'Completed',
+            count: stats.completed,
+            icon: CheckCircle2,
+            color: 'text-sky-600',
+        },
+        {
+            key: 'rejected',
+            label: 'Rejected',
+            count: stats.rejected,
+            icon: XCircle,
+            color: 'text-rose-600',
+        },
     ];
 
     return (
@@ -111,20 +142,55 @@ export default function BookingsIndex({
                     </div>
 
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
                         {[
-                            { label: 'Total Bookings', value: stats.total, icon: Calendar, color: 'text-ustp-navy', bg: 'bg-ustp-navy/5' },
-                            { label: 'Pending', value: stats.pending, icon: Clock3, color: 'text-amber-600', bg: 'bg-amber-50' },
-                            { label: 'Approved', value: stats.approved, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                            { label: 'Rejected', value: stats.rejected, icon: XCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
+                            {
+                                label: 'Total Bookings',
+                                value: stats.total,
+                                icon: Calendar,
+                                color: 'text-ustp-navy',
+                                bg: 'bg-ustp-navy/5',
+                            },
+                            {
+                                label: 'Pending',
+                                value: stats.pending,
+                                icon: Clock3,
+                                color: 'text-amber-600',
+                                bg: 'bg-amber-50',
+                            },
+                            {
+                                label: 'Approved',
+                                value: stats.approved,
+                                icon: CheckCircle2,
+                                color: 'text-emerald-600',
+                                bg: 'bg-emerald-50',
+                            },
+                            {
+                                label: 'Completed',
+                                value: stats.completed,
+                                icon: CheckCircle2,
+                                color: 'text-sky-600',
+                                bg: 'bg-sky-50',
+                            },
+                            {
+                                label: 'Rejected',
+                                value: stats.rejected,
+                                icon: XCircle,
+                                color: 'text-rose-600',
+                                bg: 'bg-rose-50',
+                            },
                         ].map((card) => (
                             <div
                                 key={card.label}
                                 className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}>
-                                        <card.icon className={`size-5 ${card.color}`} />
+                                    <div
+                                        className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}
+                                    >
+                                        <card.icon
+                                            className={`size-5 ${card.color}`}
+                                        />
                                     </div>
                                     <div>
                                         <p className="text-2xl font-semibold text-slate-800">
@@ -160,14 +226,18 @@ export default function BookingsIndex({
                                 }`}
                             >
                                 {tab.icon && (
-                                    <tab.icon className={`size-3.5 ${statusFilter === tab.key ? 'text-white' : tab.color}`} />
+                                    <tab.icon
+                                        className={`size-3.5 ${statusFilter === tab.key ? 'text-white' : tab.color}`}
+                                    />
                                 )}
                                 {tab.label}
-                                <span className={`ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] ${
-                                    statusFilter === tab.key
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-slate-100 text-slate-500'
-                                }`}>
+                                <span
+                                    className={`ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] ${
+                                        statusFilter === tab.key
+                                            ? 'bg-white/20 text-white'
+                                            : 'bg-slate-100 text-slate-500'
+                                    }`}
+                                >
                                     {tab.count}
                                 </span>
                             </button>
@@ -200,8 +270,9 @@ export default function BookingsIndex({
                             {(statusFilter !== 'all' || search) && (
                                 <button
                                     onClick={() => {
- setStatusFilter('all'); setSearch(''); 
-}}
+                                        setStatusFilter('all');
+                                        setSearch('');
+                                    }}
                                     className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
                                 >
                                     <XCircle className="size-3" />
@@ -210,7 +281,8 @@ export default function BookingsIndex({
                             )}
 
                             <div className="text-[11px] text-slate-400">
-                                {filtered.length} booking{filtered.length !== 1 ? 's' : ''}
+                                {filtered.length} booking
+                                {filtered.length !== 1 ? 's' : ''}
                             </div>
                         </div>
                     </div>
@@ -284,15 +356,29 @@ export default function BookingsIndex({
 
                                                         <div>
                                                             <p className="font-medium text-slate-800">
-                                                                {booking.facility.facility_name}
+                                                                {
+                                                                    booking
+                                                                        .facility
+                                                                        .facility_name
+                                                                }
                                                             </p>
                                                             <div className="mt-0.5 flex items-center gap-2">
                                                                 <span className="text-[10px] text-slate-400">
-                                                                    #{booking.id}
+                                                                    #
+                                                                    {booking.id}
                                                                 </span>
-                                                                <span className="text-[10px] text-slate-300">·</span>
+                                                                <span className="text-[10px] text-slate-300">
+                                                                    ·
+                                                                </span>
                                                                 <span className="text-[10px] text-slate-400 capitalize">
-                                                                    {facilityTypeLabel[booking.facility.facility_type] ?? booking.facility.facility_type}
+                                                                    {facilityTypeLabel[
+                                                                        booking
+                                                                            .facility
+                                                                            .facility_type
+                                                                    ] ??
+                                                                        booking
+                                                                            .facility
+                                                                            .facility_type}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -307,15 +393,27 @@ export default function BookingsIndex({
 
                                                 <td className="px-5 py-4">
                                                     <p className="text-sm text-slate-800">
-                                                        {new Date(booking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                        {new Date(
+                                                            booking.booking_date,
+                                                        ).toLocaleDateString(
+                                                            'en-US',
+                                                            {
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                year: 'numeric',
+                                                            },
+                                                        )}
                                                     </p>
                                                     <p className="mt-0.5 text-xs text-slate-400">
-                                                        {booking.start_time} – {booking.end_time}
+                                                        {booking.start_time} –{' '}
+                                                        {booking.end_time}
                                                     </p>
                                                 </td>
 
                                                 <td className="px-5 py-4">
-                                                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusBadge[booking.booking_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}>
+                                                    <span
+                                                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusBadge[booking.booking_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
+                                                    >
                                                         {booking.booking_status}
                                                     </span>
                                                 </td>
@@ -352,26 +450,43 @@ export default function BookingsIndex({
 
                                                     <div className="min-w-0">
                                                         <p className="truncate font-medium text-slate-800">
-                                                            {booking.facility.facility_name}
+                                                            {
+                                                                booking.facility
+                                                                    .facility_name
+                                                            }
                                                         </p>
                                                         <p className="mt-0.5 text-xs text-slate-400">
-                                                            #{booking.id} · {booking.user.name}
+                                                            #{booking.id} ·{' '}
+                                                            {booking.user.name}
                                                         </p>
                                                     </div>
                                                 </div>
 
-                                                <span className={`shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${statusBadge[booking.booking_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}>
+                                                <span
+                                                    className={`inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${statusBadge[booking.booking_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
+                                                >
                                                     {booking.booking_status}
                                                 </span>
                                             </div>
 
                                             <div className="mt-3 flex items-center gap-4 text-xs text-slate-500">
                                                 <span>
-                                                    {new Date(booking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                    {new Date(
+                                                        booking.booking_date,
+                                                    ).toLocaleDateString(
+                                                        'en-US',
+                                                        {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                        },
+                                                    )}
                                                 </span>
-                                                <span className="text-slate-300">·</span>
+                                                <span className="text-slate-300">
+                                                    ·
+                                                </span>
                                                 <span>
-                                                    {booking.start_time} – {booking.end_time}
+                                                    {booking.start_time} –{' '}
+                                                    {booking.end_time}
                                                 </span>
                                             </div>
                                         </div>

@@ -82,6 +82,8 @@ class IncidentReportController extends Controller
 
         $isAdmin = Auth::user()->role->role_name === 'ict_admin';
 
+        abort_unless($isAdmin || $incident->reported_by === Auth::id(), 403, 'You can only view incidents you reported.');
+
         return Inertia::render('incidents/show', [
             'incident' => $incident,
             'isAdmin' => $isAdmin,
@@ -111,9 +113,10 @@ class IncidentReportController extends Controller
         }
 
         $validated = $request->validate([
-            'status' => ['required', 'in:open,under_review,resolved'],
+            'status' => ['required', 'in:open,under_review,resolved,closed'],
             'liability_user_id' => ['nullable', 'exists:users,id'],
             'liability_description' => ['nullable', 'string'],
+            'liability_amount' => ['nullable', 'required_with:liability_user_id', 'numeric', 'min:0', 'max:9999999999.99'],
         ]);
 
         $incident = IncidentReport::findOrFail($id);
@@ -123,6 +126,7 @@ class IncidentReportController extends Controller
             $incident->userLiabilities()->create([
                 'user_id' => $validated['liability_user_id'],
                 'liability_description' => $validated['liability_description'] ?? null,
+                'liability_amount' => $validated['liability_amount'] ?? null,
                 'liability_status' => 'pending',
                 'date_assigned' => now(),
             ]);

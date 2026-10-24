@@ -2,12 +2,15 @@
 
 use App\Mail\ServiceRequestApproved;
 use App\Mail\ServiceRequestRejected;
+use App\Models\Attachment;
 use App\Models\Role;
 use App\Models\ServiceCategory;
 use App\Models\ServiceRequest;
 use App\Models\ServiceType;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 function srAdmin(): User
@@ -351,4 +354,106 @@ test('rejecting a pending request queues the rejection email', function () {
         return $mail->serviceRequestId === $serviceRequest->id
             && $mail->rejectionReason === 'Budget not available.';
     });
+});
+
+test('a service request can be submitted with attachments', function () {
+    Storage::fake('public');
+
+    $faculty = srFaculty();
+    $type = srServiceType();
+
+    $response = $this->actingAs($faculty)->post(route('requests.store'), [
+        ...srPayload($faculty, $type),
+        'attachments' => [
+            UploadedFile::fake()->create('diagnostic.pdf', 120, 'application/pdf'),
+            UploadedFile::fake()->create('photo.jpg', 80, 'image/jpeg'),
+        ],
+    ]);
+
+    $response->assertRedirect(route('requests.index'));
+    $response->assertSessionHasNoErrors();
+
+    $serviceRequest = ServiceRequest::query()->latest('id')->firstOrFail();
+    $attachments = $serviceRequest->attachments;
+
+    expect($attachments)->toHaveCount(2);
+
+    foreach ($attachments as $attachment) {
+        Storage::disk('public')->assertExists($attachment->file_path);
+    }
+
+    expect($attachments->pluck('file_name')->all())
+        ->toContain('diagnostic.pdf')
+        ->toContain('photo.jpg');
+});
+
+test('attachments reject unsupported file types', function () {
+    Storage::fake('public');
+
+    $faculty = srFaculty();
+    $type = srServiceType();
+
+    $this->actingAs($faculty)
+        ->post(route('requests.store'), [
+            ...srPayload($faculty, $type),
+            'attachments' => [
+                UploadedFile::fake()->create('payload.exe', 20, 'application/octet-stream'),
+            ],
+        ])
+        ->assertSessionHasErrors('attachments.0');
+
+    $this->assertDatabaseCount('service_requests', 0);
+});
+
+test('requesters and admins can download attachments', function () {
+    Storage::fake('public');
+
+    $owner = srFaculty();
+    $other = srFaculty();
+    $admin = srAdmin();
+
+    $serviceRequest = ServiceRequest::create([
+        'user_id' => $owner->id,
+        'problem_description' => 'Printer jam.',
+        'request_status' => 'pending',
+    ]);
+
+    Storage::disk('public')->put(
+        "attachments/{$serviceRequest->id}/report.pdf",
+        'file contents',
+    );
+
+    $attachment = Attachment::create([
+        'request_id' => $serviceRequest->id,
+        'file_name' => 'report.pdf',
+        'file_path' => "attachments/{$serviceRequest->id}/report.pdf",
+        'uploaded_at' => now(),
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('attachments.download', $attachment))
+        ->assertOk();
+
+    $this->actingAs($admin)
+        ->get(route('attachments.download', $attachment))
+        ->assertOk();
+
+    $this->actingAs($other)
+        ->get(route('attachments.download', $attachment))
+        ->assertForbidden();
+});
+
+test('faculty cannot view another users service request', function () {
+    $faculty = srFaculty();
+    $other = srFaculty();
+
+    $serviceRequest = ServiceRequest::create([
+        'user_id' => $other->id,
+        'problem_description' => 'Not yours.',
+        'request_status' => 'pending',
+    ]);
+
+    $this->actingAs($faculty)
+        ->get(route('requests.show', $serviceRequest))
+        ->assertForbidden();
 });

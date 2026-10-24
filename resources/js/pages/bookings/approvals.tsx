@@ -35,6 +35,7 @@ const statusBadge: Record<string, string> = {
     approved: 'border-emerald-200 bg-emerald-50 text-emerald-700',
     rejected: 'border-rose-200 bg-rose-50 text-rose-600',
     cancelled: 'border-slate-200 bg-slate-50 text-slate-600',
+    completed: 'border-sky-200 bg-sky-50 text-sky-700',
 };
 
 const facilityTypeLabel: Record<string, string> = {
@@ -45,7 +46,10 @@ const facilityTypeLabel: Record<string, string> = {
 export default function BookingApprovals({ bookings, stats }: Props) {
     const [processingId, setProcessingId] = useState<number | null>(null);
 
-    const decide = (booking: PendingBooking, status: 'approved' | 'rejected') => {
+    const decide = (
+        booking: PendingBooking,
+        status: 'approved' | 'rejected',
+    ) => {
         if (
             status === 'rejected' &&
             !window.confirm(
@@ -86,18 +90,46 @@ export default function BookingApprovals({ bookings, stats }: Props) {
 
                     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                         {[
-                            { label: 'Pending', value: stats.pending, icon: Clock3, color: 'text-amber-600', bg: 'bg-amber-50' },
-                            { label: 'Scheduled Today', value: stats.today, icon: Calendar, color: 'text-ustp-navy', bg: 'bg-ustp-navy/5' },
-                            { label: 'Approved', value: stats.approved, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                            { label: 'Rejected', value: stats.rejected, icon: XCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
+                            {
+                                label: 'Pending',
+                                value: stats.pending,
+                                icon: Clock3,
+                                color: 'text-amber-600',
+                                bg: 'bg-amber-50',
+                            },
+                            {
+                                label: 'Scheduled Today',
+                                value: stats.today,
+                                icon: Calendar,
+                                color: 'text-ustp-navy',
+                                bg: 'bg-ustp-navy/5',
+                            },
+                            {
+                                label: 'Approved',
+                                value: stats.approved,
+                                icon: CheckCircle2,
+                                color: 'text-emerald-600',
+                                bg: 'bg-emerald-50',
+                            },
+                            {
+                                label: 'Rejected',
+                                value: stats.rejected,
+                                icon: XCircle,
+                                color: 'text-rose-600',
+                                bg: 'bg-rose-50',
+                            },
                         ].map((card) => (
                             <div
                                 key={card.label}
                                 className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}>
-                                        <card.icon className={`size-5 ${card.color}`} />
+                                    <div
+                                        className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}
+                                    >
+                                        <card.icon
+                                            className={`size-5 ${card.color}`}
+                                        />
                                     </div>
                                     <div>
                                         <p className="text-2xl font-semibold text-slate-800">
@@ -132,7 +164,13 @@ export default function BookingApprovals({ bookings, stats }: Props) {
                                 <table className="w-full text-sm">
                                     <thead className="border-b border-slate-200 bg-slate-50">
                                         <tr>
-                                            {['Facility', 'Requested by', 'Schedule', 'Purpose', 'Actions'].map((heading) => (
+                                            {[
+                                                'Facility',
+                                                'Requested by',
+                                                'Schedule',
+                                                'Purpose',
+                                                'Actions',
+                                            ].map((heading) => (
                                                 <th
                                                     key={heading}
                                                     className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase"
@@ -157,10 +195,22 @@ export default function BookingApprovals({ bookings, stats }: Props) {
 
                                                         <div>
                                                             <p className="font-medium text-slate-800">
-                                                                {booking.facility.facility_name}
+                                                                {
+                                                                    booking
+                                                                        .facility
+                                                                        .facility_name
+                                                                }
                                                             </p>
                                                             <p className="mt-0.5 text-[10px] text-slate-400">
-                                                                #{booking.id} · {facilityTypeLabel[booking.facility.facility_type] ?? booking.facility.facility_type}
+                                                                #{booking.id} ·{' '}
+                                                                {facilityTypeLabel[
+                                                                    booking
+                                                                        .facility
+                                                                        .facility_type
+                                                                ] ??
+                                                                    booking
+                                                                        .facility
+                                                                        .facility_type}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -177,10 +227,20 @@ export default function BookingApprovals({ bookings, stats }: Props) {
 
                                                 <td className="px-5 py-4">
                                                     <p className="text-sm text-slate-800">
-                                                        {new Date(booking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                        {new Date(
+                                                            booking.booking_date,
+                                                        ).toLocaleDateString(
+                                                            'en-US',
+                                                            {
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                year: 'numeric',
+                                                            },
+                                                        )}
                                                     </p>
                                                     <p className="mt-0.5 text-xs text-slate-400">
-                                                        {booking.start_time} – {booking.end_time}
+                                                        {booking.start_time} –{' '}
+                                                        {booking.end_time}
                                                     </p>
                                                 </td>
 
@@ -195,8 +255,16 @@ export default function BookingApprovals({ bookings, stats }: Props) {
                                                         <Button
                                                             type="button"
                                                             size="sm"
-                                                            disabled={processingId === booking.id}
-                                                            onClick={() => decide(booking, 'approved')}
+                                                            disabled={
+                                                                processingId ===
+                                                                booking.id
+                                                            }
+                                                            onClick={() =>
+                                                                decide(
+                                                                    booking,
+                                                                    'approved',
+                                                                )
+                                                            }
                                                             className="h-8 bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700"
                                                         >
                                                             <CheckCircle2 className="size-3.5" />
@@ -207,8 +275,16 @@ export default function BookingApprovals({ bookings, stats }: Props) {
                                                             type="button"
                                                             size="sm"
                                                             variant="outline"
-                                                            disabled={processingId === booking.id}
-                                                            onClick={() => decide(booking, 'rejected')}
+                                                            disabled={
+                                                                processingId ===
+                                                                booking.id
+                                                            }
+                                                            onClick={() =>
+                                                                decide(
+                                                                    booking,
+                                                                    'rejected',
+                                                                )
+                                                            }
                                                             className="h-8 border-rose-200 px-3 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700"
                                                         >
                                                             <XCircle className="size-3.5" />
@@ -240,22 +316,35 @@ export default function BookingApprovals({ bookings, stats }: Props) {
                                             <div className="flex items-start justify-between gap-3">
                                                 <div className="min-w-0">
                                                     <p className="truncate font-medium text-slate-800">
-                                                        {booking.facility.facility_name}
+                                                        {
+                                                            booking.facility
+                                                                .facility_name
+                                                        }
                                                     </p>
                                                     <p className="mt-0.5 text-xs text-slate-400">
-                                                        {booking.user.name} · #{booking.id}
+                                                        {booking.user.name} · #
+                                                        {booking.id}
                                                     </p>
                                                 </div>
 
-                                                <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${statusBadge[booking.booking_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}>
+                                                <span
+                                                    className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${statusBadge[booking.booking_status] ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
+                                                >
                                                     {booking.booking_status}
                                                 </span>
                                             </div>
 
                                             <p className="mt-3 text-xs text-slate-500">
-                                                {new Date(booking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                {new Date(
+                                                    booking.booking_date,
+                                                ).toLocaleDateString('en-US', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric',
+                                                })}
                                                 {' · '}
-                                                {booking.start_time} – {booking.end_time}
+                                                {booking.start_time} –{' '}
+                                                {booking.end_time}
                                             </p>
 
                                             {booking.purpose && (
@@ -268,8 +357,16 @@ export default function BookingApprovals({ bookings, stats }: Props) {
                                                 <Button
                                                     type="button"
                                                     size="sm"
-                                                    disabled={processingId === booking.id}
-                                                    onClick={() => decide(booking, 'approved')}
+                                                    disabled={
+                                                        processingId ===
+                                                        booking.id
+                                                    }
+                                                    onClick={() =>
+                                                        decide(
+                                                            booking,
+                                                            'approved',
+                                                        )
+                                                    }
                                                     className="h-9 flex-1 bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
                                                 >
                                                     <CheckCircle2 className="size-3.5" />
@@ -280,8 +377,16 @@ export default function BookingApprovals({ bookings, stats }: Props) {
                                                     type="button"
                                                     size="sm"
                                                     variant="outline"
-                                                    disabled={processingId === booking.id}
-                                                    onClick={() => decide(booking, 'rejected')}
+                                                    disabled={
+                                                        processingId ===
+                                                        booking.id
+                                                    }
+                                                    onClick={() =>
+                                                        decide(
+                                                            booking,
+                                                            'rejected',
+                                                        )
+                                                    }
                                                     className="h-9 flex-1 border-rose-200 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700"
                                                 >
                                                     <XCircle className="size-3.5" />

@@ -128,6 +128,8 @@ class ServiceRequestController extends Controller
             'services.*.specification' => ['nullable', 'string'],
             'services.*.quantity' => ['required', 'integer', 'min:1'],
             'services.*.action_type' => ['nullable', 'string'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['file', 'mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx', 'max:5120'],
         ], $messages);
 
         $serviceRequest = ServiceRequestModel::create([
@@ -141,6 +143,14 @@ class ServiceRequestController extends Controller
 
         foreach ($validated['services'] as $service) {
             $serviceRequest->requestServices()->create($service);
+        }
+
+        foreach ($request->file('attachments', []) as $file) {
+            $serviceRequest->attachments()->create([
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $file->store('attachments/'.$serviceRequest->id, 'public'),
+                'uploaded_at' => now(),
+            ]);
         }
 
         return redirect()->route('requests.index')
@@ -168,6 +178,12 @@ class ServiceRequestController extends Controller
         $serviceRequest = ServiceRequestModel::with([
             'user', 'requestServices.serviceType.category', 'attachments', 'jobOrders.technician',
         ])->findOrFail($id);
+
+        abort_unless(
+            Auth::user()->role->role_name === 'ict_admin' || $serviceRequest->user_id === Auth::id(),
+            403,
+            'You can only view your own service requests.',
+        );
 
         return Inertia::render('requests/show', [
             'request' => $serviceRequest,

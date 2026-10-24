@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import {
     AlertTriangle,
+    Archive,
     Calendar,
     CheckCircle2,
     RotateCcw,
@@ -14,6 +15,7 @@ import { toast } from 'sonner';
 import { BackButton } from '@/components/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -28,6 +30,7 @@ import { Textarea } from '@/components/ui/textarea';
 type Liability = {
     id: number;
     liability_description: string | null;
+    liability_amount: string | null;
     liability_status: string;
     user: { name: string };
 };
@@ -85,12 +88,20 @@ const statusConfig: Record<
         border: 'border-emerald-200',
         icon: <CheckCircle2 className="size-5" />,
     },
+    closed: {
+        label: 'Closed',
+        color: 'text-slate-700',
+        bg: 'bg-slate-100',
+        border: 'border-slate-300',
+        icon: <Archive className="size-5" />,
+    },
 };
 
 const statusSteps = [
     { key: 'open', label: 'Open' },
     { key: 'under_review', label: 'Under Review' },
     { key: 'resolved', label: 'Resolved' },
+    { key: 'closed', label: 'Closed' },
 ];
 
 const liabilityStatusConfig: Record<string, string> = {
@@ -111,6 +122,17 @@ function formatDate(value: string | null): string {
         day: 'numeric',
         year: 'numeric',
     });
+}
+
+function formatAmount(value: string | null): string | null {
+    if (value === null || value === '') {
+        return null;
+    }
+
+    return `₱${Number(value).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })}`;
 }
 
 function StatusStepper({ current }: { current: string }) {
@@ -185,6 +207,7 @@ export default function IncidentsShow({
     const [status, setStatus] = useState(incident.status);
     const [liabilityUserId, setLiabilityUserId] = useState('');
     const [liabilityDescription, setLiabilityDescription] = useState('');
+    const [liabilityAmount, setLiabilityAmount] = useState('');
     const [processing, setProcessing] = useState(false);
     const [resolvingId, setResolvingId] = useState<number | null>(null);
 
@@ -194,7 +217,8 @@ export default function IncidentsShow({
     const dirty =
         statusChanged ||
         (liabilityUserId !== '' && liabilityUserId !== NONE_VALUE) ||
-        liabilityDescription.trim() !== '';
+        liabilityDescription.trim() !== '' ||
+        liabilityAmount.trim() !== '';
 
     function handleSave() {
         if (!dirty) {
@@ -211,6 +235,10 @@ export default function IncidentsShow({
                         ? liabilityUserId
                         : null,
                 liability_description: liabilityDescription || null,
+                liability_amount:
+                    liabilityAmount.trim() === ''
+                        ? null
+                        : liabilityAmount.trim(),
             },
             {
                 onFinish: () => setProcessing(false),
@@ -218,6 +246,7 @@ export default function IncidentsShow({
                     toast.success('Laboratory incident updated successfully.');
                     setLiabilityUserId('');
                     setLiabilityDescription('');
+                    setLiabilityAmount('');
                 },
                 onError: () => {
                     toast.error('Could not save changes. Please try again.');
@@ -230,6 +259,7 @@ export default function IncidentsShow({
         setStatus(incident.status);
         setLiabilityUserId('');
         setLiabilityDescription('');
+        setLiabilityAmount('');
     }
 
     function handleResolveLiability(
@@ -452,6 +482,16 @@ export default function IncidentsShow({
                                                                 }
                                                             </p>
                                                         )}
+
+                                                        {formatAmount(
+                                                            liability.liability_amount,
+                                                        ) && (
+                                                            <p className="mt-1 text-xs font-medium text-slate-600">
+                                                                {formatAmount(
+                                                                    liability.liability_amount,
+                                                                )}
+                                                            </p>
+                                                        )}
                                                     </div>
 
                                                     <div className="flex items-center gap-2">
@@ -564,6 +604,9 @@ export default function IncidentsShow({
                                                 <SelectItem value="resolved">
                                                     Resolved
                                                 </SelectItem>
+                                                <SelectItem value="closed">
+                                                    Closed
+                                                </SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -611,6 +654,31 @@ export default function IncidentsShow({
                                                 assignment.
                                             </p>
                                         )}
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label className="text-xs font-medium text-slate-600">
+                                            Liability amount{' '}
+                                            <span className="font-normal text-slate-400">
+                                                (required with assignee)
+                                            </span>
+                                        </Label>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            inputMode="decimal"
+                                            placeholder="0.00"
+                                            value={liabilityAmount}
+                                            onChange={(
+                                                e: React.ChangeEvent<HTMLInputElement>,
+                                            ) =>
+                                                setLiabilityAmount(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="border-slate-300 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
+                                        />
                                     </div>
 
                                     <div className="grid gap-2">

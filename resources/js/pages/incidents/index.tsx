@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import {
     AlertTriangle,
+    Archive,
     ArrowUpRight,
     CheckCircle2,
     FileText,
@@ -33,12 +34,14 @@ const statusBadge: Record<string, string> = {
     open: 'border-slate-200 bg-slate-50 text-slate-600',
     under_review: 'border-amber-200 bg-amber-50 text-amber-700',
     resolved: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    closed: 'border-slate-300 bg-slate-100 text-slate-700',
 };
 
 const statusDot: Record<string, string> = {
     open: 'bg-slate-400',
     under_review: 'bg-amber-400',
     resolved: 'bg-emerald-400',
+    closed: 'bg-slate-500',
 };
 
 function formatDate(value: string | null): string {
@@ -63,6 +66,7 @@ export default function IncidentsIndex({ incidents }: Props) {
         under_review: incidents.filter((i) => i.status === 'under_review')
             .length,
         resolved: incidents.filter((i) => i.status === 'resolved').length,
+        closed: incidents.filter((i) => i.status === 'closed').length,
     };
 
     const filtered = incidents.filter((incident) => {
@@ -100,6 +104,12 @@ export default function IncidentsIndex({ incidents }: Props) {
             count: stats.resolved,
             color: 'text-emerald-600',
         },
+        {
+            key: 'closed',
+            label: 'Closed',
+            count: stats.closed,
+            color: 'text-slate-600',
+        },
     ];
 
     const hasActiveFilter = statusFilter !== 'all' || search !== '';
@@ -118,8 +128,8 @@ export default function IncidentsIndex({ incidents }: Props) {
                             </h1>
 
                             <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">
-                                Report and track laboratory incidents across
-                                the campus.
+                                Report and track laboratory incidents across the
+                                campus.
                             </p>
                         </div>
 
@@ -135,7 +145,7 @@ export default function IncidentsIndex({ incidents }: Props) {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
                         {[
                             {
                                 label: 'Total Laboratory Incidents',
@@ -164,6 +174,13 @@ export default function IncidentsIndex({ incidents }: Props) {
                                 icon: CheckCircle2,
                                 color: 'text-emerald-600',
                                 bg: 'bg-emerald-50',
+                            },
+                            {
+                                label: 'Closed',
+                                value: stats.closed,
+                                icon: Archive,
+                                color: 'text-slate-600',
+                                bg: 'bg-slate-100',
                             },
                         ].map((card) => (
                             <div

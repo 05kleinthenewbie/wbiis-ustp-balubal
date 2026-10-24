@@ -164,6 +164,8 @@ class JobOrderController extends Controller
 
         $isAdmin = $user->role->role_name === 'ict_admin';
         $isRequester = $jobOrder->serviceRequest->user_id === $user->id;
+
+        abort_unless($isAdmin || $isRequester, 403, 'You can only view job orders for your own requests.');
         $canRate = $isRequester
             && in_array($jobOrder->status, ['completed', 'closed'])
             && is_null($jobOrder->rating);

@@ -4,7 +4,9 @@ import {
     Check,
     ClipboardPlus,
     FileText,
+    Paperclip,
     Send,
+    X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { BackButton } from '@/components/back-button';
@@ -56,10 +58,7 @@ const actionOptionsByCategory: Record<string, string[]> = {
 const fieldClass =
     'h-9 border-slate-300 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20';
 
-export default function RequestsCreate({
-    categories,
-    isStudent,
-}: Props) {
+export default function RequestsCreate({ categories, isStudent }: Props) {
     const [selected, setSelected] = useState<Record<number, ServiceLine>>({});
 
     const { data, setData, post, processing, errors } = useForm({
@@ -67,6 +66,7 @@ export default function RequestsCreate({
         location: '',
         contact_details: '',
         services: [] as ServiceLine[],
+        attachments: [] as File[],
     });
 
     function toggleService(typeId: number, defaultAction: string | null) {
@@ -106,8 +106,22 @@ export default function RequestsCreate({
         e.preventDefault();
         setData('services', Object.values(selected));
         post('/requests', {
+            forceFormData: true,
             onSuccess: () => setSelected({}),
         });
+    }
+
+    function handleAttachmentChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const files = Array.from(e.target.files ?? []).slice(0, 5);
+        setData('attachments', files);
+        e.target.value = '';
+    }
+
+    function removeAttachment(index: number) {
+        setData(
+            'attachments',
+            data.attachments.filter((_, i) => i !== index),
+        );
     }
 
     const hasSelection = Object.keys(selected).length > 0;
@@ -502,6 +516,68 @@ export default function RequestsCreate({
                                     )}
                                 </div>
                             </div>
+                        </section>
+
+                        {/* Attachments */}
+                        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                            <div className="mb-4 flex items-center gap-3">
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                    <Paperclip className="size-4 text-ustp-gold" />
+                                </div>
+
+                                <div>
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        Attachments (Optional)
+                                    </p>
+                                    <p className="mt-0.5 text-[11px] text-slate-400">
+                                        Up to 5 files (PDF, image, or Office
+                                        document, max 5 MB each).
+                                    </p>
+                                </div>
+                            </div>
+
+                            <Input
+                                type="file"
+                                multiple
+                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                                onChange={handleAttachmentChange}
+                                className="cursor-pointer border-slate-300 bg-white text-xs text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-ustp-gold/10 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-ustp-navy hover:file:bg-ustp-gold/20"
+                            />
+
+                            {data.attachments.length > 0 && (
+                                <ul className="mt-3 space-y-2">
+                                    {data.attachments.map((file, index) => (
+                                        <li
+                                            key={`${file.name}-${index}`}
+                                            className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                                        >
+                                            <span className="flex min-w-0 items-center gap-2 text-xs text-slate-600">
+                                                <FileText className="size-3.5 shrink-0 text-slate-400" />
+                                                <span className="truncate">
+                                                    {file.name}
+                                                </span>
+                                            </span>
+
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    removeAttachment(index)
+                                                }
+                                                className="text-slate-400 hover:text-red-600"
+                                                aria-label={`Remove ${file.name}`}
+                                            >
+                                                <X className="size-3.5" />
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+
+                            {errors.attachments && (
+                                <p className="mt-2 text-xs text-red-600">
+                                    {errors.attachments}
+                                </p>
+                            )}
                         </section>
 
                         {/* Submit */}

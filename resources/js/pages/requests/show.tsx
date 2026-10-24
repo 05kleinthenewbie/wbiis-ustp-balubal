@@ -6,7 +6,9 @@ import {
     Circle,
     ClipboardList,
     Clock3,
+    Download,
     FileText,
+    Paperclip,
     UserRound,
     X,
 } from 'lucide-react';
@@ -33,6 +35,12 @@ type RequestService = {
     };
 };
 
+type Attachment = {
+    id: number;
+    file_name: string;
+    uploaded_at: string | null;
+};
+
 type ServiceRequestDetail = {
     id: number;
     form_number: string | null;
@@ -47,6 +55,7 @@ type ServiceRequestDetail = {
     sla_status: string | null;
     user: { name: string; department: string | null };
     request_services: RequestService[];
+    attachments: Attachment[];
 };
 
 type Props = {
@@ -447,6 +456,54 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                         </div>
                     </section>
 
+                    {/* Attachments */}
+                    {request.attachments.length > 0 && (
+                        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                            <div className="flex items-center gap-3">
+                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                    <Paperclip className="size-4 text-ustp-gold" />
+                                </div>
+
+                                <div>
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        Attachments
+                                    </p>
+                                    <p className="mt-0.5 text-[11px] text-slate-400">
+                                        {request.attachments.length} file
+                                        {request.attachments.length !== 1
+                                            ? 's'
+                                            : ''}{' '}
+                                        uploaded
+                                    </p>
+                                </div>
+                            </div>
+
+                            <ul className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200">
+                                {request.attachments.map((attachment) => (
+                                    <li
+                                        key={attachment.id}
+                                        className="flex items-center justify-between gap-3 bg-slate-50/60 px-4 py-3"
+                                    >
+                                        <span className="flex min-w-0 items-center gap-2 text-xs text-slate-600">
+                                            <FileText className="size-4 shrink-0 text-slate-400" />
+                                            <span className="truncate">
+                                                {attachment.file_name}
+                                            </span>
+                                        </span>
+
+                                        <a
+                                            href={`/attachments/${attachment.id}/download`}
+                                            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 transition-colors hover:border-ustp-gold/40 hover:text-ustp-gold"
+                                        >
+                                            <Download className="size-3" />
+                                            Download
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    )}
+
                     {/* Rejection reason */}
                     {request.request_status === 'rejected' &&
                         request.rejection_reason && (
@@ -527,9 +584,7 @@ export default function RequestsShow({ request, isAdmin }: Props) {
                                     </Button>
 
                                     <Button
-                                        disabled={
-                                            processing || priority === ''
-                                        }
+                                        disabled={processing || priority === ''}
                                         title={
                                             priority === ''
                                                 ? 'Select a priority level first'

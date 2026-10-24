@@ -40,7 +40,13 @@ type Props = {
 
 const statusConfig: Record<
     string,
-    { bg: string; border: string; text: string; icon: typeof CheckCircle2; label: string }
+    {
+        bg: string;
+        border: string;
+        text: string;
+        icon: typeof CheckCircle2;
+        label: string;
+    }
 > = {
     pending: {
         bg: 'bg-amber-50',
@@ -69,6 +75,13 @@ const statusConfig: Record<
         text: 'text-slate-600',
         icon: XCircle,
         label: 'Cancelled',
+    },
+    completed: {
+        bg: 'bg-sky-50',
+        border: 'border-sky-200',
+        text: 'text-sky-700',
+        icon: CheckCircle2,
+        label: 'Completed',
     },
 };
 
@@ -131,7 +144,12 @@ export default function BookingsShow({ booking, isAdmin, isOwner }: Props) {
                                             <span className="size-1 rounded-full bg-slate-300" />
 
                                             <span className="text-[10px] tracking-wider text-slate-400 uppercase">
-                                                {facilityTypeLabel[booking.facility.facility_type] ?? booking.facility.facility_type}
+                                                {facilityTypeLabel[
+                                                    booking.facility
+                                                        .facility_type
+                                                ] ??
+                                                    booking.facility
+                                                        .facility_type}
                                             </span>
                                         </div>
 
@@ -145,7 +163,9 @@ export default function BookingsShow({ booking, isAdmin, isOwner }: Props) {
                                     </div>
                                 </div>
 
-                                <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium ${status.bg} ${status.border} ${status.text}`}>
+                                <div
+                                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium ${status.bg} ${status.border} ${status.text}`}
+                                >
                                     <StatusIcon className="size-3.5" />
                                     {status.label}
                                 </div>
@@ -183,12 +203,15 @@ export default function BookingsShow({ booking, isAdmin, isOwner }: Props) {
                                                 <p className="text-sm font-medium text-slate-800">
                                                     {new Date(
                                                         booking.booking_date,
-                                                    ).toLocaleDateString('en-US', {
-                                                        weekday: 'long',
-                                                        month: 'long',
-                                                        day: 'numeric',
-                                                        year: 'numeric',
-                                                    })}
+                                                    ).toLocaleDateString(
+                                                        'en-US',
+                                                        {
+                                                            weekday: 'long',
+                                                            month: 'long',
+                                                            day: 'numeric',
+                                                            year: 'numeric',
+                                                        },
+                                                    )}
                                                 </p>
                                             </div>
                                         </div>
@@ -235,8 +258,13 @@ export default function BookingsShow({ booking, isAdmin, isOwner }: Props) {
                                             <p className="text-[10px] font-medium tracking-[0.12em] text-slate-400 uppercase">
                                                 Type
                                             </p>
-                                            <p className="mt-2 text-sm capitalize text-slate-600">
-                                                {facilityTypeLabel[booking.facility.facility_type] ?? booking.facility.facility_type}
+                                            <p className="mt-2 text-sm text-slate-600 capitalize">
+                                                {facilityTypeLabel[
+                                                    booking.facility
+                                                        .facility_type
+                                                ] ??
+                                                    booking.facility
+                                                        .facility_type}
                                             </p>
                                         </div>
 
@@ -247,7 +275,8 @@ export default function BookingsShow({ booking, isAdmin, isOwner }: Props) {
                                             <div className="mt-2 flex items-center gap-2">
                                                 <MapPin className="size-3.5 text-ustp-gold" />
                                                 <p className="text-sm text-slate-600">
-                                                    {booking.facility.location ?? '—'}
+                                                    {booking.facility
+                                                        .location ?? '—'}
                                                 </p>
                                             </div>
                                         </div>
@@ -314,7 +343,9 @@ export default function BookingsShow({ booking, isAdmin, isOwner }: Props) {
                                                 Submitted
                                             </p>
                                             <p className="mt-2 text-sm text-slate-600">
-                                                {new Date(booking.created_at).toLocaleDateString('en-US', {
+                                                {new Date(
+                                                    booking.created_at,
+                                                ).toLocaleDateString('en-US', {
                                                     month: 'short',
                                                     day: 'numeric',
                                                     year: 'numeric',
@@ -347,72 +378,85 @@ export default function BookingsShow({ booking, isAdmin, isOwner }: Props) {
                             {/* Sidebar */}
                             <div className="space-y-5">
                                 {/* Admin review */}
-                                {isAdmin && booking.booking_status === 'pending' && (
-                                    <div className="overflow-hidden rounded-2xl border border-ustp-gold/30 bg-white shadow-sm">
-                                        <div className="flex items-center gap-3 border-b border-slate-200 bg-ustp-gold/[0.04] px-5 py-5">
-                                            <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
-                                                <CheckCircle2 className="size-4 text-ustp-gold" />
+                                {isAdmin &&
+                                    booking.booking_status === 'pending' && (
+                                        <div className="overflow-hidden rounded-2xl border border-ustp-gold/30 bg-white shadow-sm">
+                                            <div className="flex items-center gap-3 border-b border-slate-200 bg-ustp-gold/[0.04] px-5 py-5">
+                                                <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
+                                                    <CheckCircle2 className="size-4 text-ustp-gold" />
+                                                </div>
+
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-800">
+                                                        Review booking
+                                                    </p>
+                                                    <p className="mt-1 text-xs leading-5 text-slate-400">
+                                                        Approve or reject this
+                                                        facility reservation.
+                                                    </p>
+                                                </div>
                                             </div>
 
-                                            <div>
-                                                <p className="text-sm font-semibold text-slate-800">
-                                                    Review booking
-                                                </p>
-                                                <p className="mt-1 text-xs leading-5 text-slate-400">
-                                                    Approve or reject this facility
-                                                    reservation.
+                                            <div className="space-y-3 p-5">
+                                                <Button
+                                                    disabled={processing}
+                                                    onClick={() =>
+                                                        updateStatus('approved')
+                                                    }
+                                                    className="h-11 w-full bg-ustp-gold font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
+                                                >
+                                                    {processing ? (
+                                                        <Spinner />
+                                                    ) : (
+                                                        <CheckCircle2 className="mr-2 size-4" />
+                                                    )}
+                                                    Approve booking
+                                                </Button>
+
+                                                <Button
+                                                    variant="outline"
+                                                    disabled={processing}
+                                                    onClick={() =>
+                                                        updateStatus('rejected')
+                                                    }
+                                                    className="h-11 w-full border-rose-200 bg-transparent text-rose-600 hover:border-rose-300 hover:bg-rose-50"
+                                                >
+                                                    <XCircle className="mr-2 size-4" />
+                                                    Reject booking
+                                                </Button>
+                                            </div>
+
+                                            <div className="border-t border-slate-200 bg-slate-50 px-5 py-4">
+                                                <p className="text-[11px] leading-5 text-slate-400">
+                                                    The requester will see the
+                                                    updated booking status after
+                                                    your decision.
                                                 </p>
                                             </div>
                                         </div>
-
-                                        <div className="space-y-3 p-5">
-                                            <Button
-                                                disabled={processing}
-                                                onClick={() => updateStatus('approved')}
-                                                className="h-11 w-full bg-ustp-gold font-semibold text-ustp-navy shadow-lg shadow-ustp-gold/10 transition-all hover:bg-ustp-gold-dark hover:text-white"
-                                            >
-                                                {processing ? (
-                                                    <Spinner />
-                                                ) : (
-                                                    <CheckCircle2 className="mr-2 size-4" />
-                                                )}
-                                                Approve booking
-                                            </Button>
-
-                                            <Button
-                                                variant="outline"
-                                                disabled={processing}
-                                                onClick={() => updateStatus('rejected')}
-                                                className="h-11 w-full border-rose-200 bg-transparent text-rose-600 hover:border-rose-300 hover:bg-rose-50"
-                                            >
-                                                <XCircle className="mr-2 size-4" />
-                                                Reject booking
-                                            </Button>
-                                        </div>
-
-                                        <div className="border-t border-slate-200 bg-slate-50 px-5 py-4">
-                                            <p className="text-[11px] leading-5 text-slate-400">
-                                                The requester will see the updated
-                                                booking status after your decision.
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
+                                    )}
 
                                 {/* Status summary when not pending */}
-                                {(!isAdmin || booking.booking_status !== 'pending') && (
+                                {(!isAdmin ||
+                                    booking.booking_status !== 'pending') && (
                                     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                         <p className="text-[10px] font-medium tracking-[0.12em] text-slate-400 uppercase">
                                             Booking status
                                         </p>
 
                                         <div className="mt-4 flex items-center gap-3">
-                                            <div className={`flex size-9 items-center justify-center rounded-lg border ${status.border} ${status.bg}`}>
-                                                <StatusIcon className={`size-4 ${status.text}`} />
+                                            <div
+                                                className={`flex size-9 items-center justify-center rounded-lg border ${status.border} ${status.bg}`}
+                                            >
+                                                <StatusIcon
+                                                    className={`size-4 ${status.text}`}
+                                                />
                                             </div>
 
                                             <div>
-                                                <p className={`text-sm font-medium ${status.text}`}>
+                                                <p
+                                                    className={`text-sm font-medium ${status.text}`}
+                                                >
                                                     {status.label}
                                                 </p>
                                                 <p className="mt-0.5 text-xs text-slate-400">
@@ -426,15 +470,30 @@ export default function BookingsShow({ booking, isAdmin, isOwner }: Props) {
                                         {isAdmin &&
                                             booking.booking_status ===
                                                 'approved' && (
-                                                <Button
-                                                    variant="outline"
-                                                    disabled={processing}
-                                                    onClick={cancelBooking}
-                                                    className="mt-4 w-full border-rose-200 text-rose-600 hover:border-rose-300 hover:bg-rose-50"
-                                                >
-                                                    <XCircle className="mr-2 size-4" />
-                                                    Cancel booking
-                                                </Button>
+                                                <div className="mt-4 space-y-2">
+                                                    <Button
+                                                        disabled={processing}
+                                                        onClick={() =>
+                                                            updateStatus(
+                                                                'completed',
+                                                            )
+                                                        }
+                                                        className="w-full bg-ustp-gold font-semibold text-ustp-navy hover:bg-ustp-gold-dark hover:text-white"
+                                                    >
+                                                        <CheckCircle2 className="mr-2 size-4" />
+                                                        Mark as completed
+                                                    </Button>
+
+                                                    <Button
+                                                        variant="outline"
+                                                        disabled={processing}
+                                                        onClick={cancelBooking}
+                                                        className="w-full border-rose-200 text-rose-600 hover:border-rose-300 hover:bg-rose-50"
+                                                    >
+                                                        <XCircle className="mr-2 size-4" />
+                                                        Cancel booking
+                                                    </Button>
+                                                </div>
                                             )}
                                     </div>
                                 )}

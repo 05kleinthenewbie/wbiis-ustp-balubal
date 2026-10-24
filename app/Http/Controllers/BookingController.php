@@ -44,6 +44,7 @@ class BookingController extends Controller
             'pending' => (clone $statsQuery)->where('booking_status', 'pending')->count(),
             'approved' => (clone $statsQuery)->where('booking_status', 'approved')->count(),
             'rejected' => (clone $statsQuery)->where('booking_status', 'rejected')->count(),
+            'completed' => (clone $statsQuery)->where('booking_status', 'completed')->count(),
         ];
 
         return Inertia::render('bookings/index', [
@@ -172,6 +173,12 @@ class BookingController extends Controller
 
         $booking = Booking::with(['user', 'facility', 'approver'])->findOrFail($id);
 
+        abort_unless(
+            Auth::user()->role->role_name === 'ict_admin' || $booking->user_id === Auth::id(),
+            403,
+            'You can only view your own bookings.',
+        );
+
         return Inertia::render('bookings/show', [
             'booking' => $booking,
             'isAdmin' => Auth::user()->role->role_name === 'ict_admin',
@@ -198,7 +205,7 @@ class BookingController extends Controller
         $isAdmin = $user->role->role_name === 'ict_admin';
 
         $validated = $request->validate([
-            'booking_status' => ['required', 'in:pending,approved,rejected,cancelled'],
+            'booking_status' => ['required', 'in:pending,approved,rejected,cancelled,completed'],
         ]);
 
         $booking = Booking::with(['user', 'facility'])->findOrFail($id);
