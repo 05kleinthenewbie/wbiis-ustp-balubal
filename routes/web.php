@@ -40,6 +40,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/admin/login', fn () => Inertia::render('auth/login', [
         'canResetPassword' => Features::enabled(Features::resetPasswords()),
         'status' => session('status'),
+        'portal' => 'admin',
     ]))->name('admin.login');
     Route::get('/student/login', [StudentLoginController::class, 'create'])->name('student.login');
     Route::post('/student/login', [StudentLoginController::class, 'store'])

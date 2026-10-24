@@ -13,6 +13,7 @@ export default function FacultyLogin({ status, canResetPassword }: Props) {
             status={status}
             canResetPassword={canResetPassword}
             showRegister
+            portal="faculty"
             title="Faculty Sign In"
         />
     );

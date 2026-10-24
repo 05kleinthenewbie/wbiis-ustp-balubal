@@ -17,6 +17,7 @@ type Props = {
     status?: string;
     canResetPassword: boolean;
     showRegister?: boolean;
+    portal?: 'admin' | 'faculty';
     title?: string;
 };
 
@@ -24,6 +25,7 @@ export default function Login({
     status,
     canResetPassword,
     showRegister = false,
+    portal,
     title = 'Sign in',
 }: Props) {
     return (
@@ -37,6 +39,10 @@ export default function Login({
             >
                 {({ processing, errors }) => (
                     <>
+                        {portal && (
+                            <input type="hidden" name="portal" value={portal} />
+                        )}
+
                         <div className="grid gap-5">
                             <div className="grid gap-1.5">
                                 <Label

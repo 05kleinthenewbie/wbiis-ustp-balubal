@@ -1,9 +1,17 @@
 <?php
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
+
+function loginUserWithRole(string $roleName): User
+{
+    $role = Role::firstOrCreate(['role_name' => $roleName]);
+
+    return User::factory()->create(['role_id' => $role->id]);
+}
 
 test('login portal screen can be rendered', function () {
     $response = $this->get(route('login'));
@@ -73,6 +81,58 @@ test('users can not authenticate with invalid password', function () {
     ]);
 
     $this->assertGuest();
+});
+
+test('the administrator login form rejects faculty credentials', function () {
+    $faculty = loginUserWithRole('faculty_staff');
+
+    $response = $this->post(route('login.store'), [
+        'email' => $faculty->email,
+        'password' => 'password',
+        'portal' => 'admin',
+    ]);
+
+    $this->assertGuest();
+    $response->assertSessionHasErrors([
+        'email' => 'This sign-in form is for ICT administrators only. Faculty and staff should use the Faculty sign-in page.',
+    ]);
+});
+
+test('the faculty login form rejects administrator credentials', function () {
+    $admin = loginUserWithRole('ict_admin');
+
+    $response = $this->post(route('login.store'), [
+        'email' => $admin->email,
+        'password' => 'password',
+        'portal' => 'faculty',
+    ]);
+
+    $this->assertGuest();
+    $response->assertSessionHasErrors([
+        'email' => 'This sign-in form is for faculty and staff only. Administrators should use the Administrator sign-in page.',
+    ]);
+});
+
+test('each portal accepts credentials that match its role', function () {
+    $admin = loginUserWithRole('ict_admin');
+    $faculty = loginUserWithRole('faculty_staff');
+
+    $this->post(route('login.store'), [
+        'email' => $admin->email,
+        'password' => 'password',
+        'portal' => 'admin',
+    ])->assertRedirect(route('dashboard'));
+
+    $this->assertAuthenticatedAs($admin);
+    $this->post(route('logout'));
+
+    $this->post(route('login.store'), [
+        'email' => $faculty->email,
+        'password' => 'password',
+        'portal' => 'faculty',
+    ])->assertRedirect(route('dashboard'));
+
+    $this->assertAuthenticatedAs($faculty);
 });
 
 test('pending users can not authenticate', function () {
