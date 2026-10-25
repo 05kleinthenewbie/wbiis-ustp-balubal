@@ -52,7 +52,7 @@ const options: PortalOption[] = [
     {
         title: 'Student Portal',
         description:
-            'Sign in with your student ID number to request ICT services, book facilities, and track your tickets.',
+            'Sign in with your student ID number to request ICT services and track your tickets.',
         buttonLabel: 'Sign in',
         icon: GraduationCap,
         iconClassName:

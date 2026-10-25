@@ -35,7 +35,7 @@ export default function StudentLogin({ status }: Props) {
                                     htmlFor="id_number"
                                     className="text-sm font-medium text-foreground"
                                 >
-                                    Username
+                                    Student ID
                                 </Label>
                                 <div className="relative flex items-center">
                                     <GraduationCap className="pointer-events-none absolute top-1/2 left-3 size-[18px] -translate-y-1/2 text-muted-foreground" />
@@ -144,7 +144,7 @@ export default function StudentLogin({ status }: Props) {
 StudentLogin.layout = {
     title: 'Student Portal',
     description:
-        'Sign in with your username and password to request ICT services and book facilities.',
+        'Sign in with your student ID number and password to request ICT services.',
     icon: GraduationCap,
     backHref: portal().url,
     backTestId: 'back-to-portal-button',
