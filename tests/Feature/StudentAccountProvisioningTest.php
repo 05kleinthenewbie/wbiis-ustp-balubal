@@ -5,6 +5,7 @@ use App\Models\StudentRoster;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 function studentAccountAdmin(): User
 {
@@ -33,31 +34,18 @@ function studentRosterPayload(array $overrides = []): array
     ], $overrides);
 }
 
-test('adding a student creates a linked, active student account that signs in with the id number', function () {
-    $admin = studentAccountAdmin();
-
-    $this->actingAs($admin)
-        ->post(route('student-roster.store'), studentRosterPayload())
-        ->assertRedirect()
-        ->assertSessionHas('status')
-        ->assertSessionHas('student_credentials');
-
+test('student self registration uses the submitted details and chosen password without a roster', function () {
+    Storage::fake('local');
+    fakeBrevoMail();
+    Role::firstOrCreate(['role_name' => 'student']);
+    $this->post(route('register.store'), studentRegistrationPayload())->assertRedirect(route('register.otp.show'));
+    $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])->assertRedirect(route('student.login'));
     $user = User::where('id_number', '2023303709')->firstOrFail();
-    $student = StudentRoster::where('id_number', '2023303709')->firstOrFail();
-
-    $credentials = session('student_credentials');
-    $plainPassword = $credentials[0]['password'];
-
-    expect($user->role->role_name)->toBe('student')
-        ->and($user->status)->toBe('active')
-        ->and($user->email)->toBe('juan.delacruz@gmail.com')
+    expect($user->status)->toBe('pending')
         ->and($user->name)->toBe('Juan S. Dela Cruz')
         ->and($user->department)->toBe('BSIT')
-        ->and($student->user_id)->toBe($user->id)
-        ->and($credentials[0]['id_number'])->toBe('2023303709')
-        ->and($plainPassword)->toBe('2023303709')
-        ->and($user->password)->not->toBe($plainPassword)
-        ->and(Hash::check('2023303709', $user->password))->toBeTrue();
+        ->and(Hash::check('password', $user->password))->toBeTrue()
+        ->and(StudentRoster::count())->toBe(0);
 });
 
 test('guests can open the dedicated student login form', function () {
@@ -136,31 +124,12 @@ test('the student login form blocks deactivated accounts', function () {
     $this->assertGuest();
 });
 
-test('admins can reset a student password back to their id number', function () {
+test('retired roster password reset cannot replace a student chosen password', function () {
     $admin = studentAccountAdmin();
-
-    $this->actingAs($admin)->post(route('student-roster.store'), studentRosterPayload());
-
-    $student = StudentRoster::where('id_number', '2023303709')->firstOrFail();
-    $user = User::where('id_number', '2023303709')->firstOrFail();
-
-    $this->actingAs($admin)
-        ->post(route('student-roster.reset-password', $student))
-        ->assertRedirect()
-        ->assertSessionHas('student_credentials');
-
-    $newPassword = session('student_credentials')[0]['password'];
-    $user->refresh();
-
-    expect($newPassword)->toBe('2023303709')
-        ->and(Hash::check('2023303709', $user->password))->toBeTrue();
-
-    $this->post(route('logout'));
-
-    $this->post(route('student.authenticate'), [
-        'id_number' => '2023303709',
-        'password' => '2023303709',
-    ])->assertRedirect(route('dashboard'));
+    $user = User::factory()->create(['id_number' => '2023303709']);
+    $student = StudentRoster::create([...studentRosterPayload(), 'user_id' => $user->id]);
+    $this->actingAs($admin)->post('/student-roster/'.$student->id.'/reset-password')->assertNotFound();
+    expect(Hash::check('password', $user->refresh()->password))->toBeTrue();
 });
 
 test('non admins cannot reset student passwords', function () {
@@ -168,23 +137,22 @@ test('non admins cannot reset student passwords', function () {
     $faculty = studentAccountFaculty();
 
     $this->actingAs($faculty)
-        ->post(route('student-roster.reset-password', $student))
-        ->assertForbidden();
+        ->post('/student-roster/'.$student->id.'/reset-password')
+        ->assertNotFound();
 });
 
 test('duplicate student accounts are prevented for the same id number', function () {
-    $admin = studentAccountAdmin();
-
-    $this->actingAs($admin)->post(route('student-roster.store'), studentRosterPayload());
-    $this->actingAs($admin)
-        ->post(route('student-roster.store'), studentRosterPayload(['name' => 'Duplicate']))
+    Storage::fake('local');
+    fakeBrevoMail();
+    User::factory()->create(['id_number' => '2023303709']);
+    $this->post(route('register.store'), studentRegistrationPayload(['name' => 'Duplicate']))
         ->assertSessionHasErrors('id_number');
 
     expect(User::where('id_number', '2023303709')->count())->toBe(1)
-        ->and(StudentRoster::where('id_number', '2023303709')->count())->toBe(1);
+        ->and(StudentRoster::where('id_number', '2023303709')->count())->toBe(0);
 });
 
-test('importing students provisions an account for every imported row', function () {
+test('retired imports cannot provision active accounts', function () {
     $admin = studentAccountAdmin();
 
     $csv = implode("\n", [
@@ -194,35 +162,24 @@ test('importing students provisions an account for every imported row', function
         'invalid,Missing Program Check,XYZ,bad@gmail.com',
     ]);
 
-    $this->actingAs($admin)->post(route('student-roster.import'), [
+    $this->actingAs($admin)->post('/student-roster/import', [
         'csv_file' => UploadedFile::fake()->createWithContent('roster.csv', $csv),
-    ])->assertRedirect()->assertSessionHas('student_credentials');
+    ])->assertNotFound();
 
-    expect(User::whereIn('id_number', ['2023303710', '2023303711'])->count())->toBe(2)
-        ->and(User::where('id_number', '2023303710')->first()->role->role_name)->toBe('student')
-        ->and(User::where('id_number', '2023303710')->first()->email)->toBe('one@gmail.com')
-        ->and(session('student_credentials'))->toHaveCount(2);
+    expect(User::whereIn('id_number', ['2023303710', '2023303711'])->count())->toBe(0)
+        ->and(session('student_credentials'))->toBeNull();
 });
 
-test('removed students can be re-added and keep the id number as their password', function () {
+test('retired roster actions cannot recreate accounts or replace their passwords', function () {
     $admin = studentAccountAdmin();
-
-    $this->actingAs($admin)->post(route('student-roster.store'), studentRosterPayload());
-    $firstPassword = session('student_credentials')[0]['password'];
-
-    $student = StudentRoster::where('id_number', '2023303709')->firstOrFail();
-    $this->actingAs($admin)->delete(route('student-roster.destroy', $student));
-
-    $this->actingAs($admin)->post(route('student-roster.store'), studentRosterPayload());
-    $secondPassword = session('student_credentials')[0]['password'];
-
-    $user = User::where('id_number', '2023303709')->firstOrFail();
+    $user = User::factory()->create(['id_number' => '2023303709', 'status' => 'active']);
+    $student = StudentRoster::create([...studentRosterPayload(), 'user_id' => $user->id]);
+    $this->actingAs($admin)->delete('/student-roster/'.$student->id)->assertNotFound();
+    $this->actingAs($admin)->post('/student-roster', studentRosterPayload())->assertNotFound();
 
     expect(User::where('id_number', '2023303709')->count())->toBe(1)
         ->and($user->status)->toBe('active')
-        ->and($firstPassword)->toBe('2023303709')
-        ->and($secondPassword)->toBe('2023303709')
-        ->and(Hash::check($secondPassword, $user->password))->toBeTrue();
+        ->and(Hash::check('password', $user->refresh()->password))->toBeTrue();
 });
 
 test('students can authenticate through the api with their id number', function () {

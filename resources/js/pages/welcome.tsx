@@ -21,7 +21,7 @@ import {
 import { useEffect, useState } from 'react';
 import ustpLogo from '@/assets/ustp-logo.png';
 import { Button } from '@/components/tailgrids/core/button';
-import { dashboard, login } from '@/routes';
+import { dashboard, login, register } from '@/routes';
 import { login as adminLogin } from '@/routes/admin';
 import { login as facultyLogin } from '@/routes/faculty';
 import { login as studentLogin } from '@/routes/student';
@@ -78,6 +78,9 @@ const roles = [
             'View Updates',
         ],
         href: facultyLogin().url,
+        registerHref: register().url,
+        registrationNote:
+            'Choose Faculty or Staff and upload your Employee ID or Certificate of Employment for ICT Admin review.',
     },
     {
         icon: Shield,
@@ -91,41 +94,47 @@ const roles = [
             'Record Laboratory Incidents',
         ],
         href: adminLogin().url,
+        registerHref: null,
+        registrationNote:
+            'Administrator accounts are managed by the ICT office.',
     },
     {
         icon: Wifi,
         role: 'Students',
         description:
-            'Request email accounts and Office 365 access for academic purposes.',
+            'Register with your student ID and COR, then request email accounts and Office 365 access after approval.',
         features: ['Email Requests', 'Office 365 Access', 'Track Requests'],
         href: studentLogin().url,
+        registerHref: register({ query: { role: 'student' } }).url,
+        registrationNote:
+            'Enter your name, 10-digit student ID, and program, then upload your Certificate of Registration (COR).',
     },
 ];
 
 const workflowSteps = [
     {
         step: '1',
-        title: 'Submit Request',
+        title: 'Register & Upload',
         description:
-            'User submits a service request or facility booking through the portal.',
+            'Students upload a COR. Faculty and staff upload an Employee ID or Certificate of Employment with their registration details.',
     },
     {
         step: '2',
-        title: 'Review & Assign',
+        title: 'Verify Your Email',
         description:
-            'ICT administrator reviews and creates a job order for the request.',
+            'Enter the six-digit code sent to your email to complete account creation. You will return to your sign-in page.',
     },
     {
         step: '3',
-        title: 'Process & Resolve',
+        title: 'ICT Admin Review',
         description:
-            'Assigned staff processes the request and updates the status.',
+            'Your account stays pending while ICT Admin reviews your details and document. Automatic COR checks support student verification.',
     },
     {
         step: '4',
-        title: 'Notify & Close',
+        title: 'Sign In & Get Support',
         description:
-            'User receives notification and confirms resolution. Request is closed.',
+            'Once approved, sign in with your student ID or faculty/staff email and chosen password to access the services available to your role.',
     },
 ];
 
@@ -250,7 +259,10 @@ export default function Welcome() {
                         >
                             {[
                                 { label: 'Modules', href: '#modules' },
-                                { label: 'How It Works', href: '#how-it-works' },
+                                {
+                                    label: 'How It Works',
+                                    href: '#how-it-works',
+                                },
                                 { label: 'Roles', href: '#roles' },
                             ].map((link) => (
                                 <a
@@ -376,8 +388,24 @@ export default function Welcome() {
                                                 size="lg"
                                                 className="border-white/20 px-7 text-white/80 hover:border-ustp-gold/50 hover:bg-white/5 hover:text-white"
                                             >
-                                                <Link href={facultyLogin()}>
-                                                    Faculty Registration
+                                                <Link href={register()}>
+                                                    Faculty / Staff Registration
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="lg"
+                                                className="border-white/20 px-7 text-white/80 hover:border-ustp-gold/50 hover:bg-white/5 hover:text-white"
+                                            >
+                                                <Link
+                                                    href={register({
+                                                        query: {
+                                                            role: 'student',
+                                                        },
+                                                    })}
+                                                >
+                                                    Student Registration
                                                 </Link>
                                             </Button>
                                         </>
@@ -561,19 +589,22 @@ export default function Welcome() {
                 </section>
 
                 {/* How It Works */}
-                <section id="how-it-works" className="scroll-mt-24 bg-ustp-gray/50">
+                <section
+                    id="how-it-works"
+                    className="scroll-mt-24 bg-ustp-gray/50"
+                >
                     <div className="mx-auto max-w-7xl px-6 py-20">
                         <div className="mb-12 text-center">
                             <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-bold tracking-[0.18em] text-ustp-gold-dark uppercase shadow-sm">
-                                Workflow
+                                Account Registration
                             </span>
                             <h2 className="font-serif text-2xl font-bold text-ustp-navy sm:text-3xl">
-                                How It Works
+                                From Registration to ICT Support
                             </h2>
                             <div className="mx-auto mt-3 h-1 w-16 rounded-full bg-ustp-gold" />
                             <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-ustp-navy/60">
-                                From submission to resolution, the system
-                                streamlines the entire ICT service workflow.
+                                Create your account, verify your email, and wait
+                                for ICT Admin approval before signing in.
                             </p>
                         </div>
 
@@ -647,12 +678,24 @@ export default function Welcome() {
                                                 </li>
                                             ))}
                                         </ul>
+                                        <p className="mt-4 text-xs leading-relaxed text-ustp-navy/60">
+                                            {item.registrationNote}
+                                        </p>
                                         <Link
                                             href={item.href}
                                             className="mt-6 inline-flex items-center gap-1.5 border-t border-ustp-gray-medium pt-4 text-sm font-bold text-ustp-navy transition-colors hover:text-ustp-gold-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ustp-gold"
                                         >
                                             Sign in
                                         </Link>
+                                        {!auth.user && item.registerHref && (
+                                            <Link
+                                                href={item.registerHref}
+                                                className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-ustp-navy transition-colors hover:text-ustp-gold-dark"
+                                            >
+                                                Create an account{' '}
+                                                <ArrowRight className="size-4" />
+                                            </Link>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -697,8 +740,24 @@ export default function Welcome() {
                                                 size="lg"
                                                 className="border-white/20 px-7 text-white/80 hover:border-ustp-gold/50 hover:bg-white/5 hover:text-white"
                                             >
-                                                <Link href={facultyLogin()}>
-                                                    Faculty Registration
+                                                <Link href={register()}>
+                                                    Faculty / Staff Registration
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="lg"
+                                                className="border-white/20 px-7 text-white/80 hover:border-ustp-gold/50 hover:bg-white/5 hover:text-white"
+                                            >
+                                                <Link
+                                                    href={register({
+                                                        query: {
+                                                            role: 'student',
+                                                        },
+                                                    })}
+                                                >
+                                                    Student Registration
                                                 </Link>
                                             </Button>
                                         </>

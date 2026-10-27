@@ -1,6 +1,13 @@
 import { Form, Head } from '@inertiajs/react';
-import { GraduationCap, Lock, Mail, User } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import {
+    CalendarDays,
+    GraduationCap,
+    Mail,
+    MapPin,
+    Upload,
+    User,
+} from 'lucide-react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import StatusAlert, { isAlertMessage } from '@/components/status-alert';
@@ -19,17 +26,9 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { login, privacy, terms } from '@/routes';
 import { store } from '@/routes/register';
-import { lookup as studentLookup } from '@/routes/register/student';
 
 type Props = {
     passwordRules: string;
-};
-
-type LookupState = 'idle' | 'checking' | 'found' | 'not_found';
-
-type LookupResult = {
-    id: string;
-    status: 'found' | 'not_found';
 };
 
 const departmentOptions = [
@@ -41,60 +40,22 @@ const departmentOptions = [
 export default function Register({ passwordRules }: Props) {
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
-    const [role, setRole] = useState('faculty_staff');
+    const [role] = useState(() => {
+        if (typeof window === 'undefined') {
+            return 'faculty_staff';
+        }
+
+        return new URLSearchParams(window.location.search).get('role') ===
+            'student'
+            ? 'student'
+            : 'faculty_staff';
+    });
     const [employmentType, setEmploymentType] = useState('');
     const [department, setDepartment] = useState('');
     const [idNumber, setIdNumber] = useState('');
-    const [lookupResult, setLookupResult] = useState<LookupResult | null>(
-        null,
-    );
+    const [yearLevel, setYearLevel] = useState('');
+    const [gender, setGender] = useState('');
     const isStudent = role === 'student';
-    const idValid = isStudent && /^[0-9]{10}$/.test(idNumber);
-    const lookupState: LookupState = !idValid
-        ? 'idle'
-        : lookupResult?.id === idNumber
-          ? lookupResult.status
-          : 'checking';
-
-    useEffect(() => {
-        if (!isStudent || !/^[0-9]{10}$/.test(idNumber)) {
-            return;
-        }
-
-        if (lookupResult?.id === idNumber) {
-            return;
-        }
-
-        const controller = new AbortController();
-        const timer = setTimeout(async () => {
-            try {
-                const response = await fetch(studentLookup.url(idNumber), {
-                    signal: controller.signal,
-                });
-
-                if (!response.ok) {
-                    throw new Error('not found');
-                }
-
-                const data = await response.json();
-                setName(data.name);
-                setDepartment(data.program);
-                setLookupResult({ id: idNumber, status: 'found' });
-            } catch (error) {
-                if (error instanceof Error && error.name === 'AbortError') {
-                    return;
-                }
-
-                setName('');
-                setLookupResult({ id: idNumber, status: 'not_found' });
-            }
-        }, 400);
-
-        return () => {
-            clearTimeout(timer);
-            controller.abort();
-        };
-    }, [idNumber, isStudent, lookupResult]);
 
     return (
         <>
@@ -107,7 +68,12 @@ export default function Register({ passwordRules }: Props) {
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-4">
+                        <div className="grid items-start gap-x-6 gap-y-5 sm:grid-cols-2">
+                            <div className="space-y-1 border-b border-border pb-4 sm:col-span-2">
+                                <h3 className="font-semibold text-foreground">
+                                    Account details
+                                </h3>
+                            </div>
                             <div className="grid gap-2">
                                 <Label
                                     htmlFor="name"
@@ -122,17 +88,14 @@ export default function Register({ passwordRules }: Props) {
                                         type="text"
                                         required
                                         autoFocus
-                                        tabIndex={1}
                                         autoComplete="name"
                                         name="name"
                                         value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        readOnly={
-                                            isStudent &&
-                                            lookupState === 'found'
+                                        onChange={(e) =>
+                                            setName(e.target.value)
                                         }
                                         placeholder="Juan Dela Cruz"
-                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20 read-only:cursor-not-allowed read-only:bg-muted/50"
+                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors read-only:cursor-not-allowed read-only:bg-muted/50 focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
                                 <InputError message={errors.name} />
@@ -151,7 +114,6 @@ export default function Register({ passwordRules }: Props) {
                                         id="email"
                                         type="email"
                                         required
-                                        tabIndex={2}
                                         autoComplete="email"
                                         name="email"
                                         placeholder="your.email@example.com"
@@ -168,37 +130,12 @@ export default function Register({ passwordRules }: Props) {
                                 )}
                             </div>
 
-                            <div className="grid gap-2">
-                                <Label
-                                    htmlFor="role"
-                                    className="text-sm font-medium text-foreground"
-                                >
-                                    Role
-                                </Label>
-                                <Select
-                                    name="role"
-                                    value={role}
-                                    onValueChange={(value) => {
-                                        setRole(value);
-                                        setEmploymentType('');
-                                        setDepartment('');
-                                    }}
-                                    required
-                                >
-                                    <SelectTrigger
-                                        id="role"
-                                        className="h-11 w-full rounded-lg border-border text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
-                                    >
-                                        <SelectValue placeholder="Select role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                            <SelectItem value="faculty_staff">
-                                                Faculty
-                                            </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.role} />
-                            </div>
+                            <input type="hidden" name="role" value={role} />
+                            {errors.role && (
+                                <div className="sm:col-span-2">
+                                    <InputError message={errors.role} />
+                                </div>
+                            )}
 
                             {isStudent && (
                                 <div className="grid gap-2">
@@ -217,7 +154,6 @@ export default function Register({ passwordRules }: Props) {
                                             id="id_number"
                                             type="text"
                                             required
-                                            tabIndex={3}
                                             name="id_number"
                                             inputMode="numeric"
                                             autoComplete="off"
@@ -233,32 +169,15 @@ export default function Register({ passwordRules }: Props) {
                                             className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                         />
                                     </div>
-                                    {lookupState === 'checking' && (
-                                        <p className="text-xs text-muted-foreground">
-                                            Checking ID number…
-                                        </p>
-                                    )}
-                                    {lookupState === 'found' && (
-                                        <StatusAlert
-                                            message="ID found. Your details were loaded from the list."
-                                            variant="success"
-                                        />
-                                    )}
-                                    {lookupState === 'not_found' && (
-                                        <StatusAlert
-                                            message="ID number not found in the student list. Please visit ICT/Registrar to be enrolled."
-                                            variant="warning"
-                                        />
-                                    )}
-                                    {isAlertMessage(
-                                        errors.id_number ?? '',
-                                    ) ? (
+                                    {isAlertMessage(errors.id_number ?? '') ? (
                                         <StatusAlert
                                             message={errors.id_number}
                                             className="mt-1.5"
                                         />
                                     ) : (
-                                        <InputError message={errors.id_number} />
+                                        <InputError
+                                            message={errors.id_number}
+                                        />
                                     )}
                                 </div>
                             )}
@@ -269,7 +188,7 @@ export default function Register({ passwordRules }: Props) {
                                         htmlFor="employment_type"
                                         className="text-sm font-medium text-foreground"
                                     >
-                                        Employment type
+                                        Role
                                         <span className="ml-1 text-destructive">
                                             *
                                         </span>
@@ -287,14 +206,14 @@ export default function Register({ passwordRules }: Props) {
                                             id="employment_type"
                                             className="h-11 w-full rounded-lg border-border text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                         >
-                                            <SelectValue placeholder="Select employment type" />
+                                            <SelectValue placeholder="Select Faculty or Staff" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="teaching">
-                                                Teaching
+                                                Faculty
                                             </SelectItem>
                                             <SelectItem value="non_teaching">
-                                                Non-teaching
+                                                Staff
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -304,14 +223,13 @@ export default function Register({ passwordRules }: Props) {
                                 </div>
                             )}
 
-                            {(isStudent ||
-                                employmentType === 'teaching') && (
+                            {(isStudent || employmentType === 'teaching') && (
                                 <div className="grid gap-2">
                                     <Label
                                         htmlFor="department"
                                         className="text-sm font-medium text-foreground"
                                     >
-                                        Department
+                                        {isStudent ? 'Program' : 'Department'}
                                         <span className="ml-1 text-destructive">
                                             *
                                         </span>
@@ -345,12 +263,293 @@ export default function Register({ passwordRules }: Props) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <InputError
-                                        message={errors.department}
-                                    />
+                                    <InputError message={errors.department} />
                                 </div>
                             )}
 
+                            <div className="grid min-w-0 items-start gap-x-6 gap-y-5 rounded-2xl border border-border bg-muted/20 p-3 sm:col-span-2 sm:grid-cols-2 sm:p-6">
+                                <div className="space-y-1 sm:col-span-2">
+                                    <h3 className="font-semibold text-foreground">
+                                        {isStudent
+                                            ? 'Student information'
+                                            : 'Employment & personal information'}
+                                    </h3>
+                                </div>
+                                {!isStudent && (
+                                    <>
+                                        {[
+                                            {
+                                                name: 'employee_id_number',
+                                                label: 'Employee ID number',
+                                                placeholder: 'Your employee ID',
+                                            },
+                                            {
+                                                name: 'position',
+                                                label: 'Position / Designation',
+                                                placeholder:
+                                                    'e.g. Instructor I',
+                                            },
+                                            {
+                                                name: 'contact_no',
+                                                label: 'Contact number',
+                                                placeholder: 'e.g. 09123456789',
+                                            },
+                                        ].map((field) => (
+                                            <div
+                                                key={field.name}
+                                                className="grid gap-2"
+                                            >
+                                                <Label htmlFor={field.name}>
+                                                    {field.label}{' '}
+                                                    <span className="text-destructive">
+                                                        *
+                                                    </span>
+                                                </Label>
+                                                <Input
+                                                    id={field.name}
+                                                    name={field.name}
+                                                    type={
+                                                        field.name ===
+                                                        'contact_no'
+                                                            ? 'tel'
+                                                            : 'text'
+                                                    }
+                                                    required
+                                                    maxLength={
+                                                        field.name ===
+                                                        'employee_id_number'
+                                                            ? 50
+                                                            : field.name ===
+                                                                'contact_no'
+                                                              ? 30
+                                                              : 255
+                                                    }
+                                                    placeholder={
+                                                        field.placeholder
+                                                    }
+                                                    className="h-11 rounded-lg border-border bg-background text-sm"
+                                                />
+                                                <InputError
+                                                    message={errors[field.name]}
+                                                />
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
+                                {isStudent && (
+                                    <>
+                                        <input
+                                            type="hidden"
+                                            name="educational_level"
+                                            value="college"
+                                        />
+
+                                        <div className="grid gap-2">
+                                            <Label
+                                                htmlFor="year_level"
+                                                className="text-sm font-medium text-foreground"
+                                            >
+                                                Year level
+                                                <span className="ml-1 text-destructive">
+                                                    *
+                                                </span>
+                                            </Label>
+                                            <Select
+                                                name="year_level"
+                                                value={yearLevel}
+                                                onValueChange={setYearLevel}
+                                                required
+                                            >
+                                                <SelectTrigger
+                                                    id="year_level"
+                                                    className="h-11 w-full rounded-lg border-border bg-background text-sm"
+                                                >
+                                                    <SelectValue placeholder="Select year" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {[
+                                                        '1',
+                                                        '2',
+                                                        '3',
+                                                        '4',
+                                                        '5',
+                                                    ].map((year) => (
+                                                        <SelectItem
+                                                            key={year}
+                                                            value={year}
+                                                        >
+                                                            {year}
+                                                            {year === '1'
+                                                                ? 'st'
+                                                                : year === '2'
+                                                                  ? 'nd'
+                                                                  : year === '3'
+                                                                    ? 'rd'
+                                                                    : 'th'}{' '}
+                                                            Year
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <InputError
+                                                message={errors.year_level}
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                <div className="grid gap-2">
+                                    <Label
+                                        htmlFor="gender"
+                                        className="text-sm font-medium text-foreground"
+                                    >
+                                        Gender
+                                        <span className="ml-1 text-destructive">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <Select
+                                        name="gender"
+                                        value={gender}
+                                        onValueChange={setGender}
+                                        required
+                                    >
+                                        <SelectTrigger
+                                            id="gender"
+                                            className="h-11 w-full rounded-lg border-border bg-background text-sm"
+                                        >
+                                            <SelectValue placeholder="Select gender" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="male">
+                                                Male
+                                            </SelectItem>
+                                            <SelectItem value="female">
+                                                Female
+                                            </SelectItem>
+                                            <SelectItem value="prefer_not_to_say">
+                                                Prefer not to say
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.gender} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label
+                                        htmlFor="birth_date"
+                                        className="text-sm font-medium text-foreground"
+                                    >
+                                        Birth date
+                                        <span className="ml-1 text-destructive">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <div className="relative">
+                                        <CalendarDays className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            id="birth_date"
+                                            type="date"
+                                            name="birth_date"
+                                            required
+                                            max={
+                                                new Date()
+                                                    .toISOString()
+                                                    .split('T')[0]
+                                            }
+                                            className="h-11 rounded-lg border-border bg-background pl-9 text-sm"
+                                        />
+                                    </div>
+                                    <InputError message={errors.birth_date} />
+                                </div>
+
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label
+                                        htmlFor="home_address"
+                                        className="text-sm font-medium text-foreground"
+                                    >
+                                        Home address
+                                        <span className="ml-1 text-destructive">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <div className="relative">
+                                        <MapPin className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            id="home_address"
+                                            type="text"
+                                            name="home_address"
+                                            required
+                                            autoComplete="street-address"
+                                            placeholder="Barangay, City, Province"
+                                            className="h-11 rounded-lg border-border bg-background pl-9 text-sm"
+                                        />
+                                    </div>
+                                    <InputError message={errors.home_address} />
+                                </div>
+
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label
+                                        htmlFor={
+                                            isStudent
+                                                ? 'cor'
+                                                : 'employment_document'
+                                        }
+                                        className="text-sm font-medium text-foreground"
+                                    >
+                                        {isStudent
+                                            ? 'Certificate of Registration (COR)'
+                                            : 'Employee ID or Certificate of Employment'}
+                                        <span className="ml-1 text-destructive">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <div className="min-w-0 rounded-xl border border-dashed border-border bg-background p-3 sm:p-4">
+                                        <div className="mb-3 flex items-center gap-3">
+                                            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-ustp-navy/5 text-ustp-navy dark:bg-white/10 dark:text-white">
+                                                <Upload className="size-5" />
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">
+                                                PDF, JPG, or PNG · Up to 5 MB
+                                            </p>
+                                        </div>
+                                        <input
+                                            key={
+                                                isStudent
+                                                    ? 'cor'
+                                                    : 'employment_document'
+                                            }
+                                            id={
+                                                isStudent
+                                                    ? 'cor'
+                                                    : 'employment_document'
+                                            }
+                                            name={
+                                                isStudent
+                                                    ? 'cor'
+                                                    : 'employment_document'
+                                            }
+                                            type="file"
+                                            required
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            className="block w-full min-w-0 cursor-pointer text-sm text-muted-foreground file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-ustp-navy file:px-4 file:py-2.5 file:text-sm file:font-medium file:text-white hover:file:bg-ustp-navy-dark"
+                                        />
+                                    </div>
+                                    <InputError
+                                        message={
+                                            isStudent
+                                                ? errors.cor
+                                                : errors.employment_document
+                                        }
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1 border-b border-border pb-4 sm:col-span-2">
+                                <h3 className="font-semibold text-foreground">
+                                    Secure your account
+                                </h3>
+                            </div>
                             <div className="grid gap-2">
                                 <Label
                                     htmlFor="password"
@@ -359,11 +558,9 @@ export default function Register({ passwordRules }: Props) {
                                     Password
                                 </Label>
                                 <div className="relative">
-                                    <Lock className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <PasswordInput
                                         id="password"
                                         required
-                                        tabIndex={4}
                                         autoComplete="new-password"
                                         name="password"
                                         value={password}
@@ -372,7 +569,7 @@ export default function Register({ passwordRules }: Props) {
                                         }
                                         placeholder="Create a password"
                                         passwordrules={passwordRules}
-                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                        className="h-11 rounded-lg border-border text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
                                 {password.length > 0 && (
@@ -392,16 +589,14 @@ export default function Register({ passwordRules }: Props) {
                                     Confirm password
                                 </Label>
                                 <div className="relative">
-                                    <Lock className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <PasswordInput
                                         id="password_confirmation"
                                         required
-                                        tabIndex={5}
                                         autoComplete="new-password"
                                         name="password_confirmation"
                                         placeholder="Confirm your password"
                                         passwordrules={passwordRules}
-                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                        className="h-11 rounded-lg border-border text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
                                 <InputError
@@ -409,19 +604,18 @@ export default function Register({ passwordRules }: Props) {
                                 />
                             </div>
 
-                            <div className="mt-2 flex items-start gap-3">
+                            <div className="mt-1 flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:col-span-2">
                                 <input
                                     type="checkbox"
                                     id="terms"
                                     name="terms"
                                     value="on"
                                     required
-                                    tabIndex={6}
                                     className="mt-0.5 size-4 shrink-0 rounded-[4px] border border-input accent-ustp-navy focus-visible:ring-2 focus-visible:ring-ustp-navy/30 dark:border-white/20"
                                 />
                                 <Label
                                     htmlFor="terms"
-                                    className="text-sm leading-snug font-normal text-muted-foreground"
+                                    className="block text-sm leading-relaxed font-normal text-muted-foreground"
                                 >
                                     By clicking continue, you agree to our{' '}
                                     <a
@@ -444,22 +638,24 @@ export default function Register({ passwordRules }: Props) {
                                     .
                                 </Label>
                             </div>
-                            <InputError message={errors.terms} />
+                            {errors.terms && (
+                                <div className="sm:col-span-2">
+                                    <InputError message={errors.terms} />
+                                </div>
+                            )}
 
                             <Button
                                 type="submit"
-                                className="h-11 w-full rounded-lg bg-ustp-gold font-semibold text-ustp-navy shadow-md shadow-ustp-gold/20 transition-all hover:-translate-y-0.5 hover:bg-ustp-gold-dark hover:text-white hover:shadow-lg hover:shadow-ustp-gold/30 active:scale-[0.98]"
-                                tabIndex={7}
+                                className="h-11 w-full rounded-lg bg-ustp-gold text-sm font-semibold text-ustp-navy shadow-sm transition-colors hover:bg-ustp-gold-dark hover:text-white sm:col-span-2"
                                 disabled={
                                     processing ||
-                                    (isStudent && lookupState !== 'found')
+                                    (isStudent && !/^[0-9]{10}$/.test(idNumber))
                                 }
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
-                                Continue
+                                Continue to email verification
                             </Button>
-
                         </div>
 
                         <div className="relative">
@@ -478,7 +674,6 @@ export default function Register({ passwordRules }: Props) {
                             <TextLink
                                 href={login()}
                                 data-test="team-invitation-login-link"
-                                tabIndex={8}
                                 className="font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
                             >
                                 Sign in
@@ -492,6 +687,6 @@ export default function Register({ passwordRules }: Props) {
 }
 
 Register.layout = {
+    wide: true,
     title: 'Create an account',
-    description: 'Join the USTP Balubal ICT Portal to get started',
 };

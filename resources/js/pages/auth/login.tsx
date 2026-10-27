@@ -1,15 +1,15 @@
 import { Form, Head } from '@inertiajs/react';
-import { Mail, ShieldCheck } from 'lucide-react';
+import { ArrowRight, LockKeyhole, Mail, Shield } from 'lucide-react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import StatusAlert, { isAlertMessage } from '@/components/status-alert';
-import { Button } from '@/components/tailgrids/core/button';
 import TextLink from '@/components/text-link';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { login as portal, register } from '@/routes';
+import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
@@ -32,6 +32,8 @@ export default function Login({
         <>
             <Head title={title} />
 
+            {status && <StatusAlert message={status} className="mb-5" />}
+
             <Form
                 {...store.form()}
                 resetOnSuccess={['password']}
@@ -43,16 +45,13 @@ export default function Login({
                             <input type="hidden" name="portal" value={portal} />
                         )}
 
-                        <div className="grid gap-5">
-                            <div className="grid gap-1.5">
+                        <div className="grid items-start gap-5">
+                            <div className="grid content-start gap-2">
                                 <Label
                                     htmlFor="email"
-                                    className="flex items-center justify-between text-sm font-medium text-foreground"
+                                    className="text-sm font-medium text-foreground"
                                 >
-                                    <span>Email Address</span>
-                                    <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-                                        Official
-                                    </span>
+                                    Email address
                                 </Label>
                                 <div className="relative flex items-center">
                                     <Mail className="pointer-events-none absolute top-1/2 left-3 size-[18px] -translate-y-1/2 text-muted-foreground" />
@@ -62,10 +61,10 @@ export default function Login({
                                         name="email"
                                         required
                                         autoFocus
-                                        tabIndex={1}
                                         autoComplete="username"
+                                        aria-invalid={Boolean(errors.email)}
                                         placeholder="name.id@ustp.edu.ph"
-                                        className="h-11 rounded-lg border-border pl-10 text-sm transition-all focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                        className="h-11 rounded-lg border-border bg-background pl-10 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                     />
                                 </div>
                                 {errors.email && (
@@ -81,8 +80,8 @@ export default function Login({
                                 )}
                             </div>
 
-                            <div className="grid gap-1.5">
-                                <div className="flex items-center justify-between">
+                            <div className="grid content-start gap-2">
+                                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                                     <Label
                                         htmlFor="password"
                                         className="text-sm font-medium text-foreground"
@@ -92,30 +91,31 @@ export default function Login({
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="text-xs font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
-                                            tabIndex={5}
+                                            className="py-1 text-xs font-medium text-ustp-navy hover:text-ustp-navy-dark sm:py-0 dark:text-white/80 dark:hover:text-white"
                                         >
                                             Forgot password?
                                         </TextLink>
                                     )}
                                 </div>
-                                <PasswordInput
-                                    id="password"
-                                    name="password"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="current-password"
-                                    placeholder="••••••••"
-                                    className="h-11 rounded-lg border-border pl-10 text-sm transition-all focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
-                                />
+                                <div className="relative">
+                                    <LockKeyhole className="pointer-events-none absolute top-1/2 left-3 z-10 size-[18px] -translate-y-1/2 text-muted-foreground" />
+                                    <PasswordInput
+                                        id="password"
+                                        name="password"
+                                        required
+                                        autoComplete="current-password"
+                                        aria-invalid={Boolean(errors.password)}
+                                        placeholder="Enter your password"
+                                        className="h-11 rounded-lg border-border bg-background pl-10 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                    />
+                                </div>
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="flex items-center gap-2.5">
+                            <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 p-4">
                                 <Checkbox
                                     id="remember"
                                     name="remember"
-                                    tabIndex={3}
                                     className="border-border data-[state=checked]:border-ustp-navy data-[state=checked]:bg-ustp-navy dark:border-neutral-600"
                                 />
                                 <Label
@@ -128,47 +128,42 @@ export default function Login({
 
                             <Button
                                 type="submit"
-                                variant="primary"
                                 size="lg"
-                                className="mt-1 w-full rounded-xl"
-                                tabIndex={4}
+                                className="h-11 w-full rounded-lg bg-ustp-gold text-sm font-semibold text-ustp-navy shadow-sm transition-colors hover:bg-ustp-gold-dark hover:text-white"
                                 disabled={processing}
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Sign in
+                                {processing ? 'Signing in…' : 'Sign in'}
+                                {!processing && (
+                                    <ArrowRight className="size-4" />
+                                )}
                             </Button>
                         </div>
 
                         {showRegister && (
-                            <div className="text-center text-sm text-muted-foreground">
+                            <div className="border-t border-border pt-5 text-center text-sm leading-relaxed text-muted-foreground">
                                 Don't have an account?{' '}
                                 <TextLink
                                     href={register()}
                                     data-test="register-link"
-                                    tabIndex={5}
                                     className="font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
                                 >
-                                    Create an account
+                                    Register as Faculty or Staff
                                 </TextLink>
                             </div>
                         )}
                     </>
                 )}
             </Form>
-
-            {status && <StatusAlert message={status} />}
         </>
     );
 }
 
 Login.layout = {
+    wide: false,
     title: 'Administrator Sign In',
-    description:
-        'Authorized access for USTP Balubal Campus administrators, faculty, and staff only.',
-    icon: ShieldCheck,
+    icon: Shield,
     iconClassName:
-        'bg-orange-50 text-orange-500 dark:bg-orange-950/50 dark:text-orange-400',
-    backHref: portal().url,
-    backTestId: 'back-to-portal-button',
+        'bg-orange-100 text-orange-600 dark:bg-orange-950/60 dark:text-orange-400',
 };

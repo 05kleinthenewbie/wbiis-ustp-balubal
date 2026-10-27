@@ -41,6 +41,10 @@ class AuthController extends ApiController
             abort(403, 'Your account has been deactivated. Please contact the ICT office.');
         }
 
+        if ($user->status === 'rejected') {
+            abort(403, 'Your registration was not approved. Please contact the ICT office.');
+        }
+
         $token = auth('api')->login($user);
 
         return $this->respondWithToken($token, $user);

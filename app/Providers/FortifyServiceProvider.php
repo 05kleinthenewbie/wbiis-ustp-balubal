@@ -77,6 +77,12 @@ class FortifyServiceProvider extends ServiceProvider
                 ]);
             }
 
+            if ($user->status === 'rejected') {
+                throw ValidationException::withMessages([
+                    Fortify::username() => 'Your registration was not approved. Please contact the ICT office.',
+                ]);
+            }
+
             if ($user->status === 'inactive') {
                 throw ValidationException::withMessages([
                     Fortify::username() => 'Your account has been deactivated. Please contact the ICT office.',

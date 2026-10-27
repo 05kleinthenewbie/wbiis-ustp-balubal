@@ -47,7 +47,6 @@ test('admin pages render without server errors', function (string $uri) {
     'report export' => '/reports/export',
     'audit log' => '/audit-log',
     'users' => '/users',
-    'student roster' => '/student-roster',
     'settings profile' => '/settings/profile',
 ]);
 

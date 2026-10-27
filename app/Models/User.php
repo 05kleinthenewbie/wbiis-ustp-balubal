@@ -30,6 +30,20 @@ use RuntimeException;
  * @property string|null $avatar
  * @property string|null $id_number
  * @property string|null $employment_type
+ * @property string|null $employee_id_number
+ * @property string|null $position
+ * @property string|null $employment_document_path
+ * @property string|null $employment_document_original_name
+ * @property string|null $educational_level
+ * @property string|null $year_level
+ * @property string|null $gender
+ * @property Carbon|null $birth_date
+ * @property string|null $home_address
+ * @property string|null $cor_path
+ * @property string|null $cor_original_name
+ * @property string|null $cor_verification_status
+ * @property array<string, mixed>|null $cor_verification_details
+ * @property Carbon|null $cor_checked_at
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -37,8 +51,8 @@ use RuntimeException;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password', 'role_id', 'department', 'employment_type', 'id_number', 'contact_no', 'status', 'avatar'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'department', 'employment_type', 'id_number', 'educational_level', 'year_level', 'gender', 'birth_date', 'home_address', 'cor_path', 'cor_original_name', 'contact_no', 'status', 'avatar', 'employee_id_number', 'position', 'employment_document_path', 'employment_document_original_name'])]
+#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'cor_path', 'cor_original_name', 'employment_document_path', 'employment_document_original_name'])]
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<UserFactory> */
@@ -53,8 +67,32 @@ class User extends Authenticatable implements JWTSubject
     {
         return [
             'email_verified_at' => 'datetime',
+            'birth_date' => 'date',
+            'cor_verification_details' => 'array',
+            'cor_checked_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Resolve the admin-only download URL for the student's uploaded
+     * Certificate of Registration, or null when none was submitted.
+     */
+    protected function corUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => filled($this->cor_path)
+            ? route('users.cor', $this)
+            : null);
+    }
+
+    /**
+     * Resolve the admin-only download URL for the employment document.
+     */
+    protected function employmentDocumentUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => filled($this->employment_document_path)
+            ? route('users.employment-document', $this)
+            : null);
     }
 
     /**

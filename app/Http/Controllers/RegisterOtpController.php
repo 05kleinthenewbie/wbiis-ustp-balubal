@@ -69,12 +69,20 @@ class RegisterOtpController extends Controller
 
         event(new Registered($user));
 
-        return redirect()->route('login')->with(
-            'status',
-            $user->status === 'active'
-                ? 'Registration successful! You can now log in to your account.'
-                : 'Registration successful! Your account is pending ICT Admin approval. You will be able to log in once approved.',
-        );
+        $isStudent = $user->role?->role_name === 'student';
+        $status = $user->status === 'active'
+            ? 'Registration successful! You can now log in to your account.'
+            : 'Registration successful! Your account is pending ICT Admin approval. You will be able to log in once approved.';
+
+        $response = redirect()
+            ->route($isStudent ? 'student.login' : 'faculty.login')
+            ->with('status', $status);
+
+        if ($isStudent) {
+            $response->with('registration_id_number', $user->id_number);
+        }
+
+        return $response;
     }
 
     /**

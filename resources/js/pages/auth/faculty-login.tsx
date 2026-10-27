@@ -1,5 +1,4 @@
-import { Briefcase } from 'lucide-react';
-import { login as portal } from '@/routes';
+import { Users } from 'lucide-react';
 import Login from './login';
 
 type Props = {
@@ -20,12 +19,9 @@ export default function FacultyLogin({ status, canResetPassword }: Props) {
 }
 
 FacultyLogin.layout = {
+    wide: false,
     title: 'Faculty Sign In',
-    description:
-        'Sign in with your official USTP email, or create a faculty account for ICT Admin approval.',
-    icon: Briefcase,
+    icon: Users,
     iconClassName:
-        'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400',
-    backHref: portal().url,
-    backTestId: 'back-to-portal-button',
+        'bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400',
 };

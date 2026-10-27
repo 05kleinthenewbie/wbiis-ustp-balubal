@@ -3,7 +3,7 @@
 use App\Models\Role;
 use App\Models\StudentRoster;
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Route;
 
 function rosterAdmin(): User
 {
@@ -12,7 +12,7 @@ function rosterAdmin(): User
     return User::factory()->create(['role_id' => $role->id]);
 }
 
-test('the lookup endpoint returns rostered student details', function () {
+test('the retired lookup endpoint does not expose rostered student details', function () {
     StudentRoster::create([
         'id_number' => '2023303709',
         'name' => 'Juan S. Dela Cruz',
@@ -20,30 +20,28 @@ test('the lookup endpoint returns rostered student details', function () {
     ]);
 
     $this->getJson('/register/students/2023303709')
-        ->assertOk()
-        ->assertJson(['found' => true, 'name' => 'Juan S. Dela Cruz', 'program' => 'BSIT']);
+        ->assertNotFound();
 });
 
 test('the lookup endpoint returns 404 for unknown id numbers', function () {
     $this->getJson('/register/students/9999999999')
-        ->assertNotFound()
-        ->assertJson(['found' => false]);
+        ->assertNotFound();
 });
 
 test('students cannot access the roster page', function () {
     $role = Role::firstOrCreate(['role_name' => 'student']);
     $student = User::factory()->create(['role_id' => $role->id]);
 
-    $this->actingAs($student)->get(route('student-roster.index'))->assertForbidden();
-    $this->actingAs($student)->post(route('student-roster.store'), [
+    $this->actingAs($student)->get('/student-roster')->assertNotFound();
+    $this->actingAs($student)->post('/student-roster', [
         'id_number' => '2023303709',
         'name' => 'Juan Dela Cruz',
         'program' => 'BSIT',
         'email' => 'juan.delacruz@gmail.com',
-    ])->assertForbidden();
+    ])->assertNotFound();
 });
 
-test('admins can view the roster page', function () {
+test('the roster page is removed for admins', function () {
     StudentRoster::create([
         'id_number' => '2023303709',
         'name' => 'Juan S. Dela Cruz',
@@ -51,43 +49,37 @@ test('admins can view the roster page', function () {
     ]);
 
     $this->actingAs(rosterAdmin())
-        ->get(route('student-roster.index'))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->component('student-roster/index')
-            ->has('students', 1)
-            ->where('students.0.id_number', '2023303709')
-            ->where('students.0.account_status', 'no_account')
-            ->where('students.0.registered_user_id', null));
+        ->get('/student-roster')
+        ->assertNotFound();
 });
 
-test('admins can add a student to the roster and provision an account', function () {
+test('retired roster additions cannot provision accounts', function () {
     $admin = rosterAdmin();
 
-    $this->actingAs($admin)->post(route('student-roster.store'), [
+    $this->actingAs($admin)->post('/student-roster', [
         'id_number' => '2023303709',
         'name' => 'Juan Dela Cruz',
         'program' => 'BSIT',
         'email' => 'juan.delacruz@gmail.com',
-    ])->assertRedirect()->assertSessionHas('student_credentials');
+    ])->assertNotFound();
 
-    $this->assertDatabaseHas('student_rosters', [
+    $this->assertDatabaseMissing('student_rosters', [
         'id_number' => '2023303709',
         'name' => 'Juan Dela Cruz',
         'program' => 'BSIT',
         'email' => 'juan.delacruz@gmail.com',
     ]);
 
-    $this->assertDatabaseHas('users', [
+    $this->assertDatabaseMissing('users', [
         'id_number' => '2023303709',
         'status' => 'active',
     ]);
 });
 
-test('the roster addition and account provisioning share a transaction', function () {
+test('retired roster additions do not create roster entries or accounts', function () {
     $admin = rosterAdmin();
 
-    $this->actingAs($admin)->post(route('student-roster.store'), [
+    $this->actingAs($admin)->post('/student-roster', [
         'id_number' => '2023303709',
         'name' => 'Juan Dela Cruz',
         'program' => 'BSIT',
@@ -97,10 +89,10 @@ test('the roster addition and account provisioning share a transaction', functio
     $student = StudentRoster::where('id_number', '2023303709')->first();
     $user = User::where('id_number', '2023303709')->first();
 
-    expect($student->user_id)->toBe($user->id);
+    expect($student)->toBeNull()->and($user)->toBeNull();
 });
 
-test('roster additions require a unique valid id number', function () {
+test('retired roster additions remain inaccessible for duplicate or malformed input', function () {
     $admin = rosterAdmin();
     StudentRoster::create([
         'id_number' => '2023303709',
@@ -108,28 +100,28 @@ test('roster additions require a unique valid id number', function () {
         'program' => 'BSIT',
     ]);
 
-    $this->actingAs($admin)->post(route('student-roster.store'), [
+    $this->actingAs($admin)->post('/student-roster', [
         'id_number' => '2023303709',
         'name' => 'Duplicate Student',
         'program' => 'BSA',
         'email' => 'duplicate@gmail.com',
-    ])->assertSessionHasErrors('id_number');
+    ])->assertNotFound();
 
-    $this->actingAs($admin)->post(route('student-roster.store'), [
+    $this->actingAs($admin)->post('/student-roster', [
         'id_number' => '12345',
         'name' => 'Short ID',
         'program' => 'BSA',
         'email' => 'short@gmail.com',
-    ])->assertSessionHasErrors('id_number');
+    ])->assertNotFound();
 
-    $this->actingAs($admin)->post(route('student-roster.store'), [
+    $this->actingAs($admin)->post('/student-roster', [
         'id_number' => '2023303712',
         'name' => 'No Email',
         'program' => 'BSA',
-    ])->assertSessionHasErrors('email');
+    ])->assertNotFound();
 });
 
-test('roster additions reject emails that already belong to another account', function () {
+test('retired roster additions cannot modify existing accounts', function () {
     $admin = rosterAdmin();
     $role = Role::firstOrCreate(['role_name' => 'faculty_staff']);
     User::factory()->create([
@@ -138,38 +130,31 @@ test('roster additions reject emails that already belong to another account', fu
         'id_number' => null,
     ]);
 
-    $this->actingAs($admin)->post(route('student-roster.store'), [
+    $this->actingAs($admin)->post('/student-roster', [
         'id_number' => '2023303709',
         'name' => 'Juan Dela Cruz',
         'program' => 'BSIT',
         'email' => 'taken@gmail.com',
-    ])->assertSessionHasErrors('email');
+    ])->assertNotFound();
 
     expect(StudentRoster::count())->toBe(0);
 });
 
-test('admins can remove a student from the roster and disable their account', function () {
+test('retired roster deletion preserves existing student accounts and data', function () {
     $admin = rosterAdmin();
 
-    $this->actingAs($admin)->post(route('student-roster.store'), [
-        'id_number' => '2023303709',
-        'name' => 'Juan S. Dela Cruz',
-        'program' => 'BSIT',
-        'email' => 'juan.delacruz@gmail.com',
-    ]);
-
-    $entry = StudentRoster::where('id_number', '2023303709')->firstOrFail();
-    $user = User::where('id_number', '2023303709')->firstOrFail();
+    $user = User::factory()->create(['id_number' => '2023303709', 'status' => 'active']);
+    $entry = StudentRoster::create(['id_number' => '2023303709', 'name' => 'Juan S. Dela Cruz', 'program' => 'BSIT', 'user_id' => $user->id]);
 
     $this->actingAs($admin)
-        ->delete(route('student-roster.destroy', $entry))
-        ->assertRedirect();
+        ->delete('/student-roster/'.$entry->id)
+        ->assertNotFound();
 
-    $this->assertDatabaseMissing('student_rosters', ['id_number' => '2023303709']);
-    expect($user->refresh()->status)->toBe('inactive');
+    $this->assertDatabaseHas('student_rosters', ['id_number' => '2023303709']);
+    expect($user->refresh()->status)->toBe('active');
 });
 
-test('admins can bulk import students from a csv', function () {
+test('the retired CSV import cannot create student accounts', function () {
     $admin = rosterAdmin();
     StudentRoster::create([
         'id_number' => '2023303709',
@@ -185,50 +170,50 @@ test('admins can bulk import students from a csv', function () {
         'invalid,Missing Program Check,XYZ,bad@gmail.com',
     ]);
 
-    $file = UploadedFile::fake()->createWithContent('roster.csv', $csv);
-
     $this->actingAs($admin)
-        ->post(route('student-roster.import'), ['csv_file' => $file])
-        ->assertRedirect()
-        ->assertSessionHas('status');
+        ->post('/student-roster/import', ['csv' => $csv])
+        ->assertNotFound();
 
-    $this->assertDatabaseHas('student_rosters', ['id_number' => '2023303710', 'program' => 'BSA', 'email' => 'one@gmail.com']);
-    $this->assertDatabaseHas('student_rosters', ['id_number' => '2023303711', 'program' => 'BTLED', 'email' => 'two@gmail.com']);
-    $this->assertDatabaseHas('users', ['id_number' => '2023303710', 'email' => 'one@gmail.com']);
-    $this->assertDatabaseHas('users', ['id_number' => '2023303711', 'email' => 'two@gmail.com']);
-    expect(StudentRoster::count())->toBe(3)
-        ->and(User::whereIn('id_number', ['2023303710', '2023303711'])->count())->toBe(2);
+    $this->assertDatabaseMissing('users', ['id_number' => '2023303710']);
+    $this->assertDatabaseMissing('users', ['id_number' => '2023303711']);
+    expect(StudentRoster::count())->toBe(1);
 });
 
-test('csv imports require the expected header columns', function () {
-    $admin = rosterAdmin();
-    $file = UploadedFile::fake()->createWithContent(
-        'roster.csv',
-        "student_id,fullname\n2023303709,Juan Dela Cruz",
-    );
-
-    $this->actingAs($admin)
-        ->post(route('student-roster.import'), ['csv_file' => $file])
-        ->assertSessionHasErrors('csv_file');
-
-    expect(StudentRoster::count())->toBe(0);
+test('student roster named routes are no longer registered', function () {
+    foreach (['student-roster.index', 'student-roster.store', 'student-roster.import', 'student-roster.destroy', 'student-roster.reset-password', 'register.student.lookup'] as $name) {
+        expect(Route::has($name))->toBeFalse();
+    }
 });
 
-test('roster entries show the provisioned account status', function () {
+test('retired roster password resets cannot change existing passwords', function () {
     $admin = rosterAdmin();
 
-    $this->actingAs($admin)->post(route('student-roster.store'), [
+    $student = User::factory()->create();
+    $entry = StudentRoster::create(['id_number' => '2023303709', 'name' => $student->name, 'program' => 'BSIT', 'user_id' => $student->id]);
+    $password = $student->password;
+    $this->actingAs($admin)->post('/student-roster/'.$entry->id.'/reset-password')->assertNotFound();
+    expect($student->refresh()->password)->toBe($password);
+});
+
+test('existing pending student accounts are preserved after roster removal', function () {
+    $admin = rosterAdmin();
+    $studentRole = Role::firstOrCreate(['role_name' => 'student']);
+
+    $student = User::factory()->create([
+        'role_id' => $studentRole->id,
+        'id_number' => '2023303709',
+        'status' => 'pending',
+    ]);
+
+    StudentRoster::create([
         'id_number' => '2023303709',
         'name' => 'Juan S. Dela Cruz',
         'program' => 'BSIT',
-        'email' => 'juan.delacruz@gmail.com',
+        'user_id' => $student->id,
     ]);
 
     $this->actingAs($admin)
-        ->get(route('student-roster.index'))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->component('student-roster/index')
-            ->where('students.0.registered_user_id', fn ($id) => $id !== null)
-            ->where('students.0.account_status', 'active'));
+        ->get('/student-roster')
+        ->assertNotFound();
+    expect($student->refresh()->status)->toBe('pending');
 });

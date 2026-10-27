@@ -14,7 +14,6 @@ import {
     History,
     BarChart3,
     Users,
-    GraduationCap,
     Wrench,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -123,10 +122,13 @@ export function AppSidebar() {
                 },
             ],
         },
-        { title: 'Laboratory Incident Reports', href: '/incidents', icon: AlertTriangle },
+        {
+            title: 'Laboratory Incident Reports',
+            href: '/incidents',
+            icon: AlertTriangle,
+        },
         { title: 'Audit Log', href: '/audit-log', icon: History },
         { title: 'Reports', href: '/reports', icon: BarChart3 },
-        { title: 'Student List', href: '/student-roster', icon: GraduationCap },
         { title: 'User Management', href: '/users', icon: Users },
     ];
 
@@ -145,7 +147,11 @@ export function AppSidebar() {
                 },
             ],
         },
-        { title: 'Laboratory Incident Reports', href: '/incidents', icon: AlertTriangle },
+        {
+            title: 'Laboratory Incident Reports',
+            href: '/incidents',
+            icon: AlertTriangle,
+        },
     ];
 
     const studentNavItems: NavItem[] = [

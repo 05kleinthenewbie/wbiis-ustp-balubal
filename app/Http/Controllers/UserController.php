@@ -7,11 +7,17 @@ use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\CorVerificationService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserController extends Controller
 {
@@ -38,18 +44,54 @@ class UserController extends Controller
             'pendingUsers' => User::with('role')
                 ->where('status', 'pending')
                 ->latest()
-                ->get(),
+                ->get()
+                ->each->append(['cor_url', 'employment_document_url']),
             'activeUsers' => User::with('role')
                 ->where('status', 'active')
                 ->where('id', '!=', Auth::id())
                 ->latest()
-                ->get(),
+                ->get()
+                ->each->append(['cor_url', 'employment_document_url']),
             'deactivatedUsers' => User::with('role')
                 ->where('status', 'inactive')
                 ->where('id', '!=', Auth::id())
                 ->latest()
-                ->get(),
+                ->get()
+                ->each->append(['cor_url', 'employment_document_url']),
+            'rejectedUsers' => User::with('role')->where('status', 'rejected')->latest()->get()
+                ->each->append(['cor_url', 'employment_document_url']),
         ]);
+    }
+
+    /**
+     * Stream a student's Certificate of Registration to an ICT administrator
+     * so it can be reviewed before the account is approved.
+     */
+    public function downloadCor(User $user): StreamedResponse
+    {
+        $this->ensureAdmin();
+
+        abort_unless(
+            filled($user->cor_path) && Storage::disk('local')->exists((string) $user->cor_path),
+            404,
+        );
+
+        return Storage::disk('local')->download(
+            (string) $user->cor_path,
+            $user->cor_original_name ?: 'certificate-of-registration.pdf',
+        );
+    }
+
+    public function downloadEmploymentDocument(User $user): StreamedResponse
+    {
+        $this->ensureAdmin();
+
+        abort_unless(filled($user->employment_document_path) && Storage::disk('local')->exists((string) $user->employment_document_path), 404);
+
+        return Storage::disk('local')->download(
+            (string) $user->employment_document_path,
+            $user->employment_document_original_name ?: 'employment-document.pdf',
+        );
     }
 
     /**
@@ -130,14 +172,101 @@ class UserController extends Controller
         $this->ensureAdmin();
 
         $validated = $request->validate([
-            'status' => ['required', 'in:pending,active,inactive'],
+            'status' => ['required', 'in:pending,active,inactive,rejected'],
         ]);
 
-        $user = User::findOrFail($id);
-        $previousStatus = $user->status;
-        $user->update($validated);
+        DB::transaction(function () use ($id, $validated): void {
+            $user = User::lockForUpdate()->findOrFail($id);
+            $this->changeStatus($user, $validated['status']);
+        });
 
-        if ($validated['status'] === 'active') {
+        return redirect()->back()->with('status', 'User account updated successfully.');
+    }
+
+    public function bulk(Request $request, CorVerificationService $verification): RedirectResponse
+    {
+        $this->ensureAdmin();
+        $validated = $request->validate([
+            'action' => ['required', 'in:verify,approve,reject'],
+            'ids' => ['required', 'array', 'min:1', 'max:500'],
+            'ids.*' => ['required', 'integer', 'distinct', 'exists:users,id'],
+        ]);
+
+        $processed = 0;
+        $skipped = 0;
+        foreach ($validated['ids'] as $id) {
+            DB::transaction(function () use ($id, $validated, $verification, &$processed, &$skipped): void {
+                $user = User::query()->lockForUpdate()->find($id);
+
+                if ($user === null || $user->status !== 'pending' || $user->id === Auth::id()) {
+                    $skipped++;
+
+                    return;
+                }
+
+                $user->loadMissing('role');
+
+                if ($validated['action'] === 'verify') {
+                    if ($user->role?->role_name !== 'student') {
+                        $skipped++;
+
+                        return;
+                    }
+
+                    $verification->verify($user);
+                    AuditLog::record('Checked COR: '.$user->cor_verification_status, 'users', $user->id);
+                } else {
+                    try {
+                        $this->changeStatus($user, $validated['action'] === 'approve' ? 'active' : 'rejected');
+                    } catch (ValidationException) {
+                        $skipped++;
+
+                        return;
+                    }
+                }
+
+                $processed++;
+            });
+        }
+
+        $action = ['verify' => 'checked', 'approve' => 'approved', 'reject' => 'rejected'][$validated['action']];
+
+        return back()->with('status', "{$processed} account(s) {$action}; {$skipped} skipped (no longer pending, not applicable, or missing COR). Verification does not activate accounts.");
+    }
+
+    private function changeStatus(User $user, string $status): void
+    {
+        $previousStatus = $user->status;
+
+        if ($previousStatus === 'pending' && $status === 'inactive') {
+            $status = 'rejected';
+        }
+
+        if (($status === 'rejected' && $previousStatus !== 'pending') || ($previousStatus === 'rejected' && $status !== 'pending')) {
+            throw ValidationException::withMessages(['status' => 'Rejected registrations must return to verification before approval.']);
+        }
+
+        if ($previousStatus === $status) {
+            return;
+        }
+
+        if (
+            $status === 'active'
+            && $previousStatus === 'pending'
+            && $user->role?->role_name === 'student'
+            && (
+                blank($user->cor_path)
+                || ! Storage::disk('local')->exists((string) $user->cor_path)
+            )
+        ) {
+            throw ValidationException::withMessages([
+                'status' => 'Review the student\'s Certificate of Registration (COR) before approving this account.',
+            ]);
+        }
+
+        $user->update(['status' => $status]);
+
+        if ($status === 'active') {
             Notification::create([
                 'user_id' => $user->id,
                 'message' => $previousStatus === 'inactive'
@@ -149,9 +278,9 @@ class UserController extends Controller
             ]);
 
             if ($user->wasChanged('status')) {
-                UserApproved::dispatch($user);
+                DB::afterCommit(fn () => UserApproved::dispatch($user));
             }
-        } elseif ($validated['status'] === 'inactive') {
+        } elseif (in_array($status, ['inactive', 'rejected'], true)) {
             Notification::create([
                 'user_id' => $user->id,
                 'message' => $previousStatus === 'active'
@@ -164,7 +293,7 @@ class UserController extends Controller
         }
 
         AuditLog::record(
-            "Set user status to {$validated['status']}",
+            "Set user status to {$status}",
             'users',
             $user->id,
             null,
@@ -172,6 +301,5 @@ class UserController extends Controller
             ['status' => $user->status],
         );
 
-        return redirect()->back()->with('status', 'User account updated successfully.');
     }
 }

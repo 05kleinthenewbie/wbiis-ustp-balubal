@@ -20,6 +20,7 @@ class StudentLoginController extends Controller
     {
         return Inertia::render('auth/student-login', [
             'status' => $request->session()->get('status'),
+            'idNumber' => $request->session()->get('registration_id_number'),
         ]);
     }
 
@@ -53,6 +54,10 @@ class StudentLoginController extends Controller
             throw ValidationException::withMessages([
                 'id_number' => 'Your account is pending ICT Admin approval. Please contact the ICT office.',
             ]);
+        }
+
+        if ($user->status === 'rejected') {
+            throw ValidationException::withMessages(['id_number' => 'Your registration was not approved. Please contact the ICT office.']);
         }
 
         if ($user->status !== 'active') {

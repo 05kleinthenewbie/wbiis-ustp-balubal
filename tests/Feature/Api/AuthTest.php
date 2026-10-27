@@ -77,7 +77,7 @@ it('can register as a student and log in immediately', function () {
     ])->assertOk();
 });
 
-it('rejects a student registration with an unrostered id number', function () {
+it('accepts a student registration without a roster entry', function () {
     Role::create(['role_name' => 'student']);
 
     $response = $this->postJson('/api/v1/auth/register', [
@@ -90,10 +90,9 @@ it('rejects a student registration with an unrostered id number', function () {
         'id_number' => '9999999999',
     ]);
 
-    $response->assertUnprocessable()
-        ->assertJsonValidationErrors(['id_number']);
+    $response->assertCreated();
 
-    $this->assertDatabaseMissing('users', ['email' => 'student@ustp.edu.ph']);
+    $this->assertDatabaseHas('users', ['email' => 'student@ustp.edu.ph', 'id_number' => '9999999999']);
 });
 
 it('rejects a student registration without a department', function () {

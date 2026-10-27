@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends ApiController
 {
@@ -39,10 +40,16 @@ class UserController extends ApiController
         $this->ensureAdmin();
 
         $validated = $request->validate([
-            'status' => ['required', 'in:pending,active,inactive'],
+            'status' => ['required', 'in:pending,active,inactive,rejected'],
         ]);
 
         $user = User::findOrFail($id);
+        if ($user->status === 'pending' && $validated['status'] === 'inactive') {
+            $validated['status'] = 'rejected';
+        }
+        if (($user->status === 'rejected' && $validated['status'] !== 'pending') || ($validated['status'] === 'rejected' && $user->status !== 'pending')) {
+            throw ValidationException::withMessages(['status' => 'Rejected registrations must return to verification before approval.']);
+        }
         $user->update($validated);
 
         if ($validated['status'] === 'active') {
@@ -57,7 +64,7 @@ class UserController extends ApiController
             if ($user->wasChanged('status')) {
                 UserApproved::dispatch($user);
             }
-        } elseif ($validated['status'] === 'inactive') {
+        } elseif (in_array($validated['status'], ['inactive', 'rejected'], true)) {
             Notification::create([
                 'user_id' => $user->id,
                 'message' => 'Your account registration was not approved. Please contact the ICT office for more information.',

@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import ustpLogo from '@/assets/ustp-logo.png';
-import { Button } from '@/components/tailgrids/core/button';
+import { Button } from '@/components/ui/button';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -11,7 +11,7 @@ export default function AuthSimpleLayout({
     description,
     wide = false,
     icon,
-    iconClassName = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400',
+    iconClassName = 'bg-ustp-navy/5 text-ustp-navy dark:bg-white/10 dark:text-white',
     backHref,
     backLabel = 'Back',
     backTestId,
@@ -19,44 +19,44 @@ export default function AuthSimpleLayout({
     const Icon = icon;
 
     return (
-        <div className="flex min-h-svh items-center justify-center bg-ustp-gray/50 p-6 dark:bg-neutral-950">
+        <div className="flex min-h-svh items-start justify-center bg-linear-to-br from-ustp-gray/70 via-background to-ustp-gray/30 px-2 py-3 sm:items-center sm:px-6 sm:py-12 dark:from-neutral-950 dark:to-neutral-900">
             <div
-                className={`w-full overflow-hidden rounded-2xl border border-ustp-gray-medium bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900 ${
-                    wide ? 'max-w-5xl' : 'max-w-lg'
+                className={`w-full min-w-0 overflow-hidden rounded-2xl border border-border bg-background shadow-xl shadow-ustp-navy/5 sm:rounded-3xl ${
+                    wide ? 'max-w-2xl' : 'max-w-lg'
                 }`}
             >
                 {/* Brand header */}
-                <div className="relative bg-ustp-navy px-6 pt-7 pb-6 text-center">
-                    <Link href={home()} className="inline-block">
-                        <div className="mx-auto mb-3 flex size-20 items-center justify-center rounded-full bg-white p-2 shadow-md">
+                <div className="flex flex-col items-center justify-center gap-4 bg-ustp-navy px-5 py-7 text-center sm:px-8 sm:py-8">
+                    <Link
+                        href={home()}
+                        className="shrink-0 rounded-xl focus-visible:ring-2 focus-visible:ring-ustp-gold focus-visible:outline-none"
+                        aria-label="USTP BALUBAL ICT PORTAL home"
+                    >
+                        <div className="flex size-12 items-center justify-center rounded-xl border border-slate-100 bg-white p-1.5 shadow-sm sm:size-14">
                             <img
                                 src={ustpLogo}
                                 alt="USTP Logo"
-                                className="size-full rounded-full object-contain"
+                                className="size-full object-contain"
                             />
                         </div>
                     </Link>
-                    <h1 className="mb-1 font-serif text-2xl font-bold tracking-tight text-white">
-                        USTP ICT Portal
-                    </h1>
-                    <p className="mb-3 text-[11px] font-medium tracking-[0.15em] text-white/80 uppercase">
-                        University of Science and Technology of Southern
-                        Philippines
-                    </p>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-ustp-gold/40 bg-ustp-gold/20 px-3 py-1">
-                        <span className="size-1.5 shrink-0 rounded-full bg-ustp-gold-light" />
-                        <span className="text-[11px] font-semibold tracking-wide text-ustp-gold-light uppercase">
-                            Balubal Campus, Cagayan de Oro City
-                        </span>
-                    </span>
+                    <div className="w-full min-w-0 space-y-3 text-center">
+                        <h1 className="font-serif text-xl leading-tight font-bold tracking-tight text-balance text-white sm:text-2xl">
+                            USTP BALUBAL ICT PORTAL
+                        </h1>
+                        <p className="mx-auto max-w-md font-serif text-xs leading-relaxed font-semibold text-white/80 sm:text-sm">
+                            University of Science and Technology of Southern
+                            Philippines
+                        </p>
+                    </div>
                 </div>
 
                 {/* Gold accent divider */}
                 <div className="h-1 bg-ustp-gold" />
 
-                <div className="bg-white px-6 py-6 dark:bg-neutral-900">
+                <div className="bg-background px-4 py-5 sm:px-8 sm:py-8 [@media(max-width:639px)]:[&_input:not([type=checkbox]):not([type=hidden]):not([type=file])]:text-base [@media(max-width:639px)]:[&_input[type=date]]:min-w-0">
                     {backHref && (
-                        <div className="mb-4 flex">
+                        <div className="mb-2 flex sm:mb-4">
                             <Button
                                 asChild
                                 variant="ghost"
@@ -75,7 +75,7 @@ export default function AuthSimpleLayout({
                         </div>
                     )}
 
-                    <div className="mb-6 space-y-1 text-center">
+                    <div className="mb-6 space-y-2 text-center sm:mb-8">
                         {Icon && (
                             <div className="mb-3 flex justify-center">
                                 <div
@@ -85,12 +85,14 @@ export default function AuthSimpleLayout({
                                 </div>
                             </div>
                         )}
-                        <h2 className="font-serif text-lg font-bold tracking-tight text-ustp-navy dark:text-white">
+                        <h2 className="text-2xl leading-tight font-semibold tracking-tight text-balance text-foreground sm:text-[28px]">
                             {title}
                         </h2>
-                        <p className="text-sm leading-snug text-ustp-navy/70 dark:text-white/70">
-                            {description}
-                        </p>
+                        {description && (
+                            <p className="mx-auto max-w-xl text-sm leading-relaxed text-muted-foreground">
+                                {description}
+                            </p>
+                        )}
                     </div>
 
                     {children}

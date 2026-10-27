@@ -13,9 +13,7 @@ use App\Http\Controllers\RegisterOtpController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceRequestController;
 use App\Http\Controllers\StudentLoginController;
-use App\Http\Controllers\StudentLookupController;
 use App\Http\Controllers\StudentPasswordResetLinkController;
-use App\Http\Controllers\StudentRosterController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -27,10 +25,6 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::inertia('/terms', 'terms')->name('terms');
 Route::inertia('/privacy-policy', 'privacy-policy')->name('privacy');
-
-Route::get('/register/students/{idNumber}', StudentLookupController::class)
-    ->middleware('throttle:20,1')
-    ->name('register.student.lookup');
 
 Route::middleware('guest')->group(function () {
     Route::get('/faculty/login', fn () => Inertia::render('auth/faculty-login', [
@@ -57,6 +51,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/users/{user}/employment-document', [UserController::class, 'downloadEmploymentDocument'])->name('users.employment-document');
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('requests/approvals', [ServiceRequestController::class, 'approvals'])->name('requests.approvals');
     Route::get('job-orders/assignments', [JobOrderController::class, 'assignments'])->name('job-orders.assignments');
@@ -88,11 +83,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::delete('notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
-    Route::get('student-roster', [StudentRosterController::class, 'index'])->name('student-roster.index');
-    Route::post('student-roster', [StudentRosterController::class, 'store'])->name('student-roster.store');
-    Route::post('student-roster/import', [StudentRosterController::class, 'import'])->name('student-roster.import');
-    Route::post('student-roster/{studentRoster}/reset-password', [StudentRosterController::class, 'resetPassword'])->name('student-roster.reset-password');
-    Route::delete('student-roster/{studentRoster}', [StudentRosterController::class, 'destroy'])->name('student-roster.destroy');
+    Route::get('users/{user}/cor', [UserController::class, 'downloadCor'])->name('users.cor');
+    Route::post('users/bulk', [UserController::class, 'bulk'])->name('users.bulk');
     Route::resource('users', UserController::class)->only(['index', 'update']);
     Route::post('technicians', [UserController::class, 'storeTechnician'])->name('technicians.store');
 });
