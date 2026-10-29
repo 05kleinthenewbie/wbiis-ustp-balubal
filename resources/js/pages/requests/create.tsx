@@ -5,6 +5,8 @@ import {
     ClipboardPlus,
     FileText,
     Send,
+    Paperclip,
+    X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { BackButton } from '@/components/back-button';
@@ -21,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { store } from '@/routes/requests';
 
 type ServiceTypeItem = {
     id: number;
@@ -59,11 +62,12 @@ const fieldClass =
 export default function RequestsCreate({ categories, isStudent }: Props) {
     const [selected, setSelected] = useState<Record<number, ServiceLine>>({});
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, transform, processing, errors } = useForm({
         problem_description: '',
         location: '',
         contact_details: '',
         services: [] as ServiceLine[],
+        attachments: [] as File[],
     });
 
     function toggleService(typeId: number, defaultAction: string | null) {
@@ -101,8 +105,11 @@ export default function RequestsCreate({ categories, isStudent }: Props) {
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        setData('services', Object.values(selected));
-        post('/requests', {
+        transform((values) => ({
+            ...values,
+            services: Object.values(selected),
+        }));
+        post(store().url, {
             onSuccess: () => setSelected({}),
         });
     }
@@ -499,6 +506,101 @@ export default function RequestsCreate({ categories, isStudent }: Props) {
                                     )}
                                 </div>
                             </div>
+                        </section>
+
+                        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+                            <div className="mb-4 flex items-center gap-3">
+                                <Paperclip className="size-5 text-ustp-gold" />
+                                <div>
+                                    <Label
+                                        htmlFor="attachments"
+                                        className="font-semibold text-slate-800"
+                                    >
+                                        Attachments (optional)
+                                    </Label>
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        Upload up to 5 files, 5 MB each. PDF,
+                                        JPG, PNG, Word, and Excel files are
+                                        supported.
+                                    </p>
+                                </div>
+                            </div>
+                            <Input
+                                id="attachments"
+                                type="file"
+                                multiple
+                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                                onChange={(event) => {
+                                    const files = Array.from(
+                                        event.target.files ?? [],
+                                    );
+                                    setData('attachments', [
+                                        ...data.attachments,
+                                        ...files,
+                                    ]);
+                                    event.target.value = '';
+                                }}
+                            />
+                            {errors.attachments && (
+                                <p className="mt-2 text-sm text-red-600">
+                                    {errors.attachments}
+                                </p>
+                            )}
+                            <ul className="mt-3 space-y-2">
+                                {data.attachments.map((file, index) => (
+                                    <li
+                                        key={`${file.name}-${index}`}
+                                        className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 text-sm"
+                                    >
+                                        <div className="min-w-0">
+                                            <p className="truncate">
+                                                {file.name}
+                                            </p>
+                                            <p className="text-xs text-slate-500">
+                                                {(
+                                                    file.size /
+                                                    1024 /
+                                                    1024
+                                                ).toFixed(2)}{' '}
+                                                MB
+                                            </p>
+                                            {(errors as Record<string, string>)[
+                                                `attachments.${index}`
+                                            ] && (
+                                                <p className="text-xs text-red-600">
+                                                    {
+                                                        (
+                                                            errors as Record<
+                                                                string,
+                                                                string
+                                                            >
+                                                        )[
+                                                            `attachments.${index}`
+                                                        ]
+                                                    }
+                                                </p>
+                                            )}
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            aria-label={`Remove ${file.name}`}
+                                            onClick={() =>
+                                                setData(
+                                                    'attachments',
+                                                    data.attachments.filter(
+                                                        (_, fileIndex) =>
+                                                            fileIndex !== index,
+                                                    ),
+                                                )
+                                            }
+                                        >
+                                            <X className="size-4" />
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
                         </section>
 
                         {/* Submit */}

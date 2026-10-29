@@ -53,6 +53,7 @@ export default function Register({ passwordRules }: Props) {
     const [employmentType, setEmploymentType] = useState('');
     const [department, setDepartment] = useState('');
     const [idNumber, setIdNumber] = useState('');
+    const [educationalLevel, setEducationalLevel] = useState('');
     const [yearLevel, setYearLevel] = useState('');
     const [gender, setGender] = useState('');
     const isStudent = role === 'student';
@@ -338,11 +339,45 @@ export default function Register({ passwordRules }: Props) {
                                 )}
                                 {isStudent && (
                                     <>
-                                        <input
-                                            type="hidden"
-                                            name="educational_level"
-                                            value="college"
-                                        />
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="educational_level">
+                                                Educational level
+                                                <span className="ml-1 text-destructive">
+                                                    *
+                                                </span>
+                                            </Label>
+                                            <Select
+                                                name="educational_level"
+                                                value={educationalLevel}
+                                                onValueChange={
+                                                    setEducationalLevel
+                                                }
+                                                required
+                                            >
+                                                <SelectTrigger
+                                                    id="educational_level"
+                                                    className="h-11 w-full rounded-lg border-border bg-background text-sm"
+                                                >
+                                                    <SelectValue placeholder="Select educational level" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="college">
+                                                        College
+                                                    </SelectItem>
+                                                    <SelectItem value="senior_high">
+                                                        Senior High School
+                                                    </SelectItem>
+                                                    <SelectItem value="graduate">
+                                                        Graduate Studies
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <InputError
+                                                message={
+                                                    errors.educational_level
+                                                }
+                                            />
+                                        </div>
 
                                         <div className="grid gap-2">
                                             <Label
