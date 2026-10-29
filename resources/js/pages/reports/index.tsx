@@ -324,34 +324,34 @@ export default function ReportsIndex({
                             </p>
                         ) : (
                             <div className="overflow-x-auto">
-                                <table className="w-full min-w-[720px] text-sm">
+                                <table className="w-full min-w-180 text-sm">
                                     <thead>
                                         <tr className="border-b border-slate-200 bg-slate-50">
-                                            <th className="px-3 py-2.5 text-left text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                            <th className="px-3 py-2.5 text-left text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                 Facility
                                             </th>
-                                            <th className="px-3 py-2.5 text-left text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                            <th className="px-3 py-2.5 text-left text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                 Type
                                             </th>
-                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                 Capacity
                                             </th>
-                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                 Total
                                             </th>
-                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                 Pending
                                             </th>
-                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                 Approved
                                             </th>
-                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                 Rejected
                                             </th>
-                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                 Cancelled
                                             </th>
-                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                            <th className="px-3 py-2.5 text-center text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                 Approved Hours
                                             </th>
                                         </tr>

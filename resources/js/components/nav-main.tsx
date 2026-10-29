@@ -56,7 +56,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                     isActive
                                         ? 'bg-ustp-navy text-white shadow-sm shadow-ustp-navy/20'
                                         : 'text-slate-600 hover:bg-ustp-navy/5 hover:text-ustp-navy',
-                                    '[&>svg]:size-[18px] [&>svg]:shrink-0',
+                                    '[&>svg]:size-4.5 [&>svg]:shrink-0',
                                     isActive
                                         ? '[&>svg]:text-ustp-gold'
                                         : '[&>svg]:text-slate-400 group-hover:[&>svg]:text-ustp-navy',

@@ -152,14 +152,14 @@ function StatusStepper({ current }: { current: string }) {
                         {index < statusSteps.length - 1 && (
                             <span
                                 aria-hidden
-                                className={`absolute top-6 left-[9px] h-[calc(100%-4px)] w-0.5 ${
+                                className={`absolute top-6 left-2.25 h-[calc(100%-4px)] w-0.5 ${
                                     done ? 'bg-ustp-gold/60' : 'bg-slate-200'
                                 }`}
                             />
                         )}
 
                         <span
-                            className={`relative z-10 mt-0.5 flex size-[19px] shrink-0 items-center justify-center rounded-full border-2 text-[9px] font-bold ${
+                            className={`relative z-10 mt-0.5 flex size-4.75 shrink-0 items-center justify-center rounded-full border-2 text-[9px] font-bold ${
                                 active
                                     ? 'border-ustp-gold bg-ustp-gold text-ustp-navy'
                                     : done
@@ -437,7 +437,7 @@ export default function IncidentsShow({
                             {/* Liability records */}
                             {incident.user_liabilities.length > 0 && (
                                 <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                    <div className="flex items-center gap-3 border-b border-slate-200 bg-ustp-gold/[0.04] px-5 py-4 md:px-6">
+                                    <div className="flex items-center gap-3 border-b border-slate-200 bg-ustp-gold/4 px-5 py-4 md:px-6">
                                         <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                             <UserPlus className="size-4 text-ustp-gold" />
                                         </div>
@@ -558,7 +558,7 @@ export default function IncidentsShow({
                         {/* Admin review sidebar */}
                         {isAdmin && (
                             <div className="h-fit overflow-hidden rounded-2xl border border-ustp-gold/30 bg-white shadow-sm">
-                                <div className="flex items-center gap-3 border-b border-slate-200 bg-ustp-gold/[0.04] px-5 py-5">
+                                <div className="flex items-center gap-3 border-b border-slate-200 bg-ustp-gold/4 px-5 py-5">
                                     <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                         <ShieldAlert className="size-4 text-ustp-gold" />
                                     </div>

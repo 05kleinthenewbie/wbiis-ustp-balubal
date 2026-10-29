@@ -144,7 +144,7 @@ export default function Notifications({
                                 >
                                     <p
                                         className={cn(
-                                            'text-sm leading-relaxed break-words',
+                                            'text-sm leading-relaxed wrap-break-word',
                                             notification.notification_status ===
                                                 'unread' && 'font-semibold',
                                         )}

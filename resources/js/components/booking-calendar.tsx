@@ -294,7 +294,7 @@ export default function BookingCalendar({
                         {WEEKDAYS.map((weekday) => (
                             <div
                                 key={weekday}
-                                className="py-1 text-center text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase"
+                                className="py-1 text-center text-[10px] font-semibold tracking-widest text-slate-400 uppercase"
                             >
                                 {weekday.slice(0, 3)}
                             </div>

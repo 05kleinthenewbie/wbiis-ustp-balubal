@@ -261,7 +261,7 @@ export function PasswordStrength({
                             key={rule.id}
                             className="flex items-center gap-2"
                         >
-                            <span className="relative grid size-[14px] shrink-0 place-items-center rounded-[4px] border border-stone-200 text-white dark:border-white/[0.16] dark:text-stone-900">
+                            <span className="relative grid size-3.5 shrink-0 place-items-center rounded-[4px] border border-stone-200 text-white dark:border-white/16 dark:text-stone-900">
                                 <motion.span
                                     className="absolute inset-0 rounded-[3px] bg-emerald-500"
                                     initial={false}
@@ -274,7 +274,7 @@ export function PasswordStrength({
                                     viewBox="0 0 12 12"
                                     fill="none"
                                     aria-hidden
-                                    className="relative size-[9px]"
+                                    className="relative size-2.25"
                                     initial={false}
                                     animate={{
                                         opacity: rule.met ? 1 : 0,

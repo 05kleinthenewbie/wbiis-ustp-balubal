@@ -122,7 +122,7 @@ export function NotificationBell() {
             >
                 {/* Header */}
                 <div className="relative overflow-hidden bg-ustp-navy px-5 py-4">
-                    <div className="pointer-events-none absolute -top-10 right-0 h-32 w-32 rounded-full bg-ustp-gold/[0.12] blur-2xl" />
+                    <div className="pointer-events-none absolute -top-10 right-0 h-32 w-32 rounded-full bg-ustp-gold/12 blur-2xl" />
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/15 text-ustp-gold">
@@ -178,7 +178,7 @@ export function NotificationBell() {
                                     className={cn(
                                         'group flex items-start gap-3 border-b border-ustp-gray-medium px-4 py-3 transition-colors last:border-0 hover:bg-ustp-gray/60 dark:border-white/10 dark:hover:bg-white/5',
                                         isUnread &&
-                                            'bg-ustp-gold/[0.04] dark:bg-ustp-gold/[0.08]',
+                                            'bg-ustp-gold/4 dark:bg-ustp-gold/8',
                                     )}
                                 >
                                     <div

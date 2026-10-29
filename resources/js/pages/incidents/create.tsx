@@ -296,7 +296,7 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
                                             }
                                             className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-all ${
                                                 selected
-                                                    ? 'border-ustp-gold/50 bg-ustp-gold/[0.06] shadow-sm ring-1 ring-ustp-gold/30'
+                                                    ? 'border-ustp-gold/50 bg-ustp-gold/6 shadow-sm ring-1 ring-ustp-gold/30'
                                                     : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                                             }`}
                                         >
@@ -635,7 +635,7 @@ export default function IncidentsCreate({ inventoryItems }: Props) {
                         </section>
 
                         {/* Notice */}
-                        <div className="rounded-xl border border-ustp-gold/20 bg-ustp-gold/[0.04] p-3 text-xs leading-5 text-slate-500">
+                        <div className="rounded-xl border border-ustp-gold/20 bg-ustp-gold/4 p-3 text-xs leading-5 text-slate-500">
                             After review, ICT admin may assign liability to
                             involved parties. You'll be notified of any
                             resulting action.

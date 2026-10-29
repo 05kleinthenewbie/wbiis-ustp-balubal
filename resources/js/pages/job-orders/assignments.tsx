@@ -145,7 +145,7 @@ function JobOrderRow({
                         ? `Change technician for job order ${jobOrder.job_order_number}`
                         : `Add technician to job order ${jobOrder.job_order_number}`
                 }
-                className={`mt-0.5 inline-flex max-w-[190px] shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
+                className={`mt-0.5 inline-flex max-w-47.5 shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
                     assigned
                         ? 'border-slate-200 bg-white text-slate-600 hover:border-ustp-navy/40 hover:text-ustp-navy'
                         : 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100'

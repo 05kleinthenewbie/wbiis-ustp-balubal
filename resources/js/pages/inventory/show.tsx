@@ -1385,9 +1385,9 @@ export default function InventoryShow({ item }: Props) {
                                             >
                                                 {index <
                                                     auditLogs.length - 1 && (
-                                                    <span className="absolute top-6 left-[11px] h-full w-px bg-slate-200" />
+                                                    <span className="absolute top-6 left-2.75 h-full w-px bg-slate-200" />
                                                 )}
-                                                <span className="mt-1 size-[15px] shrink-0 rounded-full border-2 border-ustp-gold/40 bg-white" />
+                                                <span className="mt-1 size-3.75 shrink-0 rounded-full border-2 border-ustp-gold/40 bg-white" />
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-sm font-medium text-slate-800">
                                                         {log.action_taken}

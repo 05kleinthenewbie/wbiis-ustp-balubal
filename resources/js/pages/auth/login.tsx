@@ -54,7 +54,7 @@ export default function Login({
                                     Email address
                                 </Label>
                                 <div className="relative flex items-center">
-                                    <Mail className="pointer-events-none absolute top-1/2 left-3 size-[18px] -translate-y-1/2 text-muted-foreground" />
+                                    <Mail className="pointer-events-none absolute top-1/2 left-3 size-4.5 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         id="email"
                                         type="email"
@@ -98,7 +98,7 @@ export default function Login({
                                     )}
                                 </div>
                                 <div className="relative">
-                                    <LockKeyhole className="pointer-events-none absolute top-1/2 left-3 z-10 size-[18px] -translate-y-1/2 text-muted-foreground" />
+                                    <LockKeyhole className="pointer-events-none absolute top-1/2 left-3 z-10 size-4.5 -translate-y-1/2 text-muted-foreground" />
                                     <PasswordInput
                                         id="password"
                                         name="password"

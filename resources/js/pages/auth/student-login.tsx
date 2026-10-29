@@ -41,7 +41,7 @@ export default function StudentLogin({ status, idNumber }: Props) {
                                     Student ID
                                 </Label>
                                 <div className="relative flex items-center">
-                                    <GraduationCap className="pointer-events-none absolute top-1/2 left-3 size-[18px] -translate-y-1/2 text-muted-foreground" />
+                                    <GraduationCap className="pointer-events-none absolute top-1/2 left-3 size-4.5 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         id="id_number"
                                         type="text"

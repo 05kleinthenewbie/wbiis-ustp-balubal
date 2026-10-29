@@ -939,7 +939,7 @@ export default function InventoryIndex({
                         /* Table */
                         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                             <div className="overflow-x-auto">
-                                <table className="w-full min-w-[1250px] text-sm">
+                                <table className="w-full min-w-312.5 text-sm">
                                     <thead>
                                         <tr className="border-b border-slate-200 bg-slate-50">
                                             <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">

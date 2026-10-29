@@ -299,10 +299,10 @@ export default function Welcome() {
 
                 {/* Hero Section */}
                 <section className="relative flex min-h-screen items-center overflow-hidden bg-ustp-navy">
-                    <div className="absolute inset-0 bg-gradient-to-r from-ustp-navy-dark to-ustp-navy" />
+                    <div className="absolute inset-0 bg-linear-to-r from-ustp-navy-dark to-ustp-navy" />
                     {/* Corner glow for depth */}
-                    <div className="pointer-events-none absolute -top-32 right-0 h-[600px] w-[600px] rounded-full bg-ustp-light-blue/[0.08] blur-3xl" />
-                    <div className="pointer-events-none absolute bottom-0 left-1/3 h-[400px] w-[400px] rounded-full bg-ustp-gold/[0.05] blur-3xl" />
+                    <div className="pointer-events-none absolute -top-32 right-0 h-150 w-150 rounded-full bg-ustp-light-blue/8 blur-3xl" />
+                    <div className="pointer-events-none absolute bottom-0 left-1/3 h-100 w-100 rounded-full bg-ustp-gold/5 blur-3xl" />
                     <div
                         className="pointer-events-none absolute inset-0 opacity-5"
                         style={{
@@ -455,7 +455,7 @@ export default function Welcome() {
                                         return (
                                             <div
                                                 key={stat.label}
-                                                className="group/card rounded-xl border border-white/15 bg-gradient-to-br from-white/10 to-white/[0.02] p-5 backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-ustp-gold/60 hover:shadow-lg hover:shadow-black/20"
+                                                className="group/card rounded-xl border border-white/15 bg-linear-to-br from-white/10 to-white/2 p-5 backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-ustp-gold/60 hover:shadow-lg hover:shadow-black/20"
                                             >
                                                 <div className="mb-3 flex size-9 items-center justify-center rounded-lg bg-ustp-gold/15 text-ustp-gold transition-colors group-hover/card:bg-ustp-gold/25">
                                                     <Icon className="size-4" />
@@ -706,7 +706,7 @@ export default function Welcome() {
                 {/* CTA Section */}
                 <section className="bg-ustp-gray/50">
                     <div className="mx-auto max-w-7xl px-6 py-20">
-                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-ustp-navy to-ustp-navy-dark p-10 text-center shadow-xl sm:p-14">
+                        <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-ustp-navy to-ustp-navy-dark p-10 text-center shadow-xl sm:p-14">
                             <div className="pointer-events-none absolute -top-24 -right-16 size-64 rounded-full bg-ustp-gold/10 blur-3xl" />
                             <div className="pointer-events-none absolute -bottom-24 -left-16 size-64 rounded-full bg-ustp-light-blue/10 blur-3xl" />
                             <div className="relative">

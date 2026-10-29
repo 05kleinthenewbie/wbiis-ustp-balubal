@@ -149,7 +149,7 @@ export default function Profile({
 
             <div className="space-y-6">
                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <div className="h-20 bg-gradient-to-r from-ustp-navy via-ustp-navy-light to-ustp-navy-dark" />
+                    <div className="h-20 bg-linear-to-r from-ustp-navy via-ustp-navy-light to-ustp-navy-dark" />
 
                     <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between">
                         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-start">

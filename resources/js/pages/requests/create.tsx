@@ -211,7 +211,7 @@ export default function RequestsCreate({ categories, isStudent }: Props) {
                                                                     }
                                                                     className={`rounded-xl border p-3 transition-all ${
                                                                         isChecked
-                                                                            ? 'border-ustp-gold/40 bg-ustp-gold/[0.06] shadow-[0_0_20px_rgba(242,169,0,0.06)]'
+                                                                            ? 'border-ustp-gold/40 bg-ustp-gold/6 shadow-[0_0_20px_rgba(242,169,0,0.06)]'
                                                                             : 'border-slate-200 bg-white hover:border-ustp-gold/30'
                                                                     }`}
                                                                 >

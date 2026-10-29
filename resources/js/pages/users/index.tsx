@@ -1194,7 +1194,7 @@ export default function UsersIndex({
                                         <dt className="text-muted-foreground">
                                             {label}
                                         </dt>
-                                        <dd className="font-medium break-words">
+                                        <dd className="font-medium wrap-break-word">
                                             {value ?? '—'}
                                         </dd>
                                     </div>

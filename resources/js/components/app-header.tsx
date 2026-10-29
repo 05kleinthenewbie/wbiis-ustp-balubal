@@ -86,7 +86,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="mr-2 h-[34px] w-[34px] text-white hover:bg-ustp-navy-light hover:text-ustp-gold"
+                                    className="mr-2 h-8.5 w-8.5 text-white hover:bg-ustp-navy-light hover:text-ustp-gold"
                                 >
                                     <Menu className="h-5 w-5" />
                                 </Button>

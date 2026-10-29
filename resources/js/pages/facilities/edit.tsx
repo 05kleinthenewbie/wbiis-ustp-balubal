@@ -280,7 +280,7 @@ export default function FacilitiesEdit({ facility }: Props) {
                                     </div>
 
                                     {/* Notice */}
-                                    <div className="flex gap-3 rounded-xl border border-ustp-gold/20 bg-ustp-gold/[0.04] p-4">
+                                    <div className="flex gap-3 rounded-xl border border-ustp-gold/20 bg-ustp-gold/4 p-4">
                                         <CalendarDays className="mt-0.5 size-4 shrink-0 text-ustp-gold" />
 
                                         <div>

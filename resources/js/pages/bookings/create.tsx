@@ -190,7 +190,7 @@ export default function BookingsCreate({ facilities, upcomingBookings }: Props) 
 
                                     {/* Facility info card */}
                                     {selectedFacility && (
-                                        <div className="rounded-xl border border-ustp-gold/20 bg-ustp-gold/[0.04] p-4">
+                                        <div className="rounded-xl border border-ustp-gold/20 bg-ustp-gold/4 p-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="flex size-9 items-center justify-center rounded-lg bg-ustp-gold/10">
                                                     <Building2 className="size-4 text-ustp-gold" />

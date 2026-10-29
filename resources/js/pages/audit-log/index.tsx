@@ -1065,7 +1065,7 @@ export default function AuditLogIndex({
                                                                         <div className="space-y-3">
                                                                             {log.details && (
                                                                                 <div className="rounded-lg border border-slate-200 bg-white p-3">
-                                                                                    <p className="mb-1 text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                                                                    <p className="mb-1 text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                                                         Details
                                                                                     </p>
                                                                                     <p className="text-xs leading-5 text-slate-600">
@@ -1079,7 +1079,7 @@ export default function AuditLogIndex({
                                                                             {changedFields.length >
                                                                                 0 && (
                                                                                 <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-                                                                                    <p className="border-b border-slate-100 px-3 py-2 text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                                                                    <p className="border-b border-slate-100 px-3 py-2 text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                                                         Previous
                                                                                         and
                                                                                         new
@@ -1089,13 +1089,13 @@ export default function AuditLogIndex({
                                                                                     <table className="w-full text-xs">
                                                                                         <thead className="bg-slate-50">
                                                                                             <tr>
-                                                                                                <th className="px-3 py-2 text-left text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                                                                                <th className="px-3 py-2 text-left text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                                                                     Field
                                                                                                 </th>
-                                                                                                <th className="px-3 py-2 text-left text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                                                                                <th className="px-3 py-2 text-left text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                                                                     Previous
                                                                                                 </th>
-                                                                                                <th className="px-3 py-2 text-left text-[10px] font-semibold tracking-[0.1em] text-slate-400 uppercase">
+                                                                                                <th className="px-3 py-2 text-left text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
                                                                                                     New
                                                                                                     value
                                                                                                 </th>

@@ -169,7 +169,7 @@ function Field({ label, value }: { label: string; value: string }) {
     return (
         <div className="p-1">
             <p className="text-[9.5px] font-semibold">{label}</p>
-            <div className="mt-1 min-h-[14px] border-b border-dotted border-gray-400 px-0.5 text-[10px] text-black">
+            <div className="mt-1 min-h-3.5 border-b border-dotted border-gray-400 px-0.5 text-[10px] text-black">
                 {value || '\u00A0'}
             </div>
         </div>
@@ -247,7 +247,7 @@ function ServiceCategory({
                                         <span className="shrink-0 text-[8.5px] whitespace-nowrap">
                                             Specify:
                                         </span>
-                                        <span className="min-w-0 flex-1 border-b border-dotted border-gray-400 text-[9.5px] break-words">
+                                        <span className="min-w-0 flex-1 border-b border-dotted border-gray-400 text-[9.5px] wrap-break-word">
                                             {specification || '\u00A0'}
                                         </span>
                                     </div>
@@ -442,7 +442,7 @@ export default function PrintJobRequestForm({
 
             <div className="min-h-screen bg-gray-100 px-2 py-8 antialiased sm:px-4 print:bg-white print:p-0">
                 {/* Action toolbar */}
-                <div className="no-print mx-auto mb-3 flex max-w-[860px] flex-wrap items-center justify-between gap-3 print:hidden">
+                <div className="no-print mx-auto mb-3 flex max-w-215 flex-wrap items-center justify-between gap-3 print:hidden">
                     <a
                         href={`/job-orders/${jobOrder.id}`}
                         className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
@@ -463,14 +463,14 @@ export default function PrintJobRequestForm({
                 {/* Form sheet */}
                 <main
                     ref={sheetRef}
-                    className="page-container mx-auto max-w-[860px] border border-gray-300 bg-white p-6 text-black shadow-md sm:p-8"
+                    className="page-container mx-auto max-w-215 border border-gray-300 bg-white p-6 text-black shadow-md sm:p-8"
                 >
                     {/* Document header */}
                     <header
                         className="flex items-start justify-between gap-2 pt-1 pb-4"
                         data-purpose="header-section"
                     >
-                        <div className="flex w-[135px] shrink-0 items-start justify-start">
+                        <div className="flex w-33.75 shrink-0 items-start justify-start">
                             <img
                                 src={ustpLogo}
                                 alt="USTP Logo"
@@ -490,7 +490,7 @@ export default function PrintJobRequestForm({
                             </p>
                         </div>
 
-                        <div className="w-[195px] shrink-0 self-center">
+                        <div className="w-48.75 shrink-0 self-center">
                             <table className="w-full border-collapse border border-[#002855] text-center">
                                 <tbody>
                                     <tr>
@@ -623,7 +623,7 @@ export default function PrintJobRequestForm({
                                                 Problem Description (Please
                                                 provide relevant information):
                                             </p>
-                                            <div className="mt-1 min-h-[40px] border-b border-dotted border-gray-400 px-0.5 text-[10px] leading-relaxed break-words text-black">
+                                            <div className="mt-1 min-h-10 border-b border-dotted border-gray-400 px-0.5 text-[10px] leading-relaxed wrap-break-word text-black">
                                                 {serviceRequest?.problem_description ??
                                                     '\u00A0'}
                                             </div>
@@ -666,7 +666,7 @@ export default function PrintJobRequestForm({
                                         (Please specify):
                                     </span>
                                 </span>
-                                <span className="min-w-0 flex-1 border-b border-dotted border-gray-400 px-0.5 text-[10px] break-words">
+                                <span className="min-w-0 flex-1 border-b border-dotted border-gray-400 px-0.5 text-[10px] wrap-break-word">
                                     {joinValues(
                                         unmatchedServices.map(
                                             (service) => service.specification,
@@ -725,7 +725,7 @@ export default function PrintJobRequestForm({
                                             <p className="text-[9.5px] font-normal">
                                                 Report
                                             </p>
-                                            <div className="mt-1 min-h-[14px] border-b border-dotted border-gray-400 px-0.5 text-[9px] leading-tight break-words text-black">
+                                            <div className="mt-1 min-h-3.5 border-b border-dotted border-gray-400 px-0.5 text-[9px] leading-tight wrap-break-word text-black">
                                                 {reportText || '\u00A0'}
                                             </div>
                                         </div>
