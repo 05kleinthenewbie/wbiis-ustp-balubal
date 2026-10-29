@@ -5,6 +5,45 @@ use App\Models\Role;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
+test('notification page is private and paginated for every portal role', function (string $roleName) {
+    $role = Role::firstOrCreate(['role_name' => $roleName]);
+    $user = User::factory()->create(['role_id' => $role->id]);
+    $otherUser = User::factory()->create();
+    Notification::create(['user_id' => $otherUser->id, 'message' => 'Private other notification', 'notification_status' => 'unread']);
+    for ($i = 0; $i < 25; $i++) {
+        Notification::create(['user_id' => $user->id, 'message' => 'My notification '.$i, 'notification_status' => 'unread']);
+    }
+
+    $this->actingAs($user)->get(route('notifications.index'))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->component('notifications/index')
+        ->has('notificationHistory.data', 20)
+        ->where('notificationHistory.total', 25)
+        ->where('counts.unread', 25)
+        ->where('notificationHistory.data.0.user_id', $user->id));
+
+    $this->get(route('notifications.index', ['page' => 2]))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->has('notificationHistory.data', 5)
+        ->where('notificationHistory.current_page', 2));
+})->with(['student', 'faculty_staff', 'ict_admin']);
+
+test('notification page filters read state without exposing other users counts', function () {
+    $user = User::factory()->create();
+    Notification::create(['user_id' => $user->id, 'message' => 'Read message', 'notification_status' => 'read']);
+    Notification::create(['user_id' => $user->id, 'message' => 'Unread message', 'notification_status' => 'unread']);
+
+    $this->actingAs($user)->get(route('notifications.index', ['status' => 'read']))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('counts.all', 2)->where('counts.unread', 1)
+        ->where('notificationHistory.total', 1)
+        ->where('notificationHistory.data.0.message', 'Read message'));
+});
+
+test('guests cannot browse notification history', function () {
+    $this->get(route('notifications.index'))->assertRedirect(route('login'));
+});
+
 test('notifications are shared with a deep link for the bell', function () {
     $role = Role::firstOrCreate(['role_name' => 'faculty_staff']);
     $user = User::factory()->create(['role_id' => $role->id]);

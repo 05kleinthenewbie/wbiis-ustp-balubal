@@ -1,12 +1,19 @@
-import { router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { Bell, BellRing, Check, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import {
+    index as notificationsIndex,
+    read,
+    readAll,
+    destroy,
+} from '@/routes/notifications';
 
 type NotificationItem = {
     id: number;
@@ -18,10 +25,16 @@ type NotificationItem = {
 };
 
 const typeStyles: Record<string, { icon: typeof Bell; color: string }> = {
-    service_request: { icon: BellRing, color: 'bg-ustp-light-blue/10 text-ustp-light-blue' },
+    service_request: {
+        icon: BellRing,
+        color: 'bg-ustp-light-blue/10 text-ustp-light-blue',
+    },
     job_order: { icon: Bell, color: 'bg-ustp-gold/10 text-ustp-gold-dark' },
     booking: { icon: Bell, color: 'bg-emerald-500/10 text-emerald-600' },
-    account_approval: { icon: Check, color: 'bg-emerald-500/10 text-emerald-600' },
+    account_approval: {
+        icon: Check,
+        color: 'bg-emerald-500/10 text-emerald-600',
+    },
     account_rejection: { icon: Bell, color: 'bg-red-500/10 text-red-500' },
 };
 
@@ -34,7 +47,8 @@ const typeFallbackLinks: Record<string, string> = {
 };
 
 export function NotificationBell() {
-    const { unreadNotifications, notifications } = usePage().props as unknown as {
+    const { unreadNotifications, notifications } = usePage()
+        .props as unknown as {
         unreadNotifications: NotificationItem[];
         notifications: NotificationItem[];
     };
@@ -43,11 +57,11 @@ export function NotificationBell() {
     const allNotifications = notifications ?? [];
 
     function markAllRead() {
-        router.post('/notifications/read-all', {}, { preserveScroll: true });
+        router.post(readAll().url, {}, { preserveScroll: true });
     }
 
     function markOneRead(id: number) {
-        router.post(`/notifications/${id}/read`, {}, { preserveScroll: true });
+        router.post(read(id).url, {}, { preserveScroll: true });
     }
 
     function openNotification(notification: NotificationItem) {
@@ -64,9 +78,9 @@ export function NotificationBell() {
 
         if (notification.notification_status === 'unread') {
             router.post(
-                `/notifications/${notification.id}/read`,
+                read(notification.id).url,
                 {},
-                { preserveScroll: true, onFinish: navigate },
+                { preserveScroll: true, onSuccess: navigate },
             );
 
             return;
@@ -76,7 +90,7 @@ export function NotificationBell() {
     }
 
     function deleteNotification(id: number) {
-        router.delete(`/notifications/${id}`, { preserveScroll: true });
+        router.delete(destroy(id).url, { preserveScroll: true });
     }
 
     function typeIcon(notification: NotificationItem) {
@@ -102,7 +116,10 @@ export function NotificationBell() {
                     )}
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border-ustp-gray-medium p-0 shadow-xl sm:w-96">
+            <DropdownMenuContent
+                align="end"
+                className="w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border-ustp-gray-medium p-0 shadow-xl sm:w-96"
+            >
                 {/* Header */}
                 <div className="relative overflow-hidden bg-ustp-navy px-5 py-4">
                     <div className="pointer-events-none absolute -top-10 right-0 h-32 w-32 rounded-full bg-ustp-gold/[0.12] blur-2xl" />
@@ -115,7 +132,7 @@ export function NotificationBell() {
                                 <p className="font-serif text-sm font-bold text-white">
                                     Notifications
                                 </p>
-                                <p className="text-[11px] uppercase tracking-wider text-white/50">
+                                <p className="text-[11px] tracking-wider text-white/50 uppercase">
                                     {unread.length > 0
                                         ? `${unread.length} unread`
                                         : 'You are all caught up'}
@@ -143,27 +160,31 @@ export function NotificationBell() {
                             No notifications yet
                         </p>
                         <p className="mt-1 text-xs text-ustp-navy/50 dark:text-white/50">
-                            You'll be notified here about requests, job orders, and bookings.
+                            You'll be notified here about requests, job orders,
+                            and bookings.
                         </p>
                     </div>
                 ) : (
                     <div className="flex max-h-96 flex-col overflow-y-auto">
                         {allNotifications.map((notification) => {
-                            const isUnread = notification.notification_status === 'unread';
-                            const { icon: TypeIcon, color } = typeIcon(notification);
+                            const isUnread =
+                                notification.notification_status === 'unread';
+                            const { icon: TypeIcon, color } =
+                                typeIcon(notification);
 
                             return (
                                 <div
                                     key={notification.id}
                                     className={cn(
                                         'group flex items-start gap-3 border-b border-ustp-gray-medium px-4 py-3 transition-colors last:border-0 hover:bg-ustp-gray/60 dark:border-white/10 dark:hover:bg-white/5',
-                                        isUnread && 'bg-ustp-gold/[0.04] dark:bg-ustp-gold/[0.08]'
+                                        isUnread &&
+                                            'bg-ustp-gold/[0.04] dark:bg-ustp-gold/[0.08]',
                                     )}
                                 >
                                     <div
                                         className={cn(
                                             'mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg',
-                                            color
+                                            color,
                                         )}
                                     >
                                         <TypeIcon className="size-4" />
@@ -182,7 +203,7 @@ export function NotificationBell() {
                                                     'text-sm leading-snug',
                                                     isUnread
                                                         ? 'font-medium text-ustp-navy dark:text-white'
-                                                        : 'text-ustp-navy/60 dark:text-white/60'
+                                                        : 'text-ustp-navy/60 dark:text-white/60',
                                                 )}
                                             >
                                                 {notification.message}
@@ -191,7 +212,9 @@ export function NotificationBell() {
                                                 {isUnread && (
                                                     <span className="size-1.5 rounded-full bg-ustp-gold" />
                                                 )}
-                                                {new Date(notification.created_at).toLocaleString()}
+                                                {new Date(
+                                                    notification.created_at,
+                                                ).toLocaleString()}
                                             </p>
                                         </button>
                                     </div>
@@ -201,7 +224,9 @@ export function NotificationBell() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() => markOneRead(notification.id)}
+                                                onClick={() =>
+                                                    markOneRead(notification.id)
+                                                }
                                                 className="size-7 text-ustp-navy/40 hover:bg-ustp-gold/15 hover:text-ustp-navy dark:text-white/40 dark:hover:text-ustp-gold"
                                                 title="Mark as read"
                                             >
@@ -211,7 +236,11 @@ export function NotificationBell() {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            onClick={() => deleteNotification(notification.id)}
+                                            onClick={() =>
+                                                deleteNotification(
+                                                    notification.id,
+                                                )
+                                            }
                                             className="size-7 text-ustp-navy/40 hover:bg-red-50 hover:text-red-500 dark:text-white/40 dark:hover:bg-red-500/10 dark:hover:text-red-400"
                                             title="Delete notification"
                                         >
@@ -223,6 +252,16 @@ export function NotificationBell() {
                         })}
                     </div>
                 )}
+                <div className="border-t border-border p-3">
+                    <DropdownMenuItem
+                        asChild
+                        className="justify-center py-2 font-medium"
+                    >
+                        <Link href={notificationsIndex()}>
+                            View all notifications
+                        </Link>
+                    </DropdownMenuItem>
+                </div>
             </DropdownMenuContent>
         </DropdownMenu>
     );

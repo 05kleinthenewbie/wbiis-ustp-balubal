@@ -15,6 +15,7 @@ import {
     BarChart3,
     Users,
     Wrench,
+    Bell,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -29,6 +30,7 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
+import { index as notificationsIndex } from '@/routes/notifications';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -186,7 +188,16 @@ export function AppSidebar() {
             <SidebarSeparator className="mx-3 my-1" />
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain
+                    items={[
+                        ...mainNavItems,
+                        {
+                            title: 'Notifications',
+                            href: notificationsIndex().url,
+                            icon: Bell,
+                        },
+                    ]}
+                />
             </SidebarContent>
 
             <SidebarSeparator className="mx-3 my-1" />
