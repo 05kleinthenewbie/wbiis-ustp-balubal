@@ -20,8 +20,8 @@ type PortalOption = {
 
 const options: PortalOption[] = [
     {
-        title: 'Faculty & Staff',
-        description: 'Sign in with your email.',
+        title: 'Faculty',
+        description: 'Sign in with your faculty credentials.',
         icon: Users,
         iconClassName:
             'bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400',

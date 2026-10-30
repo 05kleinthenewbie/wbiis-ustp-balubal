@@ -1,12 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
-import {
-    CalendarDays,
-    GraduationCap,
-    Mail,
-    MapPin,
-    Upload,
-    User,
-} from 'lucide-react';
+import { GraduationCap, Mail, Upload, User } from 'lucide-react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -38,7 +31,9 @@ const departmentOptions = [
 ];
 
 export default function Register({ passwordRules }: Props) {
-    const [name, setName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [middleInitial, setMiddleInitial] = useState('');
     const [password, setPassword] = useState('');
     const [role] = useState(() => {
         if (typeof window === 'undefined') {
@@ -55,7 +50,6 @@ export default function Register({ passwordRules }: Props) {
     const [idNumber, setIdNumber] = useState('');
     const [educationalLevel, setEducationalLevel] = useState('');
     const [yearLevel, setYearLevel] = useState('');
-    const [gender, setGender] = useState('');
     const isStudent = role === 'student';
 
     return (
@@ -75,30 +69,73 @@ export default function Register({ passwordRules }: Props) {
                                     Account details
                                 </h3>
                             </div>
-                            <div className="grid gap-2">
-                                <Label
-                                    htmlFor="name"
-                                    className="text-sm font-medium text-foreground"
-                                >
-                                    Full name
-                                </Label>
-                                <div className="relative">
-                                    <User className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input
-                                        id="name"
-                                        type="text"
-                                        required
-                                        autoFocus
-                                        autoComplete="name"
-                                        name="name"
-                                        value={name}
-                                        onChange={(e) =>
-                                            setName(e.target.value)
-                                        }
-                                        placeholder="Juan Dela Cruz"
-                                        className="h-11 rounded-lg border-border pl-9 text-sm transition-colors read-only:cursor-not-allowed read-only:bg-muted/50 focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
-                                    />
-                                </div>
+                            <div className="grid gap-4 sm:col-span-2 sm:grid-cols-[1fr_1fr_6rem]">
+                                {[
+                                    {
+                                        field: 'first_name',
+                                        label: 'First Name',
+                                        value: firstName,
+                                        set: setFirstName,
+                                        complete: 'given-name',
+                                    },
+                                    {
+                                        field: 'last_name',
+                                        label: 'Last Name',
+                                        value: lastName,
+                                        set: setLastName,
+                                        complete: 'family-name',
+                                    },
+                                    {
+                                        field: 'middle_initial',
+                                        label: 'MI (optional)',
+                                        value: middleInitial,
+                                        set: setMiddleInitial,
+                                        complete: 'additional-name',
+                                    },
+                                ].map(
+                                    ({
+                                        field,
+                                        label,
+                                        value,
+                                        set,
+                                        complete,
+                                    }) => (
+                                        <div key={field} className="grid gap-2">
+                                            <Label htmlFor={field}>
+                                                {label}
+                                            </Label>
+                                            <div className="relative">
+                                                <User className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                                                <Input
+                                                    id={field}
+                                                    name={field}
+                                                    value={value}
+                                                    onChange={(event) =>
+                                                        set(event.target.value)
+                                                    }
+                                                    required={
+                                                        field !==
+                                                        'middle_initial'
+                                                    }
+                                                    autoFocus={
+                                                        field === 'first_name'
+                                                    }
+                                                    autoComplete={complete}
+                                                    maxLength={
+                                                        field ===
+                                                        'middle_initial'
+                                                            ? 2
+                                                            : 100
+                                                    }
+                                                    className="h-11 rounded-lg border-border pl-9 text-sm"
+                                                />
+                                            </div>
+                                            <InputError
+                                                message={errors[field]}
+                                            />
+                                        </div>
+                                    ),
+                                )}
                                 <InputError message={errors.name} />
                             </div>
 
@@ -189,7 +226,7 @@ export default function Register({ passwordRules }: Props) {
                                         htmlFor="employment_type"
                                         className="text-sm font-medium text-foreground"
                                     >
-                                        Role
+                                        Employment type
                                         <span className="ml-1 text-destructive">
                                             *
                                         </span>
@@ -207,14 +244,14 @@ export default function Register({ passwordRules }: Props) {
                                             id="employment_type"
                                             className="h-11 w-full rounded-lg border-border text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
                                         >
-                                            <SelectValue placeholder="Select Faculty or Staff" />
+                                            <SelectValue placeholder="Select employment type" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="teaching">
-                                                Faculty
+                                                Teaching
                                             </SelectItem>
                                             <SelectItem value="non_teaching">
-                                                Staff
+                                                Non-teaching
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -224,7 +261,7 @@ export default function Register({ passwordRules }: Props) {
                                 </div>
                             )}
 
-                            {(isStudent || employmentType === 'teaching') && (
+                            {(isStudent || role === 'faculty_staff') && (
                                 <div className="grid gap-2">
                                     <Label
                                         htmlFor="department"
@@ -235,35 +272,54 @@ export default function Register({ passwordRules }: Props) {
                                             *
                                         </span>
                                     </Label>
-                                    <Select
-                                        name="department"
-                                        value={department}
-                                        onValueChange={setDepartment}
-                                        required
-                                    >
-                                        <SelectTrigger
-                                            id="department"
-                                            className="h-11 w-full rounded-lg border-border text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                    {isStudent ? (
+                                        <Select
+                                            name="department"
+                                            value={department}
+                                            onValueChange={setDepartment}
+                                            required
                                         >
-                                            <SelectValue
-                                                placeholder={
-                                                    isStudent
-                                                        ? 'Select your program'
-                                                        : 'Select your department'
-                                                }
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {departmentOptions.map((option) => (
-                                                <SelectItem
-                                                    key={option.value}
-                                                    value={option.value}
-                                                >
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                            <SelectTrigger
+                                                id="department"
+                                                className="h-11 w-full rounded-lg border-border text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                            >
+                                                <SelectValue
+                                                    placeholder={
+                                                        isStudent
+                                                            ? 'Select your program'
+                                                            : 'Select your department'
+                                                    }
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {departmentOptions.map(
+                                                    (option) => (
+                                                        <SelectItem
+                                                            key={option.value}
+                                                            value={option.value}
+                                                        >
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <Input
+                                            id="department"
+                                            name="department"
+                                            value={department}
+                                            onChange={(event) =>
+                                                setDepartment(
+                                                    event.target.value,
+                                                )
+                                            }
+                                            required
+                                            maxLength={100}
+                                            placeholder="Enter your department or office"
+                                            className="h-11 rounded-lg border-border bg-background text-sm"
+                                        />
+                                    )}
                                     <InputError message={errors.department} />
                                 </div>
                             )}
@@ -273,7 +329,7 @@ export default function Register({ passwordRules }: Props) {
                                     <h3 className="font-semibold text-foreground">
                                         {isStudent
                                             ? 'Student information'
-                                            : 'Employment & personal information'}
+                                            : 'Employment information'}
                                     </h3>
                                 </div>
                                 {!isStudent && (
@@ -432,96 +488,6 @@ export default function Register({ passwordRules }: Props) {
                                         </div>
                                     </>
                                 )}
-
-                                <div className="grid gap-2">
-                                    <Label
-                                        htmlFor="gender"
-                                        className="text-sm font-medium text-foreground"
-                                    >
-                                        Gender
-                                        <span className="ml-1 text-destructive">
-                                            *
-                                        </span>
-                                    </Label>
-                                    <Select
-                                        name="gender"
-                                        value={gender}
-                                        onValueChange={setGender}
-                                        required
-                                    >
-                                        <SelectTrigger
-                                            id="gender"
-                                            className="h-11 w-full rounded-lg border-border bg-background text-sm"
-                                        >
-                                            <SelectValue placeholder="Select gender" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="male">
-                                                Male
-                                            </SelectItem>
-                                            <SelectItem value="female">
-                                                Female
-                                            </SelectItem>
-                                            <SelectItem value="prefer_not_to_say">
-                                                Prefer not to say
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <InputError message={errors.gender} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label
-                                        htmlFor="birth_date"
-                                        className="text-sm font-medium text-foreground"
-                                    >
-                                        Birth date
-                                        <span className="ml-1 text-destructive">
-                                            *
-                                        </span>
-                                    </Label>
-                                    <div className="relative">
-                                        <CalendarDays className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                                        <Input
-                                            id="birth_date"
-                                            type="date"
-                                            name="birth_date"
-                                            required
-                                            max={
-                                                new Date()
-                                                    .toISOString()
-                                                    .split('T')[0]
-                                            }
-                                            className="h-11 rounded-lg border-border bg-background pl-9 text-sm"
-                                        />
-                                    </div>
-                                    <InputError message={errors.birth_date} />
-                                </div>
-
-                                <div className="grid gap-2 sm:col-span-2">
-                                    <Label
-                                        htmlFor="home_address"
-                                        className="text-sm font-medium text-foreground"
-                                    >
-                                        Home address
-                                        <span className="ml-1 text-destructive">
-                                            *
-                                        </span>
-                                    </Label>
-                                    <div className="relative">
-                                        <MapPin className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                                        <Input
-                                            id="home_address"
-                                            type="text"
-                                            name="home_address"
-                                            required
-                                            autoComplete="street-address"
-                                            placeholder="Barangay, City, Province"
-                                            className="h-11 rounded-lg border-border bg-background pl-9 text-sm"
-                                        />
-                                    </div>
-                                    <InputError message={errors.home_address} />
-                                </div>
 
                                 <div className="grid gap-2 sm:col-span-2">
                                     <Label

@@ -57,7 +57,7 @@ type Props = {
 };
 
 const roleLabels: Record<string, string> = {
-    faculty_staff: 'Faculty/Staff',
+    faculty_staff: 'Faculty',
     student: 'Student',
     ict_admin: 'ICT Admin',
 };

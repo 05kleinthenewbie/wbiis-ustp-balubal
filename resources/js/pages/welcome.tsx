@@ -68,7 +68,7 @@ const modules = [
 const roles = [
     {
         icon: Users,
-        role: 'Faculty & Staff',
+        role: 'Faculty',
         description:
             'Submit service requests, book facilities, and track your ICT-related concerns in real time.',
         features: [
@@ -80,7 +80,7 @@ const roles = [
         href: facultyLogin().url,
         registerHref: register().url,
         registrationNote:
-            'Choose Faculty or Staff and upload your Employee ID or Certificate of Employment for ICT Admin review.',
+            'Select your employment type and upload your Employee ID or Certificate of Employment for ICT Admin review.',
     },
     {
         icon: Shield,
@@ -116,7 +116,7 @@ const workflowSteps = [
         step: '1',
         title: 'Register & Upload',
         description:
-            'Students upload a COR. Faculty and staff upload an Employee ID or Certificate of Employment with their registration details.',
+            'Students upload a COR. Faculty personnel upload an Employee ID or Certificate of Employment with their registration details.',
     },
     {
         step: '2',
@@ -134,7 +134,7 @@ const workflowSteps = [
         step: '4',
         title: 'Sign In & Get Support',
         description:
-            'Once approved, sign in with your student ID or faculty/staff email and chosen password to access the services available to your role.',
+            'Once approved, sign in with your student ID or faculty email and chosen password to access the services available to your role.',
     },
 ];
 
@@ -389,7 +389,7 @@ export default function Welcome() {
                                                 className="border-white/20 px-7 text-white/80 hover:border-ustp-gold/50 hover:bg-white/5 hover:text-white"
                                             >
                                                 <Link href={register()}>
-                                                    Faculty / Staff Registration
+                                                    Faculty Registration
                                                 </Link>
                                             </Button>
                                             <Button
@@ -741,7 +741,7 @@ export default function Welcome() {
                                                 className="border-white/20 px-7 text-white/80 hover:border-ustp-gold/50 hover:bg-white/5 hover:text-white"
                                             >
                                                 <Link href={register()}>
-                                                    Faculty / Staff Registration
+                                                    Faculty Registration
                                                 </Link>
                                             </Button>
                                             <Button

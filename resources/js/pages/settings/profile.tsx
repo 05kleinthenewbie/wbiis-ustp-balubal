@@ -97,27 +97,31 @@ export default function Profile({
         setAvatarError(null);
         setAvatarUploading(true);
 
-        router.patch(ProfileController.updateAvatar.url(), { avatar: file }, {
-            forceFormData: true,
-            preserveScroll: true,
-            onError: (errors) => {
-                setAvatarPreview(null);
-                setAvatarError(
-                    errors.avatar ??
-                        'The photo could not be uploaded. Please try again.',
-                );
-            },
-            onFinish: () => {
-                setAvatarPreview((current) => {
-                    if (current) {
-                        URL.revokeObjectURL(current);
-                    }
+        router.patch(
+            ProfileController.updateAvatar.url(),
+            { avatar: file },
+            {
+                forceFormData: true,
+                preserveScroll: true,
+                onError: (errors) => {
+                    setAvatarPreview(null);
+                    setAvatarError(
+                        errors.avatar ??
+                            'The photo could not be uploaded. Please try again.',
+                    );
+                },
+                onFinish: () => {
+                    setAvatarPreview((current) => {
+                        if (current) {
+                            URL.revokeObjectURL(current);
+                        }
 
-                    return null;
-                });
-                setAvatarUploading(false);
+                        return null;
+                    });
+                    setAvatarUploading(false);
+                },
             },
-        });
+        );
     };
 
     const handleAvatarRemove = () => {
@@ -217,7 +221,9 @@ export default function Profile({
 
                                     {role && (
                                         <span className="inline-flex rounded-lg bg-ustp-gold/15 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-ustp-gold-dark uppercase ring-1 ring-ustp-gold/30">
-                                            {role.replace(/_/g, ' ')}
+                                            {role === 'faculty_staff'
+                                                ? 'Faculty'
+                                                : role.replace(/_/g, ' ')}
                                         </span>
                                     )}
                                 </div>
@@ -259,7 +265,7 @@ export default function Profile({
                                 {avatarError && (
                                     <p
                                         role="alert"
-                                        className="mt-2 font-medium text-red-500 text-xs"
+                                        className="mt-2 text-xs font-medium text-red-500"
                                     >
                                         {avatarError}
                                     </p>
@@ -380,8 +386,8 @@ export default function Profile({
                                         />
 
                                         <p className="text-xs text-slate-400">
-                                            Shown across your requests and
-                                            job orders
+                                            Shown across your requests and job
+                                            orders
                                         </p>
 
                                         <InputError
@@ -478,7 +484,9 @@ export default function Profile({
 
                                             <Button
                                                 type="submit"
-                                                disabled={processing || !isDirty}
+                                                disabled={
+                                                    processing || !isDirty
+                                                }
                                                 data-test="update-profile-button"
                                                 className="bg-ustp-navy text-white shadow-lg shadow-ustp-navy/20 hover:bg-ustp-navy-dark disabled:cursor-not-allowed disabled:opacity-50"
                                             >

@@ -9,6 +9,34 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
+test('separate registration name fields survive email verification', function (string $role, ?string $initial, string $expectedName) {
+    fakeBrevoMail();
+    Role::firstOrCreate(['role_name' => $role]);
+    $parts = ['first_name' => 'Juan', 'last_name' => 'Dela Cruz', 'middle_initial' => $initial];
+    $payload = $role === 'student' ? studentRegistrationPayload($parts) : registrationPayload($parts);
+    unset($payload['name']);
+
+    $this->post(route('register.store'), $payload)->assertRedirect(route('register.otp.show'));
+    $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])->assertRedirect();
+
+    expect(User::where('email', $payload['email'])->firstOrFail()->name)->toBe($expectedName);
+})->with([
+    ['student', 's', 'Juan S. Dela Cruz'],
+    ['faculty_staff', 'S.', 'Juan S. Dela Cruz'],
+    ['student', null, 'Juan Dela Cruz'],
+    ['faculty_staff', null, 'Juan Dela Cruz'],
+]);
+
+test('registration validates separate name fields', function (array $parts, string $field) {
+    fakeBrevoMail();
+    $this->post(route('register.store'), registrationPayload($parts))->assertSessionHasErrors($field);
+    Http::assertNothingSent();
+})->with([
+    [['first_name' => '', 'last_name' => 'Dela Cruz'], 'first_name'],
+    [['first_name' => 'Juan', 'last_name' => ''], 'last_name'],
+    [['first_name' => 'Juan', 'last_name' => 'Dela Cruz', 'middle_initial' => 'Smith'], 'middle_initial'],
+]);
+
 beforeEach(function () {
     Storage::fake('local');
     Role::firstOrCreate(['role_name' => 'faculty_staff'], ['description' => 'Faculty and staff']);
@@ -42,9 +70,9 @@ test('faculty employment details and private document survive OTP verification a
     expect($faculty->employee_id_number)->toBe('EMP-1001')
         ->and($faculty->position)->toBe('Administrative Assistant')
         ->and($faculty->contact_no)->toBe('09123456789')
-        ->and($faculty->gender)->toBe('female')
-        ->and($faculty->birth_date->toDateString())->toBe('1990-01-15')
-        ->and($faculty->home_address)->toBe('Balubal, Cagayan de Oro')
+        ->and($faculty->gender)->toBeNull()
+        ->and($faculty->birth_date)->toBeNull()
+        ->and($faculty->home_address)->toBeNull()
         ->and($faculty->status)->toBe('pending')
         ->and($faculty->toArray())->not->toHaveKey('employment_document_path');
     Storage::disk('local')->assertExists($faculty->employment_document_path);
@@ -67,12 +95,12 @@ test('faculty employment details and private document survive OTP verification a
     $this->get(route('users.employment-document', $faculty))->assertForbidden();
 });
 
-test('faculty registration requires employment and personal details', function (string $field) {
+test('faculty registration requires employment details', function (string $field) {
     fakeBrevoMail();
     $this->post(route('register.store'), registrationPayload([$field => null]))
         ->assertSessionHasErrors($field);
     Http::assertNothingSent();
-})->with(['employee_id_number', 'position', 'contact_no', 'gender', 'birth_date', 'home_address', 'employment_document']);
+})->with(['employee_id_number', 'position', 'contact_no', 'employment_document']);
 
 test('faculty registration rejects unsupported and oversized employment documents', function () {
     fakeBrevoMail();
@@ -127,9 +155,9 @@ test('a student can register with a COR and waits for admin approval', function 
         ->and($user->name)->toBe('Juan S. Dela Cruz')
         ->and($user->educational_level)->toBe('college')
         ->and($user->year_level)->toBe('1')
-        ->and($user->gender)->toBe('male')
-        ->and($user->birth_date?->toDateString())->toBe('2005-01-15')
-        ->and($user->home_address)->toBe('Poblacion, Cagayan de Oro')
+        ->and($user->gender)->toBeNull()
+        ->and($user->birth_date)->toBeNull()
+        ->and($user->home_address)->toBeNull()
         ->and($user->cor_original_name)->toBe('cor.pdf')
         ->and(Storage::disk('local')->exists((string) $user->cor_path))->toBeTrue()
         ->and($user->cor_verification_status)->toBe('manual_review')
@@ -291,17 +319,15 @@ test('a student registration without a department is rejected', function () {
     Http::assertNothingSent();
 });
 
-test('a faculty registration without a department is accepted', function () {
+test('a non-teaching faculty registration requires a department', function () {
     fakeBrevoMail();
 
     $this->post(route('register.store'), registrationPayload([
         'department' => null,
-    ]))->assertRedirect(route('register.otp.show'));
+    ]))->assertSessionHasErrors('department');
 
-    $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])
-        ->assertRedirect(route('faculty.login'));
-
-    expect(User::where('email', 'test@example.com')->first()->department)->toBeNull();
+    Http::assertNothingSent();
+    expect(User::where('email', 'test@example.com')->exists())->toBeFalse();
 });
 
 test('a faculty registration without an employment type is rejected', function () {
@@ -332,7 +358,7 @@ test('a teaching faculty registration is stored with their department', function
 
     $this->post(route('register.store'), registrationPayload([
         'employment_type' => 'teaching',
-        'department' => 'BSIT',
+        'department' => 'Department of Information Technology',
     ]))->assertRedirect(route('register.otp.show'));
 
     $this->post(route('register.otp.verify'), ['code' => registrationOtpCode()])
@@ -341,10 +367,10 @@ test('a teaching faculty registration is stored with their department', function
     $user = User::where('email', 'test@example.com')->first();
 
     expect($user->employment_type)->toBe('teaching')
-        ->and($user->department)->toBe('BSIT');
+        ->and($user->department)->toBe('Department of Information Technology');
 });
 
-test('a non-teaching faculty registration stores no department', function () {
+test('a non-teaching faculty registration stores their department', function () {
     fakeBrevoMail();
 
     $this->post(route('register.store'), registrationPayload([
@@ -358,7 +384,7 @@ test('a non-teaching faculty registration stores no department', function () {
     $user = User::where('email', 'test@example.com')->first();
 
     expect($user->employment_type)->toBe('non_teaching')
-        ->and($user->department)->toBeNull();
+        ->and($user->department)->toBe('CITC');
 });
 
 test('the OTP verification page renders', function () {

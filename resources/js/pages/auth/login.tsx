@@ -149,7 +149,7 @@ export default function Login({
                                     data-test="register-link"
                                     className="font-medium text-ustp-navy hover:text-ustp-navy-dark dark:text-white/80 dark:hover:text-white"
                                 >
-                                    Register as Faculty or Staff
+                                    Register as Faculty
                                 </TextLink>
                             </div>
                         )}

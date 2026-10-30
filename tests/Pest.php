@@ -75,12 +75,10 @@ function registrationPayload(array $overrides = []): array
         'password_confirmation' => 'password',
         'role' => 'faculty_staff',
         'employment_type' => 'non_teaching',
+        'department' => 'Administrative Office',
         'employee_id_number' => 'EMP-1001',
         'position' => 'Administrative Assistant',
         'contact_no' => '09123456789',
-        'gender' => 'female',
-        'birth_date' => '1990-01-15',
-        'home_address' => 'Balubal, Cagayan de Oro',
         'employment_document' => UploadedFile::fake()->create('employment.pdf', 100, 'application/pdf'),
         'terms' => 'on',
     ], $overrides);
@@ -104,9 +102,6 @@ function studentRegistrationPayload(array $overrides = []): array
         'id_number' => '2023303709',
         'educational_level' => 'college',
         'year_level' => '1',
-        'gender' => 'male',
-        'birth_date' => '2005-01-15',
-        'home_address' => 'Poblacion, Cagayan de Oro',
         'cor' => UploadedFile::fake()->create('cor.pdf', 200, 'application/pdf'),
     ], $overrides));
 }

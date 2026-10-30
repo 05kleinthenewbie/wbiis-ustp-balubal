@@ -41,6 +41,7 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        $input = $this->withFullName($input);
         $this->validateInput($input, requireStudentDetails: true);
 
         Validator::make($input, [
@@ -106,9 +107,6 @@ class CreateNewUser implements CreatesNewUsers
                 'employee_id_number' => $input['employee_id_number'] ?? null,
                 'position' => $input['position'] ?? null,
                 'contact_no' => $input['contact_no'] ?? null,
-                'gender' => $input['gender'] ?? null,
-                'birth_date' => $input['birth_date'] ?? null,
-                'home_address' => $input['home_address'] ?? null,
                 'employment_document_path' => $input['employment_document_path'] ?? null,
                 'employment_document_original_name' => $input['employment_document_original_name'] ?? null,
             ];
@@ -171,9 +169,39 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function createWithoutEmailVerification(array $input): User
     {
+        $input = $this->withFullName($input);
         $this->validateInput($input);
 
         return $this->createVerified($input, autoApproveStudents: true);
+    }
+
+    /**
+     * Compose the account name from separate registration fields while
+     * accepting the existing full-name format used by API clients.
+     *
+     * @param  array<string, mixed>  $input
+     * @return array<string, mixed>
+     */
+    private function withFullName(array $input): array
+    {
+        if (! array_key_exists('first_name', $input) && ! array_key_exists('last_name', $input) && ! array_key_exists('middle_initial', $input)) {
+            return $input;
+        }
+
+        $parts = Validator::make($input, [
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'middle_initial' => ['nullable', 'string', 'regex:/^\p{L}\.?$/u'],
+        ])->validate();
+
+        $initial = filled($parts['middle_initial'] ?? null)
+            ? Str::upper(rtrim($parts['middle_initial'], '.')).'.'
+            : null;
+        $input['name'] = implode(' ', array_filter([
+            trim($parts['first_name']), $initial, trim($parts['last_name']),
+        ], fn ($part) => $part !== null));
+
+        return $input;
     }
 
     /**
@@ -195,8 +223,6 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique(User::class)->where(fn ($query) => $query->whereIn('status', ['pending', 'active'])),
             ],
             'role' => ['required', Rule::in(['faculty_staff', 'student'])],
-            // Faculty declare whether they teach; teaching faculty must pick
-            // one of the campus departments below.
             'employment_type' => [
                 'required_if:role,faculty_staff',
                 'nullable',
@@ -207,14 +233,12 @@ class CreateNewUser implements CreatesNewUsers
                 ),
             ],
             'department' => [
-                'required_if:role,student',
-                'required_if:employment_type,teaching',
+                'required_if:role,student,faculty_staff',
                 'nullable',
                 'string',
                 'max:100',
                 Rule::when(
-                    ($input['role'] ?? null) === 'student'
-                        || ($input['employment_type'] ?? null) === 'teaching',
+                    ($input['role'] ?? null) === 'student',
                     Rule::in(['BSA', 'BSIT', 'BTLED']),
                 ),
             ],
@@ -254,25 +278,6 @@ class CreateNewUser implements CreatesNewUsers
                 'string',
                 Rule::in(['1', '2', '3', '4', '5']),
             ];
-            $rules['gender'] = [
-                'required',
-                'nullable',
-                'string',
-                Rule::in(['male', 'female', 'prefer_not_to_say']),
-            ];
-            $rules['birth_date'] = [
-                'required',
-                'nullable',
-                'date',
-                'before:today',
-                'after:1900-01-01',
-            ];
-            $rules['home_address'] = [
-                'required',
-                'nullable',
-                'string',
-                'max:255',
-            ];
             $rules['cor'] = [
                 'required_if:role,student',
                 'nullable',
@@ -288,7 +293,6 @@ class CreateNewUser implements CreatesNewUsers
             'cor.required_if' => 'Upload your Certificate of Registration (COR).',
             'cor.mimes' => 'The COR must be a PDF, JPG, JPEG, or PNG file.',
             'cor.max' => 'The COR must not be larger than 5 MB.',
-            'birth_date.before' => 'Enter a valid birth date.',
         ])->validate();
     }
 
@@ -308,9 +312,6 @@ class CreateNewUser implements CreatesNewUsers
         return [
             'educational_level' => $input['educational_level'] ?? null,
             'year_level' => $input['year_level'] ?? null,
-            'gender' => $input['gender'] ?? null,
-            'birth_date' => $input['birth_date'] ?? null,
-            'home_address' => $input['home_address'] ?? null,
             'cor_path' => $input['cor_path'] ?? null,
             'cor_original_name' => $input['cor_original_name'] ?? null,
         ];
@@ -387,8 +388,8 @@ class CreateNewUser implements CreatesNewUsers
     }
 
     /**
-     * Students never carry an employment type, and only teaching faculty
-     * carry a department; everyone else is stored without one.
+     * Students never carry an employment type. Preserve the department or
+     * office supplied by both teaching and non-teaching faculty.
      *
      * @param  array<string, string>  $input
      */
@@ -400,9 +401,6 @@ class CreateNewUser implements CreatesNewUsers
             return;
         }
 
-        if (($input['employment_type'] ?? null) !== 'teaching') {
-            $input['department'] = null;
-        }
     }
 
     /**

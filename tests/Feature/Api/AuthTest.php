@@ -14,6 +14,7 @@ it('can register and waits for approval', function () {
         'password_confirmation' => 'password123',
         'role' => 'faculty_staff',
         'employment_type' => 'non_teaching',
+        'department' => 'Administrative Office',
     ];
 
     $response = $this->postJson('/api/v1/auth/register', $payload);
@@ -21,7 +22,7 @@ it('can register and waits for approval', function () {
     $response->assertCreated()
         ->assertJsonStructure(['message', 'user']);
 
-    $this->assertDatabaseHas('users', ['email' => 'new@ustp.edu.ph', 'status' => 'pending']);
+    $this->assertDatabaseHas('users', ['email' => 'new@ustp.edu.ph', 'status' => 'pending', 'department' => 'Administrative Office']);
 });
 
 it('rejects a faculty registration without an employment type', function () {
