@@ -69,7 +69,7 @@ export default function Register({ passwordRules }: Props) {
                                     Account details
                                 </h3>
                             </div>
-                            <div className="grid gap-4 sm:col-span-2 sm:grid-cols-[1fr_1fr_6rem]">
+                            <div className="grid gap-4">
                                 {[
                                     {
                                         field: 'first_name',
@@ -175,51 +175,6 @@ export default function Register({ passwordRules }: Props) {
                                 </div>
                             )}
 
-                            {isStudent && (
-                                <div className="grid gap-2">
-                                    <Label
-                                        htmlFor="id_number"
-                                        className="text-sm font-medium text-foreground"
-                                    >
-                                        University ID number
-                                        <span className="ml-1 text-destructive">
-                                            *
-                                        </span>
-                                    </Label>
-                                    <div className="relative">
-                                        <GraduationCap className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                                        <Input
-                                            id="id_number"
-                                            type="text"
-                                            required
-                                            name="id_number"
-                                            inputMode="numeric"
-                                            autoComplete="off"
-                                            value={idNumber}
-                                            onChange={(e) =>
-                                                setIdNumber(
-                                                    e.target.value
-                                                        .replace(/\D/g, '')
-                                                        .slice(0, 10),
-                                                )
-                                            }
-                                            placeholder="2023303709"
-                                            className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
-                                        />
-                                    </div>
-                                    {isAlertMessage(errors.id_number ?? '') ? (
-                                        <StatusAlert
-                                            message={errors.id_number}
-                                            className="mt-1.5"
-                                        />
-                                    ) : (
-                                        <InputError
-                                            message={errors.id_number}
-                                        />
-                                    )}
-                                </div>
-                            )}
-
                             {role === 'faculty_staff' && (
                                 <div className="grid gap-2">
                                     <Label
@@ -261,69 +216,6 @@ export default function Register({ passwordRules }: Props) {
                                 </div>
                             )}
 
-                            {(isStudent || role === 'faculty_staff') && (
-                                <div className="grid gap-2">
-                                    <Label
-                                        htmlFor="department"
-                                        className="text-sm font-medium text-foreground"
-                                    >
-                                        {isStudent ? 'Program' : 'Department'}
-                                        <span className="ml-1 text-destructive">
-                                            *
-                                        </span>
-                                    </Label>
-                                    {isStudent ? (
-                                        <Select
-                                            name="department"
-                                            value={department}
-                                            onValueChange={setDepartment}
-                                            required
-                                        >
-                                            <SelectTrigger
-                                                id="department"
-                                                className="h-11 w-full rounded-lg border-border text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
-                                            >
-                                                <SelectValue
-                                                    placeholder={
-                                                        isStudent
-                                                            ? 'Select your program'
-                                                            : 'Select your department'
-                                                    }
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {departmentOptions.map(
-                                                    (option) => (
-                                                        <SelectItem
-                                                            key={option.value}
-                                                            value={option.value}
-                                                        >
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ),
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                    ) : (
-                                        <Input
-                                            id="department"
-                                            name="department"
-                                            value={department}
-                                            onChange={(event) =>
-                                                setDepartment(
-                                                    event.target.value,
-                                                )
-                                            }
-                                            required
-                                            maxLength={100}
-                                            placeholder="Enter your department or office"
-                                            className="h-11 rounded-lg border-border bg-background text-sm"
-                                        />
-                                    )}
-                                    <InputError message={errors.department} />
-                                </div>
-                            )}
-
                             <div className="grid min-w-0 items-start gap-x-6 gap-y-5 rounded-2xl border border-border bg-muted/20 p-3 sm:col-span-2 sm:grid-cols-2 sm:p-6">
                                 <div className="space-y-1 sm:col-span-2">
                                     <h3 className="font-semibold text-foreground">
@@ -332,8 +224,120 @@ export default function Register({ passwordRules }: Props) {
                                             : 'Employment information'}
                                     </h3>
                                 </div>
+                                {isStudent && (
+                                    <>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="id_number">
+                                                University ID number
+                                                <span className="ml-1 text-destructive">
+                                                    *
+                                                </span>
+                                            </Label>
+                                            <div className="relative">
+                                                <GraduationCap className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                                                <Input
+                                                    id="id_number"
+                                                    name="id_number"
+                                                    required
+                                                    inputMode="numeric"
+                                                    autoComplete="off"
+                                                    value={idNumber}
+                                                    onChange={(event) =>
+                                                        setIdNumber(
+                                                            event.target.value
+                                                                .replace(
+                                                                    /\D/g,
+                                                                    '',
+                                                                )
+                                                                .slice(0, 10),
+                                                        )
+                                                    }
+                                                    placeholder="2023303709"
+                                                    className="h-11 rounded-lg border-border pl-9 text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                                />
+                                            </div>
+                                            {isAlertMessage(
+                                                errors.id_number ?? '',
+                                            ) ? (
+                                                <StatusAlert
+                                                    message={errors.id_number}
+                                                    className="mt-1.5"
+                                                />
+                                            ) : (
+                                                <InputError
+                                                    message={errors.id_number}
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="department">
+                                                Program
+                                                <span className="ml-1 text-destructive">
+                                                    *
+                                                </span>
+                                            </Label>
+                                            <Select
+                                                name="department"
+                                                value={department}
+                                                onValueChange={setDepartment}
+                                                required
+                                            >
+                                                <SelectTrigger
+                                                    id="department"
+                                                    className="h-11 w-full rounded-lg border-border text-sm transition-colors focus-visible:border-ustp-navy focus-visible:ring-ustp-navy/20"
+                                                >
+                                                    <SelectValue placeholder="Select your program" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {departmentOptions.map(
+                                                        (option) => (
+                                                            <SelectItem
+                                                                key={
+                                                                    option.value
+                                                                }
+                                                                value={
+                                                                    option.value
+                                                                }
+                                                            >
+                                                                {option.label}
+                                                            </SelectItem>
+                                                        ),
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            <InputError
+                                                message={errors.department}
+                                            />
+                                        </div>
+                                    </>
+                                )}
                                 {!isStudent && (
                                     <>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="department">
+                                                Department
+                                                <span className="ml-1 text-destructive">
+                                                    *
+                                                </span>
+                                            </Label>
+                                            <Input
+                                                id="department"
+                                                name="department"
+                                                value={department}
+                                                onChange={(event) =>
+                                                    setDepartment(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                required
+                                                maxLength={100}
+                                                placeholder="Enter your department or office"
+                                                className="h-11 rounded-lg border-border bg-background text-sm"
+                                            />
+                                            <InputError
+                                                message={errors.department}
+                                            />
+                                        </div>
                                         {[
                                             {
                                                 name: 'employee_id_number',
