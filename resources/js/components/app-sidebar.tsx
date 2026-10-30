@@ -38,8 +38,9 @@ import type { NavItem } from '@/types';
 
 export function AppSidebar() {
     const dashboardUrl = '/dashboard';
-    const { auth } = usePage().props as any;
+    const { auth, unreadNotificationsCount } = usePage().props as any;
     const roleName = auth?.user?.role?.role_name;
+    const unreadCount = Number(unreadNotificationsCount ?? 0);
 
     const adminNavItems: NavItem[] = [
         { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
@@ -227,6 +228,7 @@ export function AppSidebar() {
                             title: 'Notifications',
                             href: notificationsIndex().url,
                             icon: Bell,
+                            badge: unreadCount,
                         },
                     ]}
                 />

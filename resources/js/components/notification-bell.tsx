@@ -49,14 +49,16 @@ const typeFallbackLinks: Record<string, string> = {
 };
 
 export function NotificationBell() {
-    const { unreadNotifications, notifications } = usePage()
-        .props as unknown as {
-        unreadNotifications: NotificationItem[];
-        notifications: NotificationItem[];
-    };
+    const { unreadNotifications, notifications, unreadNotificationsCount } =
+        usePage().props as unknown as {
+            unreadNotifications: NotificationItem[];
+            notifications: NotificationItem[];
+            unreadNotificationsCount: number;
+        };
 
     const unread = unreadNotifications ?? [];
     const allNotifications = notifications ?? [];
+    const unreadCount = unreadNotificationsCount ?? unread.length;
 
     function markAllRead() {
         router.post(readAll().url, {}, { preserveScroll: true });
@@ -111,9 +113,9 @@ export function NotificationBell() {
                 >
                     <Bell className="size-5" />
 
-                    {unread.length > 0 && (
+                    {unreadCount > 0 && (
                         <span className="absolute top-0.5 right-0.5 flex size-4.5 items-center justify-center rounded-full bg-ustp-gold text-[10px] font-bold text-ustp-navy ring-2 ring-ustp-navy">
-                            {unread.length > 9 ? '9+' : unread.length}
+                            {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                     )}
                 </Button>
@@ -135,13 +137,13 @@ export function NotificationBell() {
                                     Notifications
                                 </p>
                                 <p className="text-[11px] tracking-wider text-white/50 uppercase">
-                                    {unread.length > 0
-                                        ? `${unread.length} unread`
+                                    {unreadCount > 0
+                                        ? `${unreadCount} unread`
                                         : 'You are all caught up'}
                                 </p>
                             </div>
                         </div>
-                        {unread.length > 0 && (
+                        {unreadCount > 0 && (
                             <button
                                 onClick={markAllRead}
                                 className="rounded-lg border border-ustp-gold/40 px-3 py-1.5 text-xs font-semibold text-ustp-gold transition-all hover:bg-ustp-gold hover:text-ustp-navy"

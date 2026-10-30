@@ -44,6 +44,38 @@ test('guests cannot browse notification history', function () {
     $this->get(route('notifications.index'))->assertRedirect(route('login'));
 });
 
+test('the unread count shared with the sidebar badge is not capped', function () {
+    $role = Role::firstOrCreate(['role_name' => 'faculty_staff']);
+    $user = User::factory()->create(['role_id' => $role->id]);
+
+    for ($i = 0; $i < 15; $i++) {
+        Notification::create([
+            'user_id' => $user->id,
+            'message' => 'Unread notification '.$i,
+            'notification_status' => 'unread',
+        ]);
+    }
+
+    Notification::create([
+        'user_id' => $user->id,
+        'message' => 'Already read',
+        'notification_status' => 'read',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('unreadNotificationsCount', 15)
+            ->has('unreadNotifications', 10));
+});
+
+test('the unread count shared with the sidebar badge is zero for guests', function () {
+    $this->get(route('login'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('unreadNotificationsCount', 0));
+});
+
 test('notifications are shared with a deep link for the bell', function () {
     $role = Role::firstOrCreate(['role_name' => 'faculty_staff']);
     $user = User::factory()->create(['role_id' => $role->id]);

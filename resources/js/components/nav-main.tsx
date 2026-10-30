@@ -5,6 +5,7 @@ import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
+    SidebarMenuBadge,
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarMenuSub,
@@ -25,7 +26,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            <SidebarGroupLabel className="text-[10px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                 Navigation
             </SidebarGroupLabel>
             <SidebarMenu className="gap-0.5">
@@ -42,10 +43,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                     const isOpen = isActive && openItems[item.title] === true;
 
                     return (
-                        <SidebarMenuItem
-                            key={item.title}
-                            className="relative"
-                        >
+                        <SidebarMenuItem key={item.title} className="relative">
                             <SidebarMenuButton
                                 asChild
                                 isActive={isActive}
@@ -76,12 +74,16 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                 </Link>
                             </SidebarMenuButton>
 
+                            {Boolean(item.badge) && (
+                                <SidebarMenuBadge className="bg-ustp-gold font-bold text-ustp-navy peer-data-[active=true]/menu-button:bg-ustp-gold peer-data-[active=true]/menu-button:text-ustp-navy">
+                                    {item.badge! > 99 ? '99+' : item.badge}
+                                </SidebarMenuBadge>
+                            )}
+
                             {hasChildren && (
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        setOpen(item.title, !isOpen)
-                                    }
+                                    onClick={() => setOpen(item.title, !isOpen)}
                                     aria-expanded={isOpen}
                                     aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${item.title}`}
                                     className={cn(
@@ -130,7 +132,9 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                                         {child.icon && (
                                                             <child.icon />
                                                         )}
-                                                        <span>{child.title}</span>
+                                                        <span>
+                                                            {child.title}
+                                                        </span>
                                                     </Link>
                                                 </SidebarMenuSubButton>
                                             </SidebarMenuSubItem>

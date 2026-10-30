@@ -47,6 +47,9 @@ class HandleInertiaRequests extends Middleware
             'unreadNotifications' => fn () => $user
                 ? $user->systemNotifications()->where('notification_status', 'unread')->latest()->limit(10)->get()
                 : [],
+            'unreadNotificationsCount' => fn () => $user
+                ? $user->systemNotifications()->where('notification_status', 'unread')->count()
+                : 0,
             'notifications' => fn () => $user
                 ? $user->systemNotifications()->latest()->limit(20)->get()
                 : [],
