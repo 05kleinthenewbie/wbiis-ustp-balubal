@@ -137,3 +137,92 @@ test('admins can view any booking', function () {
         ->get("/bookings/{$booking->id}")
         ->assertOk();
 });
+
+test('bookings that already ended are removed from the calendar', function () {
+    $this->travelTo('2026-10-31 14:00:00');
+
+    $faculty = bookingPagesUser('faculty_staff');
+    $facility = bookingPagesFacility();
+    bookingPagesBooking($faculty, $facility, 'approved', '2026-10-30');
+    Booking::create([
+        'user_id' => $faculty->id,
+        'facility_id' => $facility->id,
+        'booking_date' => '2026-10-31',
+        'start_time' => '08:00',
+        'end_time' => '10:00',
+        'booking_status' => 'approved',
+    ]);
+    $inProgress = Booking::create([
+        'user_id' => $faculty->id,
+        'facility_id' => $facility->id,
+        'booking_date' => '2026-10-31',
+        'start_time' => '13:00',
+        'end_time' => '15:00',
+        'booking_status' => 'approved',
+    ]);
+    $tomorrow = bookingPagesBooking($faculty, $facility, 'approved', '2026-11-01');
+
+    $this->actingAs($faculty)
+        ->get('/bookings')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('calendarBookings', 2)
+            ->where('calendarBookings.0.id', $inProgress->id)
+            ->where('calendarBookings.1.id', $tomorrow->id));
+});
+
+test('ended bookings do not block new bookings for the same slot', function () {
+    $this->travelTo('2026-10-31 14:00:00');
+
+    $faculty = bookingPagesUser('faculty_staff');
+    $facility = bookingPagesFacility();
+    Booking::create([
+        'user_id' => $faculty->id,
+        'facility_id' => $facility->id,
+        'booking_date' => '2026-10-31',
+        'start_time' => '08:00',
+        'end_time' => '10:00',
+        'booking_status' => 'approved',
+    ]);
+
+    $this->actingAs($faculty)
+        ->post('/bookings', [
+            'facility_id' => $facility->id,
+            'booking_date' => '2026-10-31',
+            'start_time' => '08:00',
+            'end_time' => '10:00',
+            'purpose' => 'Retake session',
+        ])
+        ->assertRedirect('/bookings')
+        ->assertSessionHasNoErrors();
+
+    expect(Booking::where('purpose', 'Retake session')->exists())->toBeTrue();
+});
+
+test('the complete past command completes approved bookings that already ended today', function () {
+    $this->travelTo('2026-10-31 14:00:00');
+
+    $faculty = bookingPagesUser('faculty_staff');
+    $facility = bookingPagesFacility();
+    $endedToday = Booking::create([
+        'user_id' => $faculty->id,
+        'facility_id' => $facility->id,
+        'booking_date' => '2026-10-31',
+        'start_time' => '08:00',
+        'end_time' => '10:00',
+        'booking_status' => 'approved',
+    ]);
+    $inProgress = Booking::create([
+        'user_id' => $faculty->id,
+        'facility_id' => $facility->id,
+        'booking_date' => '2026-10-31',
+        'start_time' => '13:00',
+        'end_time' => '15:00',
+        'booking_status' => 'approved',
+    ]);
+
+    $this->artisan('bookings:complete-past')->assertSuccessful();
+
+    expect($endedToday->fresh()->booking_status)->toBe('completed')
+        ->and($inProgress->fresh()->booking_status)->toBe('approved');
+});

@@ -8,5 +8,5 @@ Schedule::call(function () {
 })->hourly()->description('Check for breached SLAs');
 
 Schedule::command('bookings:complete-past')
-    ->dailyAt('00:10')
+    ->hourly()
     ->description('Complete past approved bookings');

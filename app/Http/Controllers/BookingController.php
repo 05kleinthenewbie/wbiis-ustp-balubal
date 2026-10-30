@@ -94,8 +94,7 @@ class BookingController extends Controller
         return Inertia::render('bookings/create', [
             'facilities' => Facility::where('availability_status', 'available')->get(),
             'upcomingBookings' => Booking::with(['user:id,name', 'facility:id,facility_name'])
-                ->whereIn('booking_status', ['pending', 'approved'])
-                ->where('booking_date', '>=', today())
+                ->active()
                 ->orderBy('booking_date')
                 ->orderBy('start_time')
                 ->get([
@@ -137,7 +136,7 @@ class BookingController extends Controller
 
         $overlap = Booking::where('facility_id', $validated['facility_id'])
             ->where('booking_date', $validated['booking_date'])
-            ->whereIn('booking_status', ['pending', 'approved'])
+            ->active()
             ->where(function ($query) use ($validated) {
                 $query->whereBetween('start_time', [$validated['start_time'], $validated['end_time']])
                     ->orWhereBetween('end_time', [$validated['start_time'], $validated['end_time']])
@@ -296,13 +295,14 @@ class BookingController extends Controller
     }
 
     /**
-     * Pending and approved bookings formatted for the availability calendar.
+     * Pending and approved bookings that are still upcoming or in progress,
+     * formatted for the availability calendar.
      */
     private function calendarBookingData()
     {
         return Booking::query()
+            ->active()
             ->with(['user:id,name', 'facility:id,facility_name,facility_type'])
-            ->whereIn('booking_status', ['pending', 'approved'])
             ->orderBy('booking_date')
             ->orderBy('start_time')
             ->get()
