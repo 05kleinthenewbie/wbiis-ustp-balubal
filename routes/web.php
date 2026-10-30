@@ -15,6 +15,7 @@ use App\Http\Controllers\ServiceRequestController;
 use App\Http\Controllers\StudentLoginController;
 use App\Http\Controllers\StudentPasswordResetLinkController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserLiabilityController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -79,6 +80,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/export', [ReportController::class, 'export'])->name('reports.export');
     Route::get('attachments/{attachment}/download', [AttachmentController::class, 'download'])->name('attachments.download');
+    Route::get('liabilities', [UserLiabilityController::class, 'index'])->name('liabilities.index');
+    Route::post('liabilities/{liability}/acknowledge', [UserLiabilityController::class, 'acknowledge'])->name('liabilities.acknowledge');
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');

@@ -32,6 +32,7 @@ type Liability = {
     liability_description: string | null;
     liability_amount: string | null;
     liability_status: string;
+    acknowledged_at: string | null;
     user: { name: string };
 };
 
@@ -492,6 +493,11 @@ export default function IncidentsShow({
                                                                 )}
                                                             </p>
                                                         )}
+                                                        <p className="mt-1 text-xs text-slate-500">
+                                                            {liability.acknowledged_at
+                                                                ? `Acknowledged ${new Date(liability.acknowledged_at).toLocaleString()}`
+                                                                : 'Not yet acknowledged'}
+                                                        </p>
                                                     </div>
 
                                                     <div className="flex items-center gap-2">

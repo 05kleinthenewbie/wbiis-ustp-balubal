@@ -253,7 +253,7 @@ test('faculty dashboard scopes overview, pending actions, and activity to their 
             ->missing('activitySeries.jobOrders'));
 });
 
-test('student dashboard shows only request data without booking or incident modules', function () {
+test('student dashboard shows requests and own laboratory incidents without booking modules', function () {
     $studentRole = Role::firstOrCreate(['role_name' => 'student']);
     $student = User::factory()->create(['role_id' => $studentRole->id]);
 
@@ -281,6 +281,19 @@ test('student dashboard shows only request data without booking or incident modu
     $olderRequest->created_at = now()->subDays(20);
     $olderRequest->save();
 
+    IncidentReport::create([
+        'reported_by' => $student->id,
+        'incident_type' => 'Equipment damage',
+        'incident_description' => 'My laboratory report',
+        'status' => 'open',
+    ]);
+    IncidentReport::create([
+        'reported_by' => User::factory()->create()->id,
+        'incident_type' => 'Safety concern',
+        'incident_description' => 'Someone else report',
+        'status' => 'open',
+    ]);
+
     $this->actingAs($student)
         ->get(route('dashboard'))
         ->assertOk()
@@ -291,14 +304,17 @@ test('student dashboard shows only request data without booking or incident modu
             ->where('overview.serviceRequests.approved', 1)
             ->where('overview.serviceRequests.completed', 1)
             ->missing('overview.bookings')
-            ->missing('overview.incidents')
+            ->where('overview.incidents.total', 1)
+            ->where('overview.incidents.unresolved', 1)
+            ->has('recentIncidents', 1)
+            ->where('recentIncidents.0.reporter_name', $student->name)
             ->missing('overview.jobOrders')
             ->missing('overview.inventory')
-            ->where('overview.pendingActions.total', 2)
+            ->where('overview.pendingActions.total', 3)
             ->where('pendingActions.requestApprovals', 2)
             ->where('pendingActions.rejectedRequests', 0)
             ->missing('pendingActions.bookingApprovals')
-            ->missing('pendingActions.incidentsUnresolved')
+            ->where('pendingActions.incidentsUnresolved', 1)
             ->where('inventoryAlerts', null)
             ->where('activitySeries', null));
 

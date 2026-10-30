@@ -30,6 +30,8 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
+import { index as incidentsIndex } from '@/routes/incidents';
+import { index as liabilitiesIndex } from '@/routes/liabilities';
 import { index as notificationsIndex } from '@/routes/notifications';
 import type { NavItem } from '@/types';
 
@@ -159,6 +161,11 @@ export function AppSidebar() {
     const studentNavItems: NavItem[] = [
         { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
         { title: 'My Service Requests', href: '/requests', icon: FileText },
+        {
+            title: 'Laboratory Incident Reports',
+            href: incidentsIndex().url,
+            icon: AlertTriangle,
+        },
     ];
 
     let mainNavItems: NavItem[] = facultyStaffNavItems;
@@ -191,6 +198,15 @@ export function AppSidebar() {
                 <NavMain
                     items={[
                         ...mainNavItems,
+                        ...(roleName === 'ict_admin'
+                            ? []
+                            : [
+                                  {
+                                      title: 'My Liabilities',
+                                      href: liabilitiesIndex().url,
+                                      icon: AlertTriangle,
+                                  },
+                              ]),
                         {
                             title: 'Notifications',
                             href: notificationsIndex().url,

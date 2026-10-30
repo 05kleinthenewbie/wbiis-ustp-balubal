@@ -36,6 +36,7 @@ const typeStyles: Record<string, { icon: typeof Bell; color: string }> = {
         color: 'bg-emerald-500/10 text-emerald-600',
     },
     account_rejection: { icon: Bell, color: 'bg-red-500/10 text-red-500' },
+    liability: { icon: BellRing, color: 'bg-red-500/10 text-red-500' },
 };
 
 const typeFallbackLinks: Record<string, string> = {
@@ -44,6 +45,7 @@ const typeFallbackLinks: Record<string, string> = {
     booking: '/bookings',
     account_approval: '/dashboard',
     account_rejection: '/dashboard',
+    liability: '/liabilities',
 };
 
 export function NotificationBell() {

@@ -194,11 +194,19 @@ class DashboardController extends Controller
                 'requests' => ServiceRequest::where('user_id', $user->id),
             ];
 
+            $unresolvedIncidents = IncidentReport::where('reported_by', $user->id)
+                ->whereIn('status', ['open', 'under_review'])->count();
+            $overview['incidents'] = [
+                'total' => IncidentReport::where('reported_by', $user->id)
+                    ->whereBetween('created_at', $periodRange)->count(),
+                'unresolved' => $unresolvedIncidents,
+            ];
+            $pendingActions['incidentsUnresolved'] = $unresolvedIncidents;
+            $activitySources['incidents'] = IncidentReport::where('reported_by', $user->id);
+
             if (! $isStudent) {
                 $pendingBookings = Booking::where('user_id', $user->id)
                     ->where('booking_status', 'pending')->count();
-                $unresolvedIncidents = IncidentReport::where('reported_by', $user->id)
-                    ->whereIn('status', ['open', 'under_review'])->count();
 
                 $overview['bookings'] = [
                     'total' => Booking::where('user_id', $user->id)
@@ -206,17 +214,9 @@ class DashboardController extends Controller
                     'pending' => $pendingBookings,
                 ];
 
-                $overview['incidents'] = [
-                    'total' => IncidentReport::where('reported_by', $user->id)
-                        ->whereBetween('created_at', $periodRange)->count(),
-                    'unresolved' => $unresolvedIncidents,
-                ];
-
                 $pendingActions['bookingApprovals'] = $pendingBookings;
-                $pendingActions['incidentsUnresolved'] = $unresolvedIncidents;
 
                 $activitySources['bookings'] = Booking::where('user_id', $user->id);
-                $activitySources['incidents'] = IncidentReport::where('reported_by', $user->id);
             }
 
             $overview['pendingActions'] = ['total' => array_sum($pendingActions)];
@@ -240,7 +240,15 @@ class DashboardController extends Controller
                 ]);
 
             $recentJobOrders = [];
-            $recentIncidents = [];
+            $recentIncidents = IncidentReport::where('reported_by', $user->id)
+                ->latest()->take(5)->get()
+                ->map(fn (IncidentReport $incident) => [
+                    'id' => $incident->id,
+                    'reporter_name' => $user->name,
+                    'type' => $incident->incident_type,
+                    'status' => $incident->status,
+                    'date' => $incident->incident_date?->toIso8601String(),
+                ]);
             $recentBookings = [];
         }
 

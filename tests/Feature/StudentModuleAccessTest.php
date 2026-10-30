@@ -4,6 +4,7 @@ use App\Models\Facility;
 use App\Models\IncidentReport;
 use App\Models\Role;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia as Assert;
 
 function accessUser(string $roleName): User
 {
@@ -28,16 +29,44 @@ test('students are blocked from the facility booking pages', function () {
     ])->assertForbidden();
 });
 
-test('students are blocked from the laboratory incident report pages', function () {
+test('students can submit and view only their own laboratory incidents', function () {
     $student = accessUser('student');
+    $otherStudent = accessUser('student');
+    $otherIncident = IncidentReport::create([
+        'reported_by' => $otherStudent->id,
+        'incident_type' => 'Theft or loss',
+        'incident_description' => 'Other student report',
+        'status' => 'open',
+    ]);
 
-    $this->actingAs($student)->get(route('incidents.index'))->assertForbidden();
-    $this->actingAs($student)->get(route('incidents.create'))->assertForbidden();
-    $this->actingAs($student)->post(route('incidents.store'), [])->assertForbidden();
-    $this->actingAs($student)->get(route('incidents.show', 999))->assertForbidden();
+    $this->actingAs($student)->get(route('incidents.create'))->assertOk();
+    $this->post(route('incidents.store'), [
+        'incident_type' => 'Equipment damage',
+        'incident_description' => 'Broken keyboard in the laboratory',
+        'reported_by' => $otherStudent->id,
+        'status' => 'closed',
+    ])->assertRedirect(route('incidents.index'));
+
+    $incident = IncidentReport::where('reported_by', $student->id)->firstOrFail();
+    expect($incident->status)->toBe('open');
+    $this->get(route('incidents.index'))->assertInertia(fn (Assert $page) => $page
+        ->has('incidents', 1)->where('incidents.0.id', $incident->id)->where('isAdmin', false));
+    $this->get(route('incidents.show', $incident))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('isAdmin', false)->has('users', 0));
+    $this->get(route('incidents.show', $otherIncident))->assertForbidden();
+    $this->put(route('incidents.update', $incident), ['status' => 'closed'])->assertForbidden();
+    $liability = $incident->userLiabilities()->create([
+        'user_id' => $student->id,
+        'liability_description' => 'Keyboard damage',
+        'liability_status' => 'pending',
+        'date_assigned' => now(),
+    ]);
+    $this->post(route('incidents.liabilities.resolve', [$incident, $liability]), ['liability_status' => 'waived'])->assertForbidden();
+    expect($incident->fresh()->status)->toBe('open');
+    expect($liability->fresh()->liability_status)->toBe('pending');
 });
 
-test('students are blocked from booking and incident api endpoints', function () {
+test('students are blocked from booking api endpoints', function () {
     $token = auth('api')->login(accessUser('student'));
 
     $this->withHeader('Authorization', 'Bearer '.$token)
@@ -49,12 +78,30 @@ test('students are blocked from booking and incident api endpoints', function ()
     $this->withHeader('Authorization', 'Bearer '.$token)
         ->getJson('/api/v1/facilities')
         ->assertForbidden();
-    $this->withHeader('Authorization', 'Bearer '.$token)
-        ->getJson('/api/v1/incidents')
-        ->assertForbidden();
-    $this->withHeader('Authorization', 'Bearer '.$token)
-        ->postJson('/api/v1/incidents', [])
-        ->assertForbidden();
+});
+
+test('students can report incidents through the api without accessing others or reviewing reports', function () {
+    $student = accessUser('student');
+    $other = accessUser('faculty_staff');
+    $otherIncident = IncidentReport::create([
+        'reported_by' => $other->id,
+        'incident_type' => 'Equipment damage',
+        'incident_description' => 'Private report',
+        'status' => 'open',
+    ]);
+    $token = auth('api')->login($student);
+    $this->withHeader('Authorization', 'Bearer '.$token);
+    $response = $this->postJson('/api/v1/incidents', [
+        'incident_type' => 'Safety concern',
+        'incident_description' => 'Exposed cable in the lab',
+        'reported_by' => $other->id,
+        'status' => 'resolved',
+    ])->assertCreated()->assertJsonPath('incident.reported_by', $student->id)->assertJsonPath('incident.status', 'open');
+    $id = $response->json('incident.id');
+    $this->getJson('/api/v1/incidents')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $id);
+    $this->getJson('/api/v1/incidents/'.$id)->assertOk();
+    $this->getJson('/api/v1/incidents/'.$otherIncident->id)->assertForbidden();
+    $this->putJson('/api/v1/incidents/'.$id, ['status' => 'resolved'])->assertForbidden();
 });
 
 test('faculty and staff still access booking and incident pages', function () {
@@ -98,7 +145,7 @@ test('admins can submit facility bookings', function () {
 
     $response = $this->actingAs($admin)->post(route('bookings.store'), [
         'facility_id' => $facility->id,
-        'booking_date' => now()->addDays(2)->toDateString(),
+        'booking_date' => now()->next('Monday')->toDateString(),
         'start_time' => '09:00',
         'end_time' => '11:00',
         'purpose' => 'ICT staff training',

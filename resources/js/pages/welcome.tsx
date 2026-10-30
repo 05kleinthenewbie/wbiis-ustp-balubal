@@ -102,8 +102,13 @@ const roles = [
         icon: Wifi,
         role: 'Students',
         description:
-            'Register with your student ID and COR, then request email accounts and Office 365 access after approval.',
-        features: ['Email Requests', 'Office 365 Access', 'Track Requests'],
+            'Register with your student ID and COR, then request email accounts, access Office 365 services, and report laboratory incidents after approval.',
+        features: [
+            'Email Requests',
+            'Office 365 Access',
+            'Track Requests',
+            'Report Laboratory Incidents',
+        ],
         href: studentLogin().url,
         registerHref: register({ query: { role: 'student' } }).url,
         registrationNote:
