@@ -71,45 +71,45 @@ const CATEGORY_CONFIG: {
     rows: string[];
     rowAliases?: Record<string, string[]>;
 }[] = [
-        {
-            title: 'Network Services',
-            actions: ['New Connection', 'Troubleshoot'],
-            rows: [
-                'Network Connection',
-                'Internet Connection',
-                'Printer Connection',
-                'Phone Connection',
-                'Others',
-            ],
-        },
-        {
-            title: 'Hardware Services',
-            actions: ['Installation', 'Troubleshoot', 'Update'],
-            rows: [
-                'Computer/Laptop',
-                'Printer/Scanner',
-                'Tablet/Mobile Phone',
-                'Others',
-            ],
-        },
-        {
-            title: 'Software Services',
-            actions: ['Installation', 'Troubleshoot', 'Update'],
-            rows: [
-                'Operating System',
-                'Office Suites',
-                'Anti-Virus',
-                'Device Drivers',
-                'Others',
-            ],
-        },
-        {
-            title: 'Information System Services',
-            actions: ['Create New', 'Troubleshoot', 'Update'],
-            rows: ['E-mail', 'Others'],
-            rowAliases: { Others: ['Office 365'] },
-        },
-    ];
+    {
+        title: 'Network Services',
+        actions: ['New Connection', 'Troubleshoot'],
+        rows: [
+            'Network Connection',
+            'Internet Connection',
+            'Printer Connection',
+            'Phone Connection',
+            'Others',
+        ],
+    },
+    {
+        title: 'Hardware Services',
+        actions: ['Installation', 'Troubleshoot', 'Update'],
+        rows: [
+            'Computer/Laptop',
+            'Printer/Scanner',
+            'Tablet/Mobile Phone',
+            'Others',
+        ],
+    },
+    {
+        title: 'Software Services',
+        actions: ['Installation', 'Troubleshoot', 'Update'],
+        rows: [
+            'Operating System',
+            'Office Suites',
+            'Anti-Virus',
+            'Device Drivers',
+            'Others',
+        ],
+    },
+    {
+        title: 'Information System Services',
+        actions: ['Create New', 'Troubleshoot', 'Update'],
+        rows: ['E-mail', 'Others'],
+        rowAliases: { Others: ['Office 365'] },
+    },
+];
 
 const FINAL_REMARKS: { key: string; label: string }[] = [
     { key: 'outsource_repair', label: 'For Outsource Repair' },
@@ -201,7 +201,9 @@ function ServiceCategory({
             (service) =>
                 normalize(service.service_type?.category?.category_name) ===
                     normalize(title) &&
-                matchedNames.includes(normalize(service.service_type?.service_name)),
+                matchedNames.includes(
+                    normalize(service.service_type?.service_name),
+                ),
         );
     };
 
@@ -219,8 +221,22 @@ function ServiceCategory({
                     {rows.map((name) => {
                         const matched = rowServices(name);
                         const checked = matched.length > 0;
+                        const aliases = rowAliases?.[name] ?? [];
                         const specification = joinValues(
-                            matched.map((service) => service.specification),
+                            matched.map((service) => {
+                                const serviceName =
+                                    service.service_type?.service_name ?? '';
+                                const matchedAlias = aliases.some(
+                                    (alias) =>
+                                        normalize(alias) ===
+                                        normalize(serviceName),
+                                );
+
+                                return joinValues([
+                                    matchedAlias ? serviceName : '',
+                                    service.specification,
+                                ]);
+                            }),
                         );
                         const quantity = joinValues(
                             matched.map((service) => service.quantity),
@@ -659,21 +675,26 @@ export default function PrintJobRequestForm({
                                 />
                             ))}
 
-                            <div className="flex items-center gap-2 p-1 text-[9.5px]">
-                                <span className="shrink-0 font-bold whitespace-nowrap">
-                                    OTHERS{' '}
-                                    <span className="font-normal">
-                                        (Please specify):
+                            {unmatchedServices.length > 0 && (
+                                <div className="flex items-center gap-2 p-1 text-[9.5px]">
+                                    <span className="shrink-0 font-bold whitespace-nowrap">
+                                        OTHERS{' '}
+                                        <span className="font-normal">
+                                            (Please specify):
+                                        </span>
                                     </span>
-                                </span>
-                                <span className="min-w-0 flex-1 border-b border-dotted border-gray-400 px-0.5 text-[10px] wrap-break-word">
-                                    {joinValues(
-                                        unmatchedServices.map(
-                                            (service) => service.specification,
-                                        ),
-                                    ) || '\u00A0'}
-                                </span>
-                            </div>
+                                    <span className="min-w-0 flex-1 border-b border-dotted border-gray-400 px-0.5 text-[10px] wrap-break-word">
+                                        {joinValues(
+                                            unmatchedServices.map(
+                                                (service) =>
+                                                    service.specification ||
+                                                    service.service_type
+                                                        ?.service_name,
+                                            ),
+                                        ) || '\u00A0'}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </Section>
 
