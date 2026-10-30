@@ -33,6 +33,10 @@ class AuthController extends ApiController
             ]);
         }
 
+        if ($user->isTechnician()) {
+            abort(403, 'Technician records do not have login accounts. Please contact the ICT office.');
+        }
+
         if ($user->status === 'pending') {
             abort(403, 'Your account is pending ICT Admin approval. You will be able to log in once approved.');
         }

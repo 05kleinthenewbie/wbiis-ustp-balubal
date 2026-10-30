@@ -50,8 +50,9 @@ use RuntimeException;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property bool $is_technician
  */
-#[Fillable(['name', 'email', 'password', 'role_id', 'department', 'employment_type', 'id_number', 'educational_level', 'year_level', 'gender', 'birth_date', 'home_address', 'cor_path', 'cor_original_name', 'contact_no', 'status', 'avatar', 'employee_id_number', 'position', 'employment_document_path', 'employment_document_original_name'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'department', 'employment_type', 'id_number', 'educational_level', 'year_level', 'gender', 'birth_date', 'home_address', 'cor_path', 'cor_original_name', 'contact_no', 'status', 'avatar', 'employee_id_number', 'position', 'employment_document_path', 'employment_document_original_name', 'is_technician'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'cor_path', 'cor_original_name', 'employment_document_path', 'employment_document_original_name'])]
 class User extends Authenticatable implements JWTSubject
 {
@@ -71,6 +72,7 @@ class User extends Authenticatable implements JWTSubject
             'cor_verification_details' => 'array',
             'cor_checked_at' => 'datetime',
             'password' => 'hashed',
+            'is_technician' => 'boolean',
         ];
     }
 
@@ -140,6 +142,15 @@ class User extends Authenticatable implements JWTSubject
                 'email' => 'We could not send a password reset link. Please try again.',
             ]);
         }
+    }
+
+    /**
+     * Technician records are personnel pinning data for job order assignments;
+     * they are never issued login credentials.
+     */
+    public function isTechnician(): bool
+    {
+        return (bool) $this->is_technician;
     }
 
     /**

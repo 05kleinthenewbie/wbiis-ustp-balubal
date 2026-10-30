@@ -184,10 +184,67 @@ test('admins can add a new technician without login credentials', function () {
     $technician = User::where('name', 'Juan Technician')->firstOrFail();
 
     expect($technician->status)->toBe('active')
+        ->and($technician->is_technician)->toBeTrue()
         ->and($technician->role->role_name)->toBe('ict_admin')
         ->and($technician->email)->not->toBeEmpty()
         ->and($technician->contact_no)->toBe('0917 123 4567')
         ->and(str_starts_with($technician->password, '$2'))->toBeTrue();
+});
+
+test('technicians cannot sign in even with a matching password', function () {
+    $admin = assignTechUser('ict_admin');
+
+    $this->actingAs($admin)
+        ->post(route('technicians.store'), [
+            'name' => 'No Login Tech',
+            'email' => 'no-login-tech@example.com',
+        ])
+        ->assertRedirect();
+
+    $technician = User::where('name', 'No Login Tech')->firstOrFail();
+    $technician->update(['password' => 'Password123!', 'email_verified_at' => now()]);
+
+    $this->post(route('logout'));
+
+    $this->post(route('login.store'), [
+        'email' => $technician->email,
+        'password' => 'Password123!',
+        'portal' => 'admin',
+    ])->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
+test('technician records are not listed as user accounts', function () {
+    $admin = assignTechUser('ict_admin');
+
+    $this->actingAs($admin)
+        ->post(route('technicians.store'), ['name' => 'Hidden Technician'])
+        ->assertRedirect();
+
+    $this->actingAs($admin)
+        ->get(route('users.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('activeUsers', 0)
+            ->has('pendingUsers', 0)
+            ->has('deactivatedUsers', 0));
+});
+
+test('technician records cannot be activated or deactivated', function () {
+    $admin = assignTechUser('ict_admin');
+
+    $this->actingAs($admin)
+        ->post(route('technicians.store'), ['name' => 'Locked Technician'])
+        ->assertRedirect();
+
+    $technician = User::where('name', 'Locked Technician')->firstOrFail();
+
+    $this->actingAs($admin)
+        ->put(route('users.update', $technician->id), ['status' => 'inactive'])
+        ->assertSessionHasErrors('status');
+
+    expect($technician->fresh()->status)->toBe('active');
 });
 
 test('invalid phone numbers are rejected for a new technician', function () {

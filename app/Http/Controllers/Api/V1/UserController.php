@@ -21,10 +21,12 @@ class UserController extends ApiController
 
         return response()->json([
             'pendingUsers' => User::with('role')
+                ->where('is_technician', false)
                 ->where('status', 'pending')
                 ->latest()
                 ->get(),
             'activeUsers' => User::with('role')
+                ->where('is_technician', false)
                 ->where('status', 'active')
                 ->where('id', '!=', $this->user()->id)
                 ->latest()
@@ -44,6 +46,9 @@ class UserController extends ApiController
         ]);
 
         $user = User::findOrFail($id);
+
+        abort_if($user->isTechnician(), 403, 'Technician records do not have login accounts.');
+
         if ($user->status === 'pending' && $validated['status'] === 'inactive') {
             $validated['status'] = 'rejected';
         }

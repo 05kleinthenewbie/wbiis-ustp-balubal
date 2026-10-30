@@ -181,7 +181,9 @@ function StatCard({
 }) {
     const content = (
         <div className="flex items-center gap-3">
-            <div className={`flex size-10 items-center justify-center rounded-xl ${bg}`}>
+            <div
+                className={`flex size-10 items-center justify-center rounded-xl ${bg}`}
+            >
                 <Icon className={`size-5 ${color}`} />
             </div>
             <div>
@@ -431,8 +433,7 @@ export default function JobOrderAssignments({
                                 No matching assignments
                             </p>
                             <p className="mt-1 text-xs text-slate-400">
-                                Try a different technician or job order
-                                number.
+                                Try a different technician or job order number.
                             </p>
                         </div>
                     ) : (
@@ -464,12 +465,12 @@ export default function JobOrderAssignments({
 
                             <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                                 {filteredGroups.map((group) => {
-                                    const activeCount =
-                                        group.job_orders.filter((jobOrder) =>
+                                    const activeCount = group.job_orders.filter(
+                                        (jobOrder) =>
                                             ['open', 'in_progress'].includes(
                                                 jobOrder.status,
                                             ),
-                                        ).length;
+                                    ).length;
 
                                     return (
                                         <div
@@ -638,7 +639,8 @@ export default function JobOrderAssignments({
                                 <DialogTitle>Add technician</DialogTitle>
                                 <DialogDescription>
                                     Create a technician record for job order
-                                    assignments. No login account is needed.
+                                    assignments. Technicians do not have login
+                                    accounts.
                                 </DialogDescription>
                             </DialogHeader>
 

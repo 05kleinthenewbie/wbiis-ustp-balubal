@@ -71,6 +71,12 @@ class FortifyServiceProvider extends ServiceProvider
                 return null;
             }
 
+            if ($user->isTechnician()) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => 'Technician records do not have login accounts. Please contact the ICT office.',
+                ]);
+            }
+
             if ($user->status === 'pending') {
                 throw ValidationException::withMessages([
                     Fortify::username() => 'Your account is pending ICT Admin approval. You will be able to log in once approved.',

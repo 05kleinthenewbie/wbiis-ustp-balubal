@@ -42,23 +42,30 @@ class UserController extends Controller
             'status' => session('status'),
             'error' => session('error'),
             'pendingUsers' => User::with('role')
+                ->where('is_technician', false)
                 ->where('status', 'pending')
                 ->latest()
                 ->get()
                 ->each->append(['cor_url', 'employment_document_url']),
             'activeUsers' => User::with('role')
+                ->where('is_technician', false)
                 ->where('status', 'active')
                 ->where('id', '!=', Auth::id())
                 ->latest()
                 ->get()
                 ->each->append(['cor_url', 'employment_document_url']),
             'deactivatedUsers' => User::with('role')
+                ->where('is_technician', false)
                 ->where('status', 'inactive')
                 ->where('id', '!=', Auth::id())
                 ->latest()
                 ->get()
                 ->each->append(['cor_url', 'employment_document_url']),
-            'rejectedUsers' => User::with('role')->where('status', 'rejected')->latest()->get()
+            'rejectedUsers' => User::with('role')
+                ->where('is_technician', false)
+                ->where('status', 'rejected')
+                ->latest()
+                ->get()
                 ->each->append(['cor_url', 'employment_document_url']),
         ]);
     }
@@ -137,6 +144,7 @@ class UserController extends Controller
             'password' => Hash::make(Str::random(40)),
             'role_id' => Role::firstOrCreate(['role_name' => 'ict_admin'])->id,
             'status' => 'active',
+            'is_technician' => true,
         ]);
 
         AuditLog::record(
@@ -236,6 +244,12 @@ class UserController extends Controller
 
     private function changeStatus(User $user, string $status): void
     {
+        if ($user->isTechnician()) {
+            throw ValidationException::withMessages([
+                'status' => 'Technician records are not login accounts and cannot be activated or deactivated.',
+            ]);
+        }
+
         $previousStatus = $user->status;
 
         if ($previousStatus === 'pending' && $status === 'inactive') {
