@@ -11,6 +11,7 @@ import {
     Building2,
     CheckCircle2,
     AlertTriangle,
+    ShieldAlert,
     History,
     BarChart3,
     Users,
@@ -155,6 +156,18 @@ export function AppSidebar() {
             title: 'Laboratory Incident Reports',
             href: '/incidents',
             icon: AlertTriangle,
+            children: [
+                {
+                    title: 'Incident Reports',
+                    href: '/incidents',
+                    icon: AlertTriangle,
+                },
+                {
+                    title: 'My Liabilities',
+                    href: liabilitiesIndex().url,
+                    icon: ShieldAlert,
+                },
+            ],
         },
     ];
 
@@ -165,6 +178,18 @@ export function AppSidebar() {
             title: 'Laboratory Incident Reports',
             href: incidentsIndex().url,
             icon: AlertTriangle,
+            children: [
+                {
+                    title: 'Incident Reports',
+                    href: incidentsIndex().url,
+                    icon: AlertTriangle,
+                },
+                {
+                    title: 'My Liabilities',
+                    href: liabilitiesIndex().url,
+                    icon: ShieldAlert,
+                },
+            ],
         },
     ];
 
@@ -198,15 +223,6 @@ export function AppSidebar() {
                 <NavMain
                     items={[
                         ...mainNavItems,
-                        ...(roleName === 'ict_admin'
-                            ? []
-                            : [
-                                  {
-                                      title: 'My Liabilities',
-                                      href: liabilitiesIndex().url,
-                                      icon: AlertTriangle,
-                                  },
-                              ]),
                         {
                             title: 'Notifications',
                             href: notificationsIndex().url,
