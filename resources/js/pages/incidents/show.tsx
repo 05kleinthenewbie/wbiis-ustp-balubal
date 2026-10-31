@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     AlertTriangle,
     Archive,
@@ -211,6 +211,7 @@ export default function IncidentsShow({
     const [liabilityAmount, setLiabilityAmount] = useState('');
     const [processing, setProcessing] = useState(false);
     const [resolvingId, setResolvingId] = useState<number | null>(null);
+    const { errors } = usePage<{ errors: Record<string, string> }>().props;
 
     const displayStatus = status;
     const statusCfg = statusConfig[displayStatus] ?? statusConfig.open;
@@ -226,15 +227,21 @@ export default function IncidentsShow({
             return;
         }
 
+        const hasAssignee =
+            liabilityUserId !== '' && liabilityUserId !== NONE_VALUE;
+
+        if (!hasAssignee && liabilityAmount.trim() !== '') {
+            toast.error('Select a user before entering a liability amount.');
+
+            return;
+        }
+
         setProcessing(true);
         router.put(
             `/incidents/${incident.id}`,
             {
                 status,
-                liability_user_id:
-                    liabilityUserId && liabilityUserId !== NONE_VALUE
-                        ? liabilityUserId
-                        : null,
+                liability_user_id: hasAssignee ? liabilityUserId : null,
                 liability_description: liabilityDescription || null,
                 liability_amount:
                     liabilityAmount.trim() === ''
@@ -249,8 +256,13 @@ export default function IncidentsShow({
                     setLiabilityDescription('');
                     setLiabilityAmount('');
                 },
-                onError: () => {
-                    toast.error('Could not save changes. Please try again.');
+                onError: (validationErrors) => {
+                    const firstError = Object.values(validationErrors)[0];
+
+                    toast.error(
+                        firstError ??
+                            'Could not save changes. Please try again.',
+                    );
                 },
             },
         );
@@ -615,6 +627,11 @@ export default function IncidentsShow({
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
+                                        {errors.status && (
+                                            <p className="text-[11px] text-red-600">
+                                                {errors.status}
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="grid gap-2">
@@ -660,6 +677,11 @@ export default function IncidentsShow({
                                                 assignment.
                                             </p>
                                         )}
+                                        {errors.liability_user_id && (
+                                            <p className="text-[11px] text-red-600">
+                                                {errors.liability_user_id}
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="grid gap-2">
@@ -685,6 +707,11 @@ export default function IncidentsShow({
                                             }
                                             className="border-slate-300 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
                                         />
+                                        {errors.liability_amount && (
+                                            <p className="text-[11px] text-red-600">
+                                                {errors.liability_amount}
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="grid gap-2">
@@ -707,6 +734,11 @@ export default function IncidentsShow({
                                             }
                                             className="border-slate-300 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus-visible:border-ustp-gold/40 focus-visible:ring-1 focus-visible:ring-ustp-gold/20"
                                         />
+                                        {errors.liability_description && (
+                                            <p className="text-[11px] text-red-600">
+                                                {errors.liability_description}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 

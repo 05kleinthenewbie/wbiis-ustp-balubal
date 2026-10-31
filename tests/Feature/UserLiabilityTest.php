@@ -46,6 +46,29 @@ test('assigning liability notifies the liable user and they can view it even whe
     expect(Notification::where('user_id', $admin->id)->where('notification_type', 'liability')->count())->toBe(1);
 })->with(['student', 'faculty_staff']);
 
+test('assignment requires a valid amount when a user is selected', function (array $payload, string $errorKey) {
+    $admin = User::factory()->create(['role_id' => Role::firstOrCreate(['role_name' => 'ict_admin'])->id]);
+    $liable = User::factory()->create();
+    $incident = IncidentReport::create(['reported_by' => $admin->id, 'incident_type' => 'Equipment damage', 'incident_description' => 'Monitor', 'status' => 'open']);
+
+    $this->actingAs($admin)
+        ->put(route('incidents.update', $incident), [
+            'status' => 'under_review',
+            'liability_user_id' => (string) $liable->id,
+            'liability_description' => 'Monitor replacement',
+            ...$payload,
+        ])
+        ->assertSessionHasErrors($errorKey);
+
+    expect(UserLiability::count())->toBe(0);
+    expect($incident->fresh()->status)->toBe('open');
+})->with([
+    'missing amount' => [['liability_amount' => null], 'liability_amount'],
+    'empty amount' => [['liability_amount' => ''], 'liability_amount'],
+    'non numeric amount' => [['liability_amount' => '1,500.00'], 'liability_amount'],
+    'negative amount' => [['liability_amount' => '-1'], 'liability_amount'],
+]);
+
 test('users cannot view or acknowledge another persons liability', function () {
     $owner = User::factory()->create();
     $other = User::factory()->create();
