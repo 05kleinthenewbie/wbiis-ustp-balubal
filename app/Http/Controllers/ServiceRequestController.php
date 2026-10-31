@@ -9,6 +9,7 @@ use App\Models\Notification;
 use App\Models\ServiceCategory;
 use App\Models\ServiceRequest as ServiceRequestModel;
 use App\Models\ServiceType;
+use App\Services\PrioritizationService;
 use App\Services\SlaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -48,7 +49,8 @@ class ServiceRequestController extends Controller
             $query->latest();
         } else {
             $query->orderByRaw("CASE WHEN request_status = 'pending' THEN 1 WHEN request_status = 'approved' THEN 2 WHEN request_status = 'rejected' THEN 3 WHEN request_status = 'completed' THEN 4 ELSE 5 END ASC")
-                ->latest();
+                ->orderByRaw(PrioritizationService::priorityRankExpression())
+                ->oldest('date_requested');
         }
 
         return Inertia::render('requests/index', [
@@ -67,7 +69,8 @@ class ServiceRequestController extends Controller
 
         $requests = ServiceRequestModel::with(['user', 'requestServices.serviceType.category'])
             ->where('request_status', 'pending')
-            ->latest('date_requested')
+            ->orderByRaw(PrioritizationService::priorityRankExpression())
+            ->oldest('date_requested')
             ->get();
 
         return Inertia::render('requests/approvals', [
@@ -144,6 +147,11 @@ class ServiceRequestController extends Controller
         foreach ($validated['services'] as $service) {
             $serviceRequest->requestServices()->create($service);
         }
+
+        $serviceRequest->load('requestServices.serviceType');
+        $serviceRequest->update([
+            'priority_level' => PrioritizationService::determinePriority($serviceRequest),
+        ]);
 
         foreach ($request->file('attachments', []) as $file) {
             $serviceRequest->attachments()->create([

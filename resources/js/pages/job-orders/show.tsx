@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-type Technician = { id: number; name: string };
+type Technician = { id: number; name: string; expertise: string | null };
 
 type TechnicianResponse = {
     id: number;
@@ -54,6 +54,7 @@ type JobOrderDetail = {
     user_permission_granted: boolean;
     estimated_repair_days: number | null;
     replacement_provided: boolean;
+    replacement_due: boolean;
     service_request: {
         problem_description: string;
         location: string | null;
@@ -346,6 +347,23 @@ export default function JobOrdersShow({
                     </div>
 
                     {/* Info grid */}
+                    {jobOrder.replacement_due && (
+                        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 shadow-sm">
+                            <Clock className="mt-0.5 size-4 shrink-0" />
+                            <div>
+                                <p className="font-medium">
+                                    Temporary replacement required
+                                </p>
+                                <p className="mt-0.5 text-xs text-amber-700">
+                                    This equipment has been out of commission
+                                    for more than five days. Provide a temporary
+                                    replacement, subject to resource
+                                    availability.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="grid gap-4 md:grid-cols-2">
                         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                             <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-ustp-gold/10 text-ustp-gold">
@@ -832,6 +850,9 @@ export default function JobOrdersShow({
                                                     value={String(tech.id)}
                                                 >
                                                     {tech.name}
+                                                    {tech.expertise
+                                                        ? ` — ${tech.expertise}`
+                                                        : ''}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

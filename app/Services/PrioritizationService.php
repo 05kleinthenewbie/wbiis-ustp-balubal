@@ -8,6 +8,14 @@ use App\Models\ServiceRequest;
 class PrioritizationService
 {
     /**
+     * Priority weight used for queue ordering (1 = highest).
+     */
+    public static function priorityRankExpression(string $column = 'priority_level'): string
+    {
+        return "CASE COALESCE({$column}, 'medium') WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END";
+    }
+
+    /**
      * Determine priority based on rules from NOTE 2.
      *
      * Rules:

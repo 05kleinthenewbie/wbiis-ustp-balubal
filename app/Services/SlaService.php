@@ -9,11 +9,62 @@ use Carbon\Carbon;
 class SlaService
 {
     /**
-     * Calculate initial response deadline (24 hours from request).
+     * Official ICT working hours (NOTE 1: Monday to Friday).
+     */
+    public const WORK_START_HOUR = 8;
+
+    public const WORK_END_HOUR = 17;
+
+    /**
+     * Calculate initial response deadline (24 working hours from request).
      */
     public static function calculateResponseDeadline(ServiceRequest $request): Carbon
     {
-        return Carbon::instance($request->date_requested)->addHours(24);
+        return self::addWorkingHours(Carbon::instance($request->date_requested), 24);
+    }
+
+    /**
+     * Add working hours to a date, skipping weekends and non-office hours.
+     */
+    public static function addWorkingHours(Carbon $start, int $hours): Carbon
+    {
+        $cursor = $start->copy();
+        $remaining = $hours * 60;
+
+        while ($remaining > 0) {
+            if ($cursor->isWeekend()) {
+                $cursor->next(Carbon::MONDAY)->setTime(self::WORK_START_HOUR, 0);
+
+                continue;
+            }
+
+            $dayStart = $cursor->copy()->setTime(self::WORK_START_HOUR, 0);
+            $dayEnd = $cursor->copy()->setTime(self::WORK_END_HOUR, 0);
+
+            if ($cursor->lt($dayStart)) {
+                $cursor = $dayStart;
+
+                continue;
+            }
+
+            if ($cursor->gte($dayEnd)) {
+                $cursor->addDay()->setTime(self::WORK_START_HOUR, 0);
+
+                continue;
+            }
+
+            $available = (int) $cursor->diffInMinutes($dayEnd);
+            $take = min($remaining, $available);
+
+            $cursor->addMinutes($take);
+            $remaining -= $take;
+
+            if ($remaining > 0) {
+                $cursor->addDay()->setTime(self::WORK_START_HOUR, 0);
+            }
+        }
+
+        return $cursor;
     }
 
     /**

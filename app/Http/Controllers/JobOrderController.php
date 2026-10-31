@@ -10,6 +10,7 @@ use App\Models\JobOrder;
 use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\PrioritizationService;
 use App\Services\SlaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,7 +49,8 @@ class JobOrderController extends Controller
             $query->latest();
         } else {
             $query->orderByRaw("CASE WHEN status = 'open' THEN 1 WHEN status = 'in_progress' THEN 2 WHEN status = 'completed' THEN 3 WHEN status = 'closed' THEN 4 ELSE 5 END ASC")
-                ->latest();
+                ->orderByRaw(PrioritizationService::priorityRankExpression())
+                ->oldest('created_at');
         }
 
         return Inertia::render('job-orders/index', [
@@ -69,14 +71,14 @@ class JobOrderController extends Controller
             'serviceRequest.requestServices.serviceType',
             'technician',
         ])
-            ->orderByDesc('date_assigned')
-            ->latest()
+            ->orderByRaw(PrioritizationService::priorityRankExpression())
+            ->oldest('created_at')
             ->get();
 
         $technicians = User::query()
             ->whereHas('role', fn ($query) => $query->where('role_name', 'ict_admin'))
             ->orderBy('name')
-            ->get(['id', 'name', 'department', 'contact_no']);
+            ->get(['id', 'name', 'department', 'expertise', 'contact_no']);
 
         $assigned = $jobOrders->whereNotNull('assigned_to')->groupBy('assigned_to');
 
@@ -85,6 +87,7 @@ class JobOrderController extends Controller
                 'id' => $technician->id,
                 'name' => $technician->name,
                 'department' => $technician->department,
+                'expertise' => $technician->expertise,
             ],
             'job_orders' => $assigned->get($technician->id, collect())->values(),
         ]);
@@ -115,8 +118,9 @@ class JobOrderController extends Controller
             'technician',
         ])
             ->whereIn('status', ['open', 'in_progress'])
-            ->orderByRaw("CASE WHEN status = 'in_progress' THEN 1 WHEN status = 'open' THEN 2 ELSE 3 END")
-            ->latest('date_assigned')
+            ->orderByRaw(PrioritizationService::priorityRankExpression())
+            ->oldest('date_assigned')
+            ->oldest('created_at')
             ->get();
 
         return Inertia::render('job-orders/progress', [
@@ -177,7 +181,7 @@ class JobOrderController extends Controller
             'isRequester' => $isRequester,
             'canRate' => $canRate,
             'canVerify' => $canVerify,
-            'technicians' => User::whereHas('role', fn ($q) => $q->where('role_name', 'ict_admin'))->get(['id', 'name']),
+            'technicians' => User::whereHas('role', fn ($q) => $q->where('role_name', 'ict_admin'))->get(['id', 'name', 'expertise']),
         ]);
     }
 
@@ -321,6 +325,10 @@ class JobOrderController extends Controller
         }
 
         $jobOrder->assigned_to = $assignedTo;
+
+        if ($jobOrder->priority_level === null && $jobOrder->serviceRequest?->priority_level !== null) {
+            $jobOrder->priority_level = $jobOrder->serviceRequest->priority_level;
+        }
 
         if ($assignedTo && ! $jobOrder->date_assigned) {
             $jobOrder->date_assigned = now();

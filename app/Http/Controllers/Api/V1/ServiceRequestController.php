@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\ServiceRequest as ServiceRequestModel;
 use App\Models\ServiceType;
+use App\Services\PrioritizationService;
 use App\Services\SlaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -88,6 +89,13 @@ class ServiceRequestController extends ApiController
 
         foreach ($validated['services'] as $service) {
             $serviceRequest->requestServices()->create($service);
+        }
+
+        if (empty($validated['priority_level'])) {
+            $serviceRequest->load('requestServices.serviceType');
+            $serviceRequest->update([
+                'priority_level' => PrioritizationService::determinePriority($serviceRequest),
+            ]);
         }
 
         AuditLog::record('Submitted service request', 'service_requests', $serviceRequest->id);

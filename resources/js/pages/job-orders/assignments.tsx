@@ -33,6 +33,7 @@ type JobOrderItem = {
     id: number;
     job_order_number: string;
     status: string;
+    priority_level: string | null;
     date_assigned: string | null;
     service_request: {
         id: number;
@@ -46,6 +47,7 @@ type Technician = {
     id: number;
     name: string;
     department: string | null;
+    expertise?: string | null;
     contact_no?: string | null;
 };
 
@@ -96,6 +98,19 @@ const statusConfig: Record<
     },
 };
 
+const priorityConfig: Record<string, { label: string; badge: string }> = {
+    urgent: { label: 'Urgent', badge: 'border-red-200 bg-red-50 text-red-700' },
+    high: {
+        label: 'High',
+        badge: 'border-orange-200 bg-orange-50 text-orange-700',
+    },
+    medium: {
+        label: 'Medium',
+        badge: 'border-slate-200 bg-slate-50 text-slate-600',
+    },
+    low: { label: 'Low', badge: 'border-sky-200 bg-sky-50 text-sky-700' },
+};
+
 function JobOrderRow({
     jobOrder,
     onAssign,
@@ -106,6 +121,9 @@ function JobOrderRow({
     const status = statusConfig[jobOrder.status] ?? statusConfig.open;
     const StatusIcon = status.icon;
     const assigned = Boolean(jobOrder.technician);
+    const priority =
+        priorityConfig[jobOrder.priority_level ?? 'medium'] ??
+        priorityConfig.medium;
 
     return (
         <div className="flex items-start gap-3 px-5 py-3 transition-colors hover:bg-slate-50">
@@ -123,6 +141,11 @@ function JobOrderRow({
                         >
                             <StatusIcon className="size-3" />
                             {status.label}
+                        </span>
+                        <span
+                            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${priority.badge}`}
+                        >
+                            {priority.label}
                         </span>
                     </div>
                     <p className="mt-1 truncate text-sm text-slate-700">
@@ -223,6 +246,7 @@ export default function JobOrderAssignments({
     const [techForm, setTechForm] = useState({
         name: '',
         contact_no: '',
+        expertise: '',
         email: '',
     });
     const [techErrors, setTechErrors] = useState<Record<string, string>>({});
@@ -230,7 +254,7 @@ export default function JobOrderAssignments({
 
     function openTechDialog(view: 'list' | 'add') {
         setTechView(view);
-        setTechForm({ name: '', contact_no: '', email: '' });
+        setTechForm({ name: '', contact_no: '', expertise: '', email: '' });
         setTechErrors({});
         setTechDialogOpen(true);
     }
@@ -244,13 +268,19 @@ export default function JobOrderAssignments({
             {
                 name: techForm.name,
                 contact_no: techForm.contact_no || null,
+                expertise: techForm.expertise || null,
                 email: techForm.email || null,
             },
             {
                 preserveScroll: true,
                 onSuccess: () => {
                     setTechView('list');
-                    setTechForm({ name: '', contact_no: '', email: '' });
+                    setTechForm({
+                        name: '',
+                        contact_no: '',
+                        expertise: '',
+                        email: '',
+                    });
                     router.reload({
                         only: ['technicians', 'groups', 'stats'],
                     });
@@ -502,6 +532,17 @@ export default function JobOrderAssignments({
                                                                 .department ||
                                                                 'ICT Office'}
                                                         </p>
+                                                        {group.technician
+                                                            .expertise && (
+                                                            <p className="text-[11px] text-slate-400">
+                                                                Expertise:{' '}
+                                                                {
+                                                                    group
+                                                                        .technician
+                                                                        .expertise
+                                                                }
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
@@ -598,6 +639,7 @@ export default function JobOrderAssignments({
                                                     {[
                                                         technician.department ||
                                                             'ICT Office',
+                                                        technician.expertise,
                                                         technician.contact_no,
                                                     ]
                                                         .filter(Boolean)
@@ -694,6 +736,32 @@ export default function JobOrderAssignments({
                                 {techErrors.contact_no && (
                                     <p className="text-xs text-red-600">
                                         {techErrors.contact_no}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label
+                                    htmlFor="technician-expertise"
+                                    className="text-xs font-medium text-slate-600"
+                                >
+                                    Expertise (optional)
+                                </label>
+                                <Input
+                                    id="technician-expertise"
+                                    value={techForm.expertise}
+                                    onChange={(event) =>
+                                        setTechForm({
+                                            ...techForm,
+                                            expertise: event.target.value,
+                                        })
+                                    }
+                                    placeholder="e.g. Networking, hardware repair"
+                                    className="h-10 border-slate-300 bg-white text-sm"
+                                />
+                                {techErrors.expertise && (
+                                    <p className="text-xs text-red-600">
+                                        {techErrors.expertise}
                                     </p>
                                 )}
                             </div>
@@ -805,9 +873,11 @@ export default function JobOrderAssignments({
                                             value={String(technician.id)}
                                         >
                                             {technician.name}
-                                            {technician.department
-                                                ? ` - ${technician.department}`
-                                                : ''}
+                                            {technician.expertise
+                                                ? ` — ${technician.expertise}`
+                                                : technician.department
+                                                  ? ` — ${technician.department}`
+                                                  : ''}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

@@ -32,6 +32,7 @@ use RuntimeException;
  * @property string|null $employment_type
  * @property string|null $employee_id_number
  * @property string|null $position
+ * @property string|null $expertise
  * @property string|null $employment_document_path
  * @property string|null $employment_document_original_name
  * @property string|null $educational_level
@@ -52,7 +53,7 @@ use RuntimeException;
  * @property Carbon|null $updated_at
  * @property bool $is_technician
  */
-#[Fillable(['name', 'email', 'password', 'role_id', 'department', 'employment_type', 'id_number', 'educational_level', 'year_level', 'gender', 'birth_date', 'home_address', 'cor_path', 'cor_original_name', 'contact_no', 'status', 'avatar', 'employee_id_number', 'position', 'employment_document_path', 'employment_document_original_name', 'is_technician'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'department', 'employment_type', 'id_number', 'educational_level', 'year_level', 'gender', 'birth_date', 'home_address', 'cor_path', 'cor_original_name', 'contact_no', 'status', 'avatar', 'employee_id_number', 'position', 'expertise', 'employment_document_path', 'employment_document_original_name', 'is_technician'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'cor_path', 'cor_original_name', 'employment_document_path', 'employment_document_original_name'])]
 class User extends Authenticatable implements JWTSubject
 {

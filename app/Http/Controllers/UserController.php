@@ -130,6 +130,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'department' => ['nullable', 'string', 'max:100'],
+            'expertise' => ['nullable', 'string', 'max:150'],
             'contact_no' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{7,20}$/'],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
         ], [
@@ -139,6 +140,7 @@ class UserController extends Controller
         $technician = User::create([
             'name' => $validated['name'],
             'department' => $validated['department'] ?? null,
+            'expertise' => $validated['expertise'] ?? null,
             'contact_no' => $validated['contact_no'] ?? null,
             'email' => $validated['email'] ?? 'technician-'.Str::lower(Str::random(12)).'@no-login.local',
             'password' => Hash::make(Str::random(40)),

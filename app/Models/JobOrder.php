@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\PrioritizationService;
 use App\Traits\HasFormNumber;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,6 +52,16 @@ class JobOrder extends Model
         'user_permission_granted' => 'boolean',
         'replacement_provided' => 'boolean',
     ];
+
+    protected $appends = ['replacement_due'];
+
+    /**
+     * Temporary replacement is due when equipment is out of service over five days.
+     */
+    protected function replacementDue(): Attribute
+    {
+        return Attribute::get(fn (): bool => PrioritizationService::shouldProvideReplacement($this));
+    }
 
     /**
      * Get the parent service request.

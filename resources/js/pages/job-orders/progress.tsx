@@ -17,6 +17,7 @@ type JobOrderItem = {
     job_order_number: string;
     status: string;
     priority_level: string | null;
+    replacement_due: boolean;
     date_assigned: string | null;
     sla_deadline: string | null;
     sla_status: string | null;
@@ -241,8 +242,7 @@ export default function JobOrderProgress({ jobOrders, stats }: Props) {
                                                     <span
                                                         className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${
                                                             priorityBadge[
-                                                                jobOrder
-                                                                    .priority_level ??
+                                                                jobOrder.priority_level ??
                                                                     ''
                                                             ] ??
                                                             'border-slate-200 bg-slate-50 text-slate-500'
@@ -255,6 +255,12 @@ export default function JobOrderProgress({ jobOrders, stats }: Props) {
                                                         <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-600">
                                                             <AlertTriangle className="size-3" />
                                                             Past SLA
+                                                        </span>
+                                                    )}
+                                                    {jobOrder.replacement_due && (
+                                                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                                                            <AlertTriangle className="size-3" />
+                                                            Replacement due
                                                         </span>
                                                     )}
                                                 </div>

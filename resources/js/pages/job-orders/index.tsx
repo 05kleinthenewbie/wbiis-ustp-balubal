@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 type JobOrderItem = {
     id: number;
     status: string;
+    priority_level: string | null;
+    replacement_due: boolean;
     date_assigned: string | null;
     service_request: {
         user: { name: string };
@@ -26,11 +28,39 @@ type Props = {
     jobOrders: JobOrderItem[] | { data: JobOrderItem[] };
 };
 
-const statusConfig: Record<string, { badge: string; icon: typeof CheckCircle2 }> = {
-    open: { badge: 'border-slate-200 bg-slate-50 text-slate-600', icon: Clock3 },
-    in_progress: { badge: 'border-amber-200 bg-amber-50 text-amber-700', icon: Wrench },
-    completed: { badge: 'border-ustp-light-blue/30 bg-ustp-light-blue/10 text-ustp-light-blue', icon: CheckCircle2 },
-    closed: { badge: 'border-emerald-200 bg-emerald-50 text-emerald-700', icon: CheckCircle2 },
+const statusConfig: Record<
+    string,
+    { badge: string; icon: typeof CheckCircle2 }
+> = {
+    open: {
+        badge: 'border-slate-200 bg-slate-50 text-slate-600',
+        icon: Clock3,
+    },
+    in_progress: {
+        badge: 'border-amber-200 bg-amber-50 text-amber-700',
+        icon: Wrench,
+    },
+    completed: {
+        badge: 'border-ustp-light-blue/30 bg-ustp-light-blue/10 text-ustp-light-blue',
+        icon: CheckCircle2,
+    },
+    closed: {
+        badge: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+        icon: CheckCircle2,
+    },
+};
+
+const priorityConfig: Record<string, { label: string; badge: string }> = {
+    urgent: { label: 'Urgent', badge: 'border-red-200 bg-red-50 text-red-700' },
+    high: {
+        label: 'High',
+        badge: 'border-orange-200 bg-orange-50 text-orange-700',
+    },
+    medium: {
+        label: 'Medium',
+        badge: 'border-slate-200 bg-slate-50 text-slate-600',
+    },
+    low: { label: 'Low', badge: 'border-sky-200 bg-sky-50 text-sky-700' },
 };
 
 export default function JobOrdersIndex({ jobOrders }: Props) {
@@ -41,10 +71,14 @@ export default function JobOrdersIndex({ jobOrders }: Props) {
         ? jobOrders
         : (jobOrders.data ?? []);
 
+    const priorityOf = (priority: string | null) =>
+        priorityConfig[priority ?? 'medium'] ?? priorityConfig.medium;
+
     const stats = {
         total: jobOrderList.length,
         open: jobOrderList.filter((j) => j.status === 'open').length,
-        in_progress: jobOrderList.filter((j) => j.status === 'in_progress').length,
+        in_progress: jobOrderList.filter((j) => j.status === 'in_progress')
+            .length,
         completed: jobOrderList.filter((j) => j.status === 'completed').length,
         closed: jobOrderList.filter((j) => j.status === 'closed').length,
     };
@@ -66,10 +100,30 @@ export default function JobOrdersIndex({ jobOrders }: Props) {
 
     const statusTabs = [
         { key: 'all', label: 'All', count: stats.total },
-        { key: 'open', label: 'Open', count: stats.open, color: 'text-slate-600' },
-        { key: 'in_progress', label: 'In Progress', count: stats.in_progress, color: 'text-amber-600' },
-        { key: 'completed', label: 'Completed', count: stats.completed, color: 'text-ustp-light-blue' },
-        { key: 'closed', label: 'Closed', count: stats.closed, color: 'text-emerald-600' },
+        {
+            key: 'open',
+            label: 'Open',
+            count: stats.open,
+            color: 'text-slate-600',
+        },
+        {
+            key: 'in_progress',
+            label: 'In Progress',
+            count: stats.in_progress,
+            color: 'text-amber-600',
+        },
+        {
+            key: 'completed',
+            label: 'Completed',
+            count: stats.completed,
+            color: 'text-ustp-light-blue',
+        },
+        {
+            key: 'closed',
+            label: 'Closed',
+            count: stats.closed,
+            color: 'text-emerald-600',
+        },
     ];
 
     const hasActiveFilter = statusFilter !== 'all' || search;
@@ -96,18 +150,46 @@ export default function JobOrdersIndex({ jobOrders }: Props) {
                     {/* Stats Cards */}
                     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                         {[
-                            { label: 'Total Orders', value: stats.total, icon: ClipboardList, color: 'text-ustp-navy', bg: 'bg-ustp-navy/5' },
-                            { label: 'Open', value: stats.open, icon: Clock3, color: 'text-slate-600', bg: 'bg-slate-50' },
-                            { label: 'In Progress', value: stats.in_progress, icon: Wrench, color: 'text-amber-600', bg: 'bg-amber-50' },
-                            { label: 'Completed', value: stats.completed + stats.closed, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                            {
+                                label: 'Total Orders',
+                                value: stats.total,
+                                icon: ClipboardList,
+                                color: 'text-ustp-navy',
+                                bg: 'bg-ustp-navy/5',
+                            },
+                            {
+                                label: 'Open',
+                                value: stats.open,
+                                icon: Clock3,
+                                color: 'text-slate-600',
+                                bg: 'bg-slate-50',
+                            },
+                            {
+                                label: 'In Progress',
+                                value: stats.in_progress,
+                                icon: Wrench,
+                                color: 'text-amber-600',
+                                bg: 'bg-amber-50',
+                            },
+                            {
+                                label: 'Completed',
+                                value: stats.completed + stats.closed,
+                                icon: CheckCircle2,
+                                color: 'text-emerald-600',
+                                bg: 'bg-emerald-50',
+                            },
                         ].map((card) => (
                             <div
                                 key={card.label}
                                 className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}>
-                                        <card.icon className={`size-5 ${card.color}`} />
+                                    <div
+                                        className={`flex size-10 items-center justify-center rounded-xl ${card.bg}`}
+                                    >
+                                        <card.icon
+                                            className={`size-5 ${card.color}`}
+                                        />
                                     </div>
                                     <div>
                                         <p className="text-2xl font-semibold text-slate-800">
@@ -135,11 +217,13 @@ export default function JobOrdersIndex({ jobOrders }: Props) {
                                 }`}
                             >
                                 {tab.label}
-                                <span className={`ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] ${
-                                    statusFilter === tab.key
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-slate-100 text-slate-500'
-                                }`}>
+                                <span
+                                    className={`ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] ${
+                                        statusFilter === tab.key
+                                            ? 'bg-white/20 text-white'
+                                            : 'bg-slate-100 text-slate-500'
+                                    }`}
+                                >
                                     {tab.count}
                                 </span>
                             </button>
@@ -172,8 +256,9 @@ export default function JobOrdersIndex({ jobOrders }: Props) {
                             {hasActiveFilter && (
                                 <button
                                     onClick={() => {
- setStatusFilter('all'); setSearch(''); 
-}}
+                                        setStatusFilter('all');
+                                        setSearch('');
+                                    }}
                                     className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
                                 >
                                     <X className="size-3" />
@@ -182,7 +267,8 @@ export default function JobOrdersIndex({ jobOrders }: Props) {
                             )}
 
                             <div className="text-[11px] text-slate-400">
-                                {filtered.length} job order{filtered.length !== 1 ? 's' : ''}
+                                {filtered.length} job order
+                                {filtered.length !== 1 ? 's' : ''}
                             </div>
                         </div>
                     </div>
@@ -223,6 +309,9 @@ export default function JobOrdersIndex({ jobOrders }: Props) {
                                                 Technician
                                             </th>
                                             <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                                                Priority
+                                            </th>
+                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
                                                 Status
                                             </th>
                                             <th className="w-16 px-5 py-3.5" />
@@ -243,12 +332,23 @@ export default function JobOrdersIndex({ jobOrders }: Props) {
 
                                                         <div className="min-w-0">
                                                             <p className="font-mono text-[10px] text-slate-400">
-                                                                JO-{String(jobOrder.id).padStart(4, '0')}
+                                                                JO-
+                                                                {String(
+                                                                    jobOrder.id,
+                                                                ).padStart(
+                                                                    4,
+                                                                    '0',
+                                                                )}
                                                             </p>
 
                                                             <p className="mt-0.5 truncate font-medium text-slate-800">
                                                                 {jobOrder.service_request.request_services
-                                                                    .map((s) => s.service_type.service_name)
+                                                                    .map(
+                                                                        (s) =>
+                                                                            s
+                                                                                .service_type
+                                                                                .service_name,
+                                                                    )
                                                                     .join(', ')}
                                                             </p>
                                                         </div>
@@ -256,20 +356,50 @@ export default function JobOrdersIndex({ jobOrders }: Props) {
                                                 </td>
 
                                                 <td className="px-5 py-4 text-sm text-slate-600">
-                                                    {jobOrder.service_request.user.name}
+                                                    {
+                                                        jobOrder.service_request
+                                                            .user.name
+                                                    }
                                                 </td>
 
                                                 <td className="px-5 py-4">
-                                                    <span className={`text-xs ${jobOrder.technician ? 'text-slate-600' : 'text-slate-400 italic'}`}>
-                                                        {jobOrder.technician?.name ?? 'Unassigned'}
+                                                    <span
+                                                        className={`text-xs ${jobOrder.technician ? 'text-slate-600' : 'text-slate-400 italic'}`}
+                                                    >
+                                                        {jobOrder.technician
+                                                            ?.name ??
+                                                            'Unassigned'}
                                                     </span>
+                                                </td>
+
+                                                <td className="px-5 py-4">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <span
+                                                            className={`inline-flex w-fit items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${priorityOf(jobOrder.priority_level).badge}`}
+                                                        >
+                                                            {
+                                                                priorityOf(
+                                                                    jobOrder.priority_level,
+                                                                ).label
+                                                            }
+                                                        </span>
+                                                        {jobOrder.replacement_due && (
+                                                            <span className="text-[10px] font-medium text-amber-600">
+                                                                Replacement due
+                                                                (&gt;5 days)
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
 
                                                 <td className="px-5 py-4">
                                                     <span
                                                         className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize ${statusConfig[jobOrder.status]?.badge ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
                                                     >
-                                                        {jobOrder.status.replace('_', ' ')}
+                                                        {jobOrder.status.replace(
+                                                            '_',
+                                                            ' ',
+                                                        )}
                                                     </span>
                                                 </td>
 
@@ -305,30 +435,69 @@ export default function JobOrdersIndex({ jobOrders }: Props) {
 
                                                     <div className="min-w-0">
                                                         <p className="font-mono text-[10px] text-slate-400">
-                                                            JO-{String(jobOrder.id).padStart(4, '0')}
+                                                            JO-
+                                                            {String(
+                                                                jobOrder.id,
+                                                            ).padStart(4, '0')}
                                                         </p>
                                                         <p className="mt-0.5 truncate font-medium text-slate-800">
                                                             {jobOrder.service_request.request_services
-                                                                .map((s) => s.service_type.service_name)
+                                                                .map(
+                                                                    (s) =>
+                                                                        s
+                                                                            .service_type
+                                                                            .service_name,
+                                                                )
                                                                 .join(', ')}
                                                         </p>
                                                     </div>
                                                 </div>
 
                                                 <span
-                                                    className={`shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${statusConfig[jobOrder.status]?.badge ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
+                                                    className={`inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${statusConfig[jobOrder.status]?.badge ?? 'border-slate-200 bg-slate-50 text-slate-500'}`}
                                                 >
-                                                    {jobOrder.status.replace('_', ' ')}
+                                                    {jobOrder.status.replace(
+                                                        '_',
+                                                        ' ',
+                                                    )}
                                                 </span>
                                             </div>
 
                                             <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
                                                 <span>
-                                                    {jobOrder.service_request.user.name}
+                                                    {
+                                                        jobOrder.service_request
+                                                            .user.name
+                                                    }
                                                 </span>
-                                                <span className={jobOrder.technician ? 'text-slate-500' : 'italic'}>
-                                                    {jobOrder.technician?.name ?? 'Unassigned'}
+                                                <span
+                                                    className={
+                                                        jobOrder.technician
+                                                            ? 'text-slate-500'
+                                                            : 'italic'
+                                                    }
+                                                >
+                                                    {jobOrder.technician
+                                                        ?.name ?? 'Unassigned'}
                                                 </span>
+                                            </div>
+
+                                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                                                <span
+                                                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${priorityOf(jobOrder.priority_level).badge}`}
+                                                >
+                                                    {
+                                                        priorityOf(
+                                                            jobOrder.priority_level,
+                                                        ).label
+                                                    }
+                                                </span>
+                                                {jobOrder.replacement_due && (
+                                                    <span className="text-[10px] font-medium text-amber-600">
+                                                        Replacement due (&gt;5
+                                                        days)
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </Link>
