@@ -6,9 +6,9 @@
 
 | Item                       | Details                                                                                                                            |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| System                     | Web-Based ICT Management and Information System (WBIIS) — USTP Balubal Campus                                                      |
+| System                     | Web-Based ICT Management and Information System (WBIMIS) — USTP Balubal Campus                                                     |
 | Tech Stack                 | Laravel 13 (PHP 8.5), Inertia.js v3 + React 19, Tailwind CSS v4, Laravel Fortify, Laravel Wayfinder, Brevo mail, JWT API (PHP-JWT) |
-| Repository                 | github.com/05kleinthenewbie/wbiis-ustp-balubal                                                                                     |
+| Repository                 | github.com/05kleinthenewbie/wbimis-ustp-balubal                                                                                    |
 | Development Period         | 2026-07-10 → 2026-10-21                                                                                                            |
 | Total Activities (commits) | 92                                                                                                                                 |
 | Features Tracked           | 35 (30 Complete, 3 Partial, 1 Disabled, 1 Removed)                                                                                 |

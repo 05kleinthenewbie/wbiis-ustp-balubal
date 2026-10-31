@@ -6,7 +6,7 @@ export default function Terms() {
             <LegalSection title="1. Acceptance of Terms">
                 <p>
                     These Terms of Service ("Terms") govern your use of the
-                    Web-Based ICT Management and Information System ("WBIIS" or
+                    Web-Based ICT Management and Information System ("WBIMIS" or
                     "the System") operated by the ICT Office of USTP Balubal
                     Campus. By creating an account or using the System, you
                     agree to be bound by these Terms. If you do not agree, do
@@ -16,7 +16,7 @@ export default function Terms() {
 
             <LegalSection title="2. Description of the Service">
                 <p>
-                    WBIIS provides a centralized portal for managing ICT
+                    WBIMIS provides a centralized portal for managing ICT
                     operations on campus, including service requests, job
                     orders, facility bookings, incident reports, inventory
                     tracking, and related reports. Features may be added,
