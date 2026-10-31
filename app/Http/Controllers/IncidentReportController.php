@@ -108,7 +108,7 @@ class IncidentReportController extends Controller
             'status' => ['required', 'in:open,under_review,resolved,closed'],
             'liability_user_id' => ['nullable', 'exists:users,id'],
             'liability_description' => ['nullable', 'string'],
-            'liability_amount' => ['nullable', 'required_with:liability_user_id', 'numeric', 'min:0', 'max:9999999999.99'],
+            'liability_amount' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
         ]);
 
         $incident = IncidentReport::findOrFail($id);

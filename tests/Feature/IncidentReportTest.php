@@ -180,7 +180,7 @@ test('admin can close an incident', function () {
     ]);
 });
 
-test('liability amount is required when assigning a liability', function () {
+test('liability amount is optional when assigning a liability', function () {
     $admin = incidentAdmin();
     $liable = incidentFaculty();
     $incident = makeIncident(incidentFaculty());
@@ -190,7 +190,15 @@ test('liability amount is required when assigning a liability', function () {
             'status' => 'under_review',
             'liability_user_id' => $liable->id,
         ])
-        ->assertSessionHasErrors('liability_amount');
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('user_liabilities', [
+        'incident_id' => $incident->id,
+        'user_id' => $liable->id,
+        'liability_status' => 'pending',
+        'liability_amount' => null,
+    ]);
 });
 
 test('faculty cannot view an incident reported by someone else', function () {

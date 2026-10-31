@@ -688,7 +688,7 @@ export default function IncidentsShow({
                                         <Label className="text-xs font-medium text-slate-600">
                                             Liability amount{' '}
                                             <span className="font-normal text-slate-400">
-                                                (required with assignee)
+                                                (optional)
                                             </span>
                                         </Label>
                                         <Input
