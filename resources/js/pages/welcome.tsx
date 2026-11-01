@@ -83,22 +83,6 @@ const roles = [
             'Select your employment type and upload your Employee ID or Certificate of Employment for ICT Admin review.',
     },
     {
-        icon: Shield,
-        role: 'ICT Administrators',
-        description:
-            'Manage requests, process job orders, monitor inventory, and oversee all ICT operations.',
-        features: [
-            'Manage Requests',
-            'Process Job Orders',
-            'Monitor Inventory',
-            'Record Laboratory Incidents',
-        ],
-        href: adminLogin().url,
-        registerHref: null,
-        registrationNote:
-            'Administrator accounts are managed by the ICT office.',
-    },
-    {
         icon: Wifi,
         role: 'Students',
         description:
@@ -113,6 +97,22 @@ const roles = [
         registerHref: register({ query: { role: 'student' } }).url,
         registrationNote:
             'Enter your name, 10-digit student ID, and program, then upload your Certificate of Registration (COR).',
+    },
+    {
+        icon: Shield,
+        role: 'ICT Administrators',
+        description:
+            'Manage requests, process job orders, monitor inventory, and oversee all ICT operations.',
+        features: [
+            'Manage Requests',
+            'Process Job Orders',
+            'Monitor Inventory',
+            'Record Laboratory Incidents',
+        ],
+        href: adminLogin().url,
+        registerHref: null,
+        registrationNote:
+            'Administrator accounts are managed by the ICT office.',
     },
 ];
 
